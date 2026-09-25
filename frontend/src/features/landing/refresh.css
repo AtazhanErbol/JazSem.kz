@@ -12,12 +12,8 @@
   padding-bottom: 24px;
 }
 .landing-header .logo {
-  letter-spacing: -1px;
-  font-weight: 720;
-}
-.landing .logo-mark {
-  border-radius: 11px;
-  box-shadow: 0 5px 12px #e3263620;
+  letter-spacing: -0.9px;
+  font-weight: 680;
 }
 .landing-header nav a {
   position: relative;
@@ -719,14 +715,47 @@ html:has(.landing) {
     font-size: 18px;
   }
   .landing-header .logo-mark {
-    width: 30px;
+    width: 32px;
     height: 32px;
-    font-size: 24px;
-    margin-right: 7px;
+    margin-right: 5px;
   }
   .landing-header .button {
     font-size: 10px;
     padding: 10px 9px;
     gap: 5px;
+  }
+}
+
+/* Kazakh's long words and descenders need more room than the display face. */
+.landing:lang(kk) .hero-copy {
+  min-width: 0;
+}
+.landing:lang(kk) .hero h1 {
+  font-size: clamp(36px, 4.4vw, 64px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.16;
+}
+.landing:lang(kk) h2 {
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+.landing:lang(kk) h3 {
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+@media (max-width: 400px) {
+  .landing:lang(kk) .hero h1 {
+    font-size: clamp(30px, 9vw, 36px);
+  }
+}
+@media (max-width: 360px) {
+  .landing-header .logo {
+    font-size: 16px;
+  }
+  .landing-header .logo-mark {
+    width: 30px;
+    height: 30px;
+    margin-right: 4px;
   }
 }

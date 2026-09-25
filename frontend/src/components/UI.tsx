@@ -5,9 +5,17 @@ import { Link } from "react-router-dom";
 
 export function Logo() {
   return (
-    <Link className="logo" to="/">
-      <span className="logo-mark">J</span>JazSem
-      <span className="muted">.kz</span>
+    <Link className="logo" to="/" aria-label="JazSem.kz">
+      <img
+        className="logo-mark"
+        src="/brand/jazsem-mark.png"
+        width="40"
+        height="40"
+        alt=""
+      />
+      <span className="logo-wordmark">
+        JazSem<span className="logo-domain">.kz</span>
+      </span>
     </Link>
   );
 }
@@ -17,7 +25,6 @@ export function Language() {
   function changeLanguage(language: string) {
     void i18n.changeLanguage(language);
     localStorage.setItem("language", language);
-    document.documentElement.lang = language;
   }
   return (
     <div

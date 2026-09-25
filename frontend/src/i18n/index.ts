@@ -427,9 +427,14 @@ const kk: typeof ru = {
   settingsHint:
     "Инфрақұрылым баптаулары environment арқылы беріледі. Мұнда профиль баптаулары қолжетімді.",
 };
+const savedLanguage = localStorage.getItem("language") === "kk" ? "kk" : "ru";
+document.documentElement.lang = savedLanguage;
+i18n.on("languageChanged", (language) => {
+  document.documentElement.lang = language === "kk" ? "kk" : "ru";
+});
 void i18n.use(initReactI18next).init({
   resources: { ru: { translation: ru }, kk: { translation: kk } },
-  lng: localStorage.getItem("language") || "ru",
+  lng: savedLanguage,
   fallbackLng: "ru",
   interpolation: { escapeValue: false },
 });

@@ -205,20 +205,14 @@
   opacity: 0.65;
   letter-spacing: 1px;
 }
-.cover-letter {
-  font-size: 188px;
-  font-weight: 650;
-  line-height: 0.8;
-  letter-spacing: -15px;
-  margin: 4px 0 0 5px;
-  text-shadow:
-    0 2px 1px #fff2,
-    -1px -1px 1px #b0193133;
-}
-.cover-letter > span {
-  color: #ffb4be;
-  font-size: 80px;
-  letter-spacing: 0;
+.cover-brand {
+  display: block;
+  align-self: center;
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.96;
 }
 .cover-bottom {
   border-top: 1px solid #ffffff2b;
@@ -341,8 +335,9 @@
     width: 236px;
     height: 315px;
   }
-  .cover-letter {
-    font-size: 166px;
+  .cover-brand {
+    width: 145px;
+    height: 145px;
   }
   .book-page-slip {
     left: 12px;
@@ -364,11 +359,9 @@
   .volume-front {
     padding: 23px 22px 19px 28px;
   }
-  .cover-letter {
-    font-size: 152px;
-  }
-  .cover-letter > span {
-    font-size: 65px;
+  .cover-brand {
+    width: 132px;
+    height: 132px;
   }
   .cover-top {
     font-size: 7px;

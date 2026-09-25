@@ -114,9 +114,13 @@ export function BookScene() {
                 </span>
                 <span>01 —</span>
               </div>
-              <div className="cover-letter">
-                J<span>.</span>
-              </div>
+              <img
+                className="cover-brand"
+                src="/brand/jazsem-mark.png"
+                width="160"
+                height="160"
+                alt=""
+              />
               <div className="cover-bottom">
                 <span>
                   {i18n.language === "kk"

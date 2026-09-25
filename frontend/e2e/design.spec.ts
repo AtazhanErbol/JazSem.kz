@@ -12,6 +12,8 @@ test("refreshed landing, responsive layout and language switch", async ({ page }
   await expect(page.getByRole("button", { name: "Қазақша" }).first()).toHaveAttribute("aria-pressed", "true");
   await page.reload();
   await expect(page.getByRole("button", { name: "Қазақша" }).first()).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("lang", "kk");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("font-family", '"Noto Sans Variable", Arial, sans-serif');
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Оқуды жалғастырыңыз.");
   await page.getByRole("link", { name: "Оқуға өту", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login$/);
