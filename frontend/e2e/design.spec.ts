@@ -1,16 +1,16 @@
 import { test, expect } from "@playwright/test";
 
-test("editorial landing, responsive layout and language switch", async ({ page }) => {
+test("refreshed landing, responsive layout and language switch", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const width of [390, 768, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Знания,");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Продолжайте учиться.");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   await page.getByRole("button", { name: "Русский / Қазақша" }).first().click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Өзіңізбен");
-  await page.getByRole("link", { name: "Оқуды бастау", exact: true }).first().click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Оқуды жалғастырыңыз.");
+  await page.getByRole("link", { name: "Оқуға өту", exact: true }).first().click();
   await expect(page).toHaveURL(/\/login$/);
 });
 

@@ -1,11 +1,6 @@
-@import "@fontsource/manrope/cyrillic-400.css";
-@import "@fontsource/manrope/cyrillic-600.css";
-@import "@fontsource/manrope/cyrillic-800.css";
-@import "@fontsource/manrope/latin-400.css";
-@import "@fontsource/manrope/latin-600.css";
-@import "@fontsource/manrope/latin-800.css";
+@import "@fontsource-variable/golos-text";
 :root {
-  font-family: Manrope, Arial, sans-serif;
+  font-family: "Golos Text Variable", Arial, sans-serif;
   color: #24262b;
   background: #f6f7f9;
   font-synthesis: none;

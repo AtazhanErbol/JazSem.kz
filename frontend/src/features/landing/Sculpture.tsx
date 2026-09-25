@@ -23,19 +23,19 @@ void main(){
  vec2 uv=(gl_FragCoord.xy*2.-resolution)/resolution.y;
  uv*=max(1.,resolution.y/resolution.x*1.05);
  vec3 ro=vec3(0.,0.,5.2),rd=normalize(vec3(uv,-3.3));
- vec3 col=mix(vec3(.91,.88,.82),vec3(.965,.948,.912),gl_FragCoord.y/resolution.y);
+ vec3 col=mix(vec3(.98,.955,.95),vec3(1.,.995,.99),gl_FragCoord.y/resolution.y);
  float shadow=exp(-pow(uv.x*1.1,2.)-pow((uv.y+.98)*7.,2.));
  col-=shadow*.17;
  float depth=0.;vec2 hit=vec2(0.);
  for(int i=0;i<76;i++){hit=scene(ro+rd*depth);if(hit.x<.0015||depth>9.)break;depth+=hit.x*.85;}
  if(depth<9.){
  vec3 p=ro+rd*depth,n=normal(p),l=normalize(vec3(-3.,5.,5.));
- vec3 base=mix(vec3(.64,.51,.33),vec3(.25,.025,.065),hit.y);
+ vec3 base=mix(vec3(.82,.85,.88),vec3(.78,.035,.07),hit.y);
  float diff=max(dot(n,l),0.);
  float spec=pow(max(dot(reflect(-l,n),-rd),0.),38.);
  float fres=pow(1.-max(dot(n,-rd),0.),3.);
  float ao=clamp(scene(p+n*.15).x/.15,.35,1.);
- col=base*(.4+diff*.8)*ao+vec3(1.,.91,.74)*spec*.85+vec3(.55,.43,.32)*fres*.32;
+ col=base*(.4+diff*.8)*ao+vec3(1.,.97,.96)*spec*.65+vec3(.68,.72,.79)*fres*.32;
  col+=pow(max(dot(n,normalize(vec3(3.,1.,-2.))),0.),4.)*.12;
  }
  float grain=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5;
