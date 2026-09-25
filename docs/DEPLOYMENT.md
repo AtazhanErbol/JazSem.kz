@@ -2,7 +2,7 @@
 
 Use a dedicated Linux host or equivalent container runtime, managed PostgreSQL 16+, Redis with private network/authentication, and a private S3-compatible bucket. Production Compose is `infra/compose.production.yml`; it does not provision managed dependencies or TLS. Development Compose is not a production security profile.
 
-Development/CI MinIO images use the Quay registry documented in the [upstream container guide](https://github.com/minio/minio/blob/master/docs/docker/README.md). The [community repository](https://github.com/minio/minio) is archived; these pinned images are for isolated local testing, not a recommendation for a new production storage deployment. Use a maintained S3 service for production and review dependency/image security as part of every release.
+Development/CI builds MinIO from the fixed official source tag `RELEASE.2025-04-22T22-12-26Z` because the previously published registry images are unavailable. The [community repository](https://github.com/minio/minio) is archived; this isolated development service is not a recommendation for a new production storage deployment. `init_dev_storage` creates a private bucket and is blocked when DEBUG=False. Use a maintained S3 service for production and review dependency/image security as part of every release.
 
 1. Create database/user with least privileges; enable encrypted connections and backups. Configure authenticated private Redis and durable broker storage.
 2. Create a private S3 bucket and credentials limited to that bucket. Enable encryption, versioning and lifecycle policies. No anonymous read policy. Downloads are streamed by Django after permission checks; no public media location in Nginx.

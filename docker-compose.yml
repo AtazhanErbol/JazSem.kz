@@ -18,17 +18,16 @@ services:
       timeout: 3s
       retries: 20
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    build: {context: infra/minio}
     command: server /data --console-address ':9001'
     env_file: .env
     ports: ['127.0.0.1:9001:9001']
     volumes: [object-data:/data]
   minio-init:
-    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    build: {context: backend, target: development}
     env_file: .env
     depends_on: [minio]
-    entrypoint: /bin/sh
-    command: ['-c', 'until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do sleep 2; done; mc mb --ignore-existing local/$$S3_BUCKET; mc anonymous set none local/$$S3_BUCKET']
+    command: python manage.py init_dev_storage
   backend:
     build: {context: backend, target: development}
     env_file: .env
