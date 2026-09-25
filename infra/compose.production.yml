@@ -1,0 +1,36 @@
+# Standalone production deployment. Managed PostgreSQL/Redis/S3 are configured in .env.
+# Place a trusted HTTPS reverse proxy in front of 127.0.0.1:8080.
+services:
+  backend:
+    build: {context: ../backend, target: production}
+    env_file: ../.env
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/health/',headers={'X-Forwarded-Proto':'https'}); urllib.request.urlopen(r)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  celery:
+    build: {context: ../backend, target: production}
+    env_file: ../.env
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production}
+    command: celery -A config worker --loglevel=info --concurrency=2
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+  beat:
+    build: {context: ../backend, target: production}
+    env_file: ../.env
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production}
+    command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+  web:
+    build: {context: ../frontend, target: production}
+    ports: ['127.0.0.1:8080:8080']
+    depends_on: [backend]
+    restart: unless-stopped

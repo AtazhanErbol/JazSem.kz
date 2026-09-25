@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ':9001'
+    env_file: .env
+    ports: ['127.0.0.1:9001:9001']
+    volumes: [object-data:/data]
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    env_file: .env
+    depends_on: [minio]
+    entrypoint: /bin/sh
+    command: ['-c', 'until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do sleep 2; done; mc mb --ignore-existing local/$$S3_BUCKET; mc anonymous set none local/$$S3_BUCKET']
+  backend:
+    build: {context: backend, target: development}
+    env_file: .env
+    ports: ['127.0.0.1:8000:8000']
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+    volumes: [./backend:/app]
+  celery:
+    build: {context: backend, target: development}
+    env_file: .env
+    command: celery -A config worker --loglevel=info --concurrency=2
+    depends_on: [backend]
+    volumes: [./backend:/app]
+  beat:
+    build: {context: backend, target: development}
+    env_file: .env
+    command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    depends_on: [backend]
+    volumes: [./backend:/app]
+  frontend:
+    build: {context: frontend, target: development}
+    environment: {API_PROXY: 'http://backend:8000'}
+    ports: ['127.0.0.1:5173:5173']
+    depends_on: [backend]
+volumes:
+  postgres-data:
+  redis-data:
+  object-data:
