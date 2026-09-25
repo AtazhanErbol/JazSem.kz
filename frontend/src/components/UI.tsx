@@ -13,19 +13,39 @@ export function Logo() {
 }
 export function Language() {
   const { i18n } = useTranslation();
+  const selected = i18n.language === "kk" ? "kk" : "ru";
+  function changeLanguage(language: string) {
+    void i18n.changeLanguage(language);
+    localStorage.setItem("language", language);
+    document.documentElement.lang = language;
+  }
   return (
-    <button
-      className="language"
-      onClick={() => {
-        const lng = i18n.language === "ru" ? "kk" : "ru";
-        void i18n.changeLanguage(lng);
-        localStorage.setItem("language", lng);
-        document.documentElement.lang = lng;
-      }}
-      aria-label="Русский / Қазақша"
+    <div
+      className="language-switch"
+      data-language={selected}
+      role="group"
+      aria-label={selected === "kk" ? "Интерфейс тілі" : "Язык интерфейса"}
     >
-      {i18n.language === "ru" ? "RU" : "KZ"} <span>⌄</span>
-    </button>
+      <span className="language-indicator" aria-hidden="true" />
+      <button
+        type="button"
+        lang="ru"
+        aria-label="Русский"
+        aria-pressed={selected === "ru"}
+        onClick={() => changeLanguage("ru")}
+      >
+        RU
+      </button>
+      <button
+        type="button"
+        lang="kk"
+        aria-label="Қазақша"
+        aria-pressed={selected === "kk"}
+        onClick={() => changeLanguage("kk")}
+      >
+        KZ
+      </button>
+    </div>
   );
 }
 export function Loading() {

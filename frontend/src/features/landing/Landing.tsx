@@ -12,18 +12,20 @@ import { Language, Logo } from "../../components/UI";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import type { Page, Row } from "../../entities/types";
-import { Sculpture } from "./Sculpture";
+import { BookScene } from "./BookScene";
+import { useLandingMotion } from "./useLandingMotion";
 import "./refresh.css";
 
 export function Landing() {
   const { t, i18n } = useTranslation();
+  const { root, scrolled } = useLandingMotion();
   const content = useQuery({
     queryKey: ["public-content", i18n.language],
     queryFn: () => api<Page<Row>>(`public-content/?language=${i18n.language}`),
   });
   return (
-    <div className="landing">
-      <header className="landing-header">
+    <div className="landing" ref={root}>
+      <header className={`landing-header${scrolled ? " is-scrolled" : ""}`}>
         <Logo />
         <nav>
           <a href="#features">{t("features")}</a>
@@ -68,14 +70,14 @@ export function Landing() {
               <span>•</span> {t("forTeachers")}
             </div>
           </div>
-          <div className="hero-visual hero-sculpture">
+          <div className="hero-visual hero-book">
             <div className="scene-label">
               <span className="scene-dot" /> JAZSEM /{" "}
               {i18n.language === "kk"
                 ? "ЖАҢА МҮМКІНДІКТЕР"
                 : "НОВЫЕ ВОЗМОЖНОСТИ"}
             </div>
-            <Sculpture />
+            <BookScene />
             <div className="scene-tag">
               <BookOpen size={16} />
               {i18n.language === "kk"

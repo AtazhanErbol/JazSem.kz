@@ -89,7 +89,7 @@ test("landing is usable at mobile and desktop widths", async ({ page }) => {
       ),
     ).toBe(true);
   }
-  await page.getByRole("button", { name: "Русский / Қазақша" }).first().click();
+  await page.getByRole("button", { name: "Қазақша" }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Оқуды жалғастырыңыз. Алға ұмтылыңыз.",
   );
