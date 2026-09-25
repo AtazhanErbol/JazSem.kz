@@ -27,12 +27,23 @@
 
 Реальных запросов к OpenAI при разработке не выполнялось. Ключ владельца хранится только в игнорируемом локальном `.env`. AI выключен. Подготовлен `gpt-5-nano`, лимиты токенов, один повтор и суточное резервирование бюджета $0.25 для всего приложения. Подробности и официальный источник тарифов — в AI_COSTS.md.
 
+## Проверено в GitHub Actions на Linux
+
+[Успешный запуск CI](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36112304780) для кода `b1a707d`:
+
+- 29 backend-тестов и миграции на PostgreSQL 16; lint/format без ошибок.
+- Frontend lint, TypeScript, unit tests и production build.
+- Development Docker Compose запущен с PostgreSQL, Redis, MinIO, API, frontend, worker и beat; health/readiness отвечают успешно.
+- Реальный Redis cache и private S3 write/read/delete; фоновая задача Celery извлекла текст документа из S3 и записала чанки.
+- Tesseract содержит rus/kaz/eng; production Docker images backend/frontend собираются.
+- Недоступные готовые MinIO images заменены сборкой из фиксированного официального source tag; development bucket создаёт Django management command.
+
 ## Обязательная staging-приёмка
 
-- Запуск Docker images/Compose на Linux; Docker в текущей среде отсутствует.
-- PostgreSQL: CI и отдельные конкурентные запросы (назначения, попытки, публикация, бюджет). Локальные тесты использовали SQLite и не доказывают поведение блокировок PostgreSQL.
-- Реальные Redis/Celery worker/beat, перезапуск worker и зависшие задания; в unit tests используются eager tasks/fakes.
-- Private S3/MinIO, SMTP/TLS, OCR Tesseract RU/KZ/EN на реальных PDF/DOCX/PPTX/изображениях.
+- Production-развёртывание на целевой инфраструктуре: Docker проверен в CI, не на сервере владельца.
+- Нагрузочные и конкурентные запросы PostgreSQL (назначения, попытки, публикация, бюджет). Функциональные тесты PostgreSQL в CI прошли; они не заменяют отдельную проверку гонок.
+- Перезапуск worker, сбои брокера, зависшие задания и восстановление после отказов. Базовый Redis/Celery pipeline проверен в CI.
+- Production S3 credentials/policies, SMTP/TLS и точность OCR RU/KZ/EN на реальных PDF/DOCX/PPTX/изображениях. CI проверяет MinIO и текстовое извлечение; не качество распознавания сканов.
 - Реальный OpenAI draft на небольшом материале после явного включения AI; оценка точности, качества казахского и полноты ссылок на источники. Сейчас provider покрыт тестовым ответом, не живым вызовом.
 - HTTPS, secure cookies, production health/readiness, наблюдаемость, нагрузочные проверки, проверка безопасности и восстановление backup.
 - Финальная языковая/предметная редактура, реальные контакты и юридические тексты владельца.
