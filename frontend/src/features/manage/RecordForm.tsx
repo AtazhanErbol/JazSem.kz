@@ -15,12 +15,14 @@ export function RecordForm({
   fixed = {},
   defaults: suppliedDefaults = {},
   onDone,
+  submitLabel,
 }: {
   resource: string;
   initial?: Row;
   fixed?: Record<string, unknown>;
   defaults?: Record<string, unknown>;
-  onDone: () => void;
+  onDone: (row?: Row) => void;
+  submitLabel?: string;
 }) {
   const { t } = useTranslation();
   const user = useUser();
@@ -95,7 +97,7 @@ export function RecordForm({
       body,
       initial ? "PATCH" : "POST",
     );
-    if (result) onDone();
+    if (result) onDone(result);
   }
   return (
     <form className="record-form" onSubmit={form.handleSubmit(submit)}>
@@ -150,11 +152,11 @@ export function RecordForm({
       ))}
       {action.feedback}
       <div className="form-actions">
-        <button type="button" onClick={onDone}>
+        <button type="button" onClick={() => onDone()}>
           {t("cancel")}
         </button>
         <button className="primary" disabled={action.pending}>
-          {t("save")}
+          {submitLabel || t("save")}
         </button>
       </div>
     </form>

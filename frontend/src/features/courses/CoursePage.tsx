@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Check, ChevronRight, Plus, FileText } from "lucide-react";
 import type { Activity, Page, Progress, Row, Tree } from "../../entities/types";
@@ -28,7 +28,9 @@ export function CoursePage() {
   const user = useUser();
   const { t } = useTranslation();
   const action = useAction();
-  const [version, setVersion] = useState("");
+  const assignmentAction = useAction();
+  const [params] = useSearchParams();
+  const [version, setVersion] = useState(params.get("version") || "");
   const [selection, setSelected] = useState<{ type: string; item: Activity }>();
   const [editor, setEditor] = useState<Editor>();
   const [confirm, setConfirm] = useState<string>();
@@ -83,13 +85,42 @@ export function CoursePage() {
   const selected =
     selection && selectedItem
       ? { type: selection.type, item: selectedItem }
-      : undefined;
+      : topics
+          .flatMap((topic) =>
+            (["materials", "assignments", "tests"] as const).flatMap((type) =>
+              topic[type].map((item) => ({ type, item })),
+            ),
+          )
+          .find((entry) => entry.item.id === params.get("activity"));
   const editable =
     teacher && ["DRAFT", "REVIEW"].includes(String(data.version.status));
   const edit = (resource: string, initial: Row) =>
     setEditor({ resource, initial });
   const add = (resource: string, fixed: Record<string, unknown>) =>
     setEditor({ resource, fixed });
+  const addWeek = () =>
+    setEditor({
+      resource: "weeks",
+      fixed: { course_version: data.version.id },
+      defaults: {
+        number:
+          Math.max(0, ...data.weeks.map((week) => Number(week.number))) + 1,
+      },
+    });
+  const activityCount = topics.reduce(
+    (n, topic) =>
+      n +
+      topic.materials.length +
+      topic.assignments.length +
+      topic.tests.length,
+    0,
+  );
+  const gradableCount = topics.reduce(
+    (n, topic) => n + topic.assignments.length + topic.tests.length,
+    0,
+  );
+  const weightTotal = data.components.reduce((n, c) => n + Number(c.weight), 0);
+  const published = data.version.status === "PUBLISHED";
   const controls = (resource: string, row: Row) => (
     <div className="mini-actions">
       <button onClick={() => edit(resource, row)}>{t("edit")}</button>
@@ -154,8 +185,50 @@ export function CoursePage() {
       {action.feedback}
       {teacher && !editable && <p className="notice">{t("immutable")}</p>}
       {editable && (
-        <section className="help-card">
-          <p>{t("builderHint")}</p>
+        <section
+          className="builder-checklist"
+          aria-label={t("workspace.courseProgress")}
+        >
+          {[
+            [
+              "workspace.structure",
+              "workspace.structureHelp",
+              topics.length > 0,
+              "#course-structure",
+            ],
+            [
+              "workspace.activities",
+              "workspace.activityHelp",
+              activityCount > 0,
+              "#course-content",
+            ],
+            [
+              "grading",
+              "workspace.gradingHelp",
+              weightTotal === 100,
+              "#course-grading",
+            ],
+            [
+              "workspace.publishStep",
+              "workspace.publishHelp",
+              false,
+              "#course-sharing",
+            ],
+          ].map(([label, hint, done, href], index) => (
+            <a
+              key={String(label)}
+              href={String(href)}
+              className={done ? "complete" : ""}
+            >
+              <span className="workspace-step-number">
+                {done ? <Check size={16} /> : index + 1}
+              </span>
+              <div>
+                <strong>{t(String(label))}</strong>
+                <small>{t(String(hint))}</small>
+              </div>
+            </a>
+          ))}
         </section>
       )}
       {!teacher && progress.data && (
@@ -167,7 +240,7 @@ export function CoursePage() {
         </div>
       )}
       <div className="course-layout">
-        <aside className="course-outline">
+        <aside className="course-outline" id="course-structure">
           <h3>
             <BookOpen size={18} />
             {t("outline")}
@@ -241,27 +314,13 @@ export function CoursePage() {
             </section>
           ))}
           {editable && (
-            <button
-              onClick={() =>
-                setEditor({
-                  resource: "weeks",
-                  fixed: { course_version: data.version.id },
-                  defaults: {
-                    number:
-                      Math.max(
-                        0,
-                        ...data.weeks.map((week) => Number(week.number)),
-                      ) + 1,
-                  },
-                })
-              }
-            >
+            <button onClick={addWeek}>
               <Plus size={16} />
               {t("addWeek")}
             </button>
           )}
         </aside>
-        <section className="content-pane">
+        <section className="content-pane" id="course-content">
           {selected ? (
             <>
               <span className="eyebrow">{t(selected.type)}</span>
@@ -271,6 +330,24 @@ export function CoursePage() {
                   selected.item.instructions ||
                   String(selected.item.description || "")}
               </div>
+              {editable && selected.type === "topic" && (
+                <div className="topic-create">
+                  <h3>{t("workspace.topicEmptyTitle")}</h3>
+                  <div className="row-actions">
+                    {["materials", "assignments", "tests"].map((resource) => (
+                      <button
+                        key={resource}
+                        onClick={() =>
+                          add(resource, { topic: selected.item.id })
+                        }
+                      >
+                        <Plus size={16} />
+                        {t(resource)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {selected.item.file && (
                 <a
                   className="button"
@@ -337,6 +414,15 @@ export function CoursePage() {
               )}
               {selected.type === "tests" && teacher && (
                 <>
+                  {editable && !!selected.item.questions?.length && (
+                    <p className="muted">{t("workspace.testEmptyText")}</p>
+                  )}
+                  {editable && !selected.item.questions?.length && (
+                    <div className="workspace-empty">
+                      <h3>{t("workspace.testEmptyTitle")}</h3>
+                      <p>{t("workspace.testEmptyText")}</p>
+                    </div>
+                  )}
                   {selected.item.questions?.map((question) => (
                     <div className="question-editor" key={question.id}>
                       <h3>{question.text}</h3>
@@ -389,16 +475,78 @@ export function CoursePage() {
               </span>
               <h2>{String(data.course.title)}</h2>
               <p>{String(data.course.description)}</p>
-              <p className="muted">{t("noSelection")}</p>
-              {!data.weeks.length && <Empty />}
+              {editable ? (
+                <>
+                  <h3>{t("workspace.courseEmptyTitle")}</h3>
+                  <p className="muted">{t("workspace.courseEmptyText")}</p>
+                  <div className="row-actions">
+                    {!data.weeks.length ? (
+                      <button className="primary" onClick={addWeek}>
+                        + {t("addWeek")}
+                      </button>
+                    ) : !topics.length ? (
+                      <button
+                        className="primary"
+                        onClick={() =>
+                          add("topics", { week: data.weeks[0].id })
+                        }
+                      >
+                        + {t("addTopic")}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setSelected({ type: "topic", item: topics[0] })
+                        }
+                      >
+                        {t("workspace.activities")} →
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="muted">{t("noSelection")}</p>
+                  {!data.weeks.length && <Empty />}
+                </>
+              )}
             </div>
           )}
         </section>
       </div>
       {teacher && (
         <div className="dashboard-columns">
-          <section className="panel">
+          <section className="panel" id="course-grading">
             <h2>{t("grading")}</h2>
+            <p
+              className={
+                weightTotal === 100 ? "grading-total complete" : "grading-total"
+              }
+            >
+              {t("workspace.gradingTotal", { total: weightTotal })}
+            </p>
+            {editable && !data.components.length && (
+              <div className="grading-helper">
+                <p className="muted">
+                  {t(
+                    gradableCount
+                      ? "workspace.equalWeightsHint"
+                      : "workspace.gradingNeedsActivity",
+                  )}
+                </p>
+                <button
+                  className="primary"
+                  disabled={!gradableCount || action.pending}
+                  onClick={() =>
+                    void action.run(`courses/${id}/grading-preset/`, {
+                      version: data.version.id,
+                    })
+                  }
+                >
+                  {t("workspace.equalWeights")}
+                </button>
+              </div>
+            )}
             {data.components.map((c) => (
               <div className="record-row" key={c.id}>
                 <span>
@@ -421,8 +569,12 @@ export function CoursePage() {
               </button>
             )}
           </section>
-          <section className="panel">
-            <h2>{t("assign")}</h2>
+          <section className="panel" id="course-sharing">
+            <h2>{t("workspace.assignTitle")}</h2>
+            <p className="muted">{t("workspace.assignHint")}</p>
+            {!published && (
+              <p className="notice">{t("workspace.publishBeforeAssign")}</p>
+            )}
             <label>
               {t("student")}
               <select
@@ -440,9 +592,14 @@ export function CoursePage() {
               </select>
             </label>
             <button
-              disabled={!student || action.pending}
+              disabled={!published || !student || assignmentAction.pending}
               onClick={() =>
-                void action.run(`courses/${id}/assign/`, { student })
+                void assignmentAction.run(
+                  `courses/${id}/assign/`,
+                  { student },
+                  "POST",
+                  t("workspace.assigned"),
+                )
               }
             >
               {t("assign")}
@@ -463,13 +620,19 @@ export function CoursePage() {
               </select>
             </label>
             <button
-              disabled={!group || action.pending}
+              disabled={!published || !group || assignmentAction.pending}
               onClick={() =>
-                void action.run(`groups/${group}/assign/`, { course: id })
+                void assignmentAction.run(
+                  `groups/${group}/assign/`,
+                  { course: id },
+                  "POST",
+                  t("workspace.groupAssigned"),
+                )
               }
             >
               {t("assign")}
             </button>
+            {assignmentAction.feedback}
           </section>
         </div>
       )}
@@ -483,7 +646,18 @@ export function CoursePage() {
             initial={editor.initial}
             fixed={editor.fixed}
             defaults={editor.defaults}
-            onDone={() => {
+            onDone={(row) => {
+              if (
+                row &&
+                ["topics", "materials", "assignments", "tests"].includes(
+                  editor.resource,
+                )
+              )
+                setSelected({
+                  type:
+                    editor.resource === "topics" ? "topic" : editor.resource,
+                  item: row as Activity,
+                });
               setEditor(undefined);
             }}
           />

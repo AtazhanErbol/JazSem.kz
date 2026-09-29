@@ -1,4 +1,5 @@
 from django.utils import timezone
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -8,9 +9,14 @@ from apps.testing.models import Test, TestAttempt
 from apps.testing.services import finalize, save_answer, start
 
 
+class TestDisplaySerializer(serializer_for(Test)):
+    course_id = serializers.UUIDField(source="topic.week.course_version.course_id", read_only=True)
+    course_version_id = serializers.UUIDField(source="topic.week.course_version_id", read_only=True)
+
+
 class TestViewSet(ScopedViewSet):
-    queryset = Test.objects.all()
-    serializer_class = serializer_for(Test)
+    queryset = Test.objects.select_related("topic__week__course_version")
+    serializer_class = TestDisplaySerializer
 
     @action(detail=True, methods=["post"])
     def start(self, request, pk=None):

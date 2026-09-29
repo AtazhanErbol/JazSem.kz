@@ -8,13 +8,13 @@ from apps.accounts.models import User
 from apps.audit.services import record
 from apps.common.api import ScopedViewSet, lookup, representation
 from apps.common.permissions import is_admin, is_teacher
-from apps.common.scope import visible
+from apps.common.scope import editable, visible
 from apps.common.serializers import serializer_for
 from apps.courses.models import Course, Topic
 from apps.courses.services import duplicate, new_version, publish
 from apps.enrollments.models import Enrollment
 from apps.enrollments.services import enroll
-from apps.grading.models import GradingScheme
+from apps.grading.models import GradingComponent, GradingScheme
 from apps.progress.models import TopicProgress
 from apps.progress.services import summary
 
@@ -23,6 +23,7 @@ class CourseViewSet(ScopedViewSet):
     queryset = Course.objects.all()
     serializer_class = serializer_for(Course, ["current_version"])
     filterset_fields = ["status", "discipline"]
+    ordering_fields = ["created_at", "updated_at", "title"]
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -51,6 +52,37 @@ class CourseViewSet(ScopedViewSet):
         course = self.get_object()
         version = get_object_or_404(course.versions, pk=request.data.get("version"))
         return Response(representation(publish(version, request.user), request))
+
+    @action(detail=True, methods=["post"], url_path="grading-preset")
+    @transaction.atomic
+    def grading_preset(self, request, pk=None):
+        from apps.assignments.models import Assignment
+        from apps.testing.models import Test
+
+        course = self.get_object()
+        version = get_object_or_404(
+            course.versions.select_for_update(), pk=request.data.get("version")
+        )
+        editable(version, request.user)
+        kinds = []
+        if Assignment.objects.filter(topic__week__course_version=version).exists():
+            kinds.append("ASSIGNMENTS")
+        tests = Test.objects.filter(topic__week__course_version=version)
+        for kind, final in [("TESTS", False), ("FINAL", True)]:
+            if tests.filter(is_final=final).exists():
+                kinds.append(kind)
+        if not kinds:
+            raise ValidationError("Сначала добавьте задание или тест.")
+        scheme, _ = GradingScheme.objects.get_or_create(course_version=version)
+        # Retry safely without replacing any weights already chosen by the author.
+        if not scheme.components.exists():
+            base, remainder = divmod(100, len(kinds))
+            for index, kind in enumerate(kinds):
+                GradingComponent.objects.create(
+                    scheme=scheme, kind=kind, weight=base + (index < remainder)
+                )
+            record(request.user, "course.grading_configured", scheme)
+        return Response([representation(c, request) for c in scheme.components.all()])
 
     @action(detail=True, methods=["post"])
     def duplicate(self, request, pk=None):

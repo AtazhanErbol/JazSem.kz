@@ -1,8 +1,10 @@
 import { ruLabels, kkLabels } from "./labels";
 import { ruUX, kkUX } from "./ux";
+import { ruWorkspace, kkWorkspace } from "./workspace";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 const ru = {
+  workspace: ruWorkspace,
   ...ruUX,
   ...ruLabels,
   app: "Образовательная среда",
@@ -219,6 +221,7 @@ const ru = {
 };
 const kk: typeof ru = {
   ...ru,
+  workspace: kkWorkspace,
   ...kkUX,
   ...kkLabels,
   app: "Білім беру ортасы",

@@ -8,9 +8,14 @@ from apps.common.api import ReadOnlyScoped, ScopedViewSet, private_response, rep
 from apps.common.serializers import serializer_for
 
 
+class AssignmentDisplaySerializer(serializer_for(Assignment)):
+    course_id = serializers.UUIDField(source="topic.week.course_version.course_id", read_only=True)
+    course_version_id = serializers.UUIDField(source="topic.week.course_version_id", read_only=True)
+
+
 class AssignmentViewSet(ScopedViewSet):
-    queryset = Assignment.objects.all()
-    serializer_class = serializer_for(Assignment)
+    queryset = Assignment.objects.select_related("topic__week__course_version")
+    serializer_class = AssignmentDisplaySerializer
     filterset_fields = ["status", "topic"]
     ordering_fields = ["created_at", "deadline", "title", "order"]
 

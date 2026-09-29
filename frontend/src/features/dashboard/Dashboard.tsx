@@ -6,8 +6,14 @@ import { useUser } from "../../app/Auth";
 import { api } from "../../services/api";
 import type { Page, Row } from "../../entities/types";
 import { Empty, ErrorState, Loading } from "../../components/UI";
+import { AdminDashboard } from "./AdminDashboard";
 
 export function Dashboard() {
+  const user = useUser();
+  return user.role === "ADMIN" ? <AdminDashboard /> : <LearningDashboard />;
+}
+
+function LearningDashboard() {
   const user = useUser();
   const { t, i18n } = useTranslation();
   const stats = useQuery({
@@ -43,7 +49,7 @@ export function Dashboard() {
           <p className="muted">{t("welcome")}</p>
         </div>
         {user.role !== "STUDENT" && (
-          <Link className="button primary" to="/app/courses">
+          <Link className="button primary" to="/app/courses?create=1">
             + {t("createCourse")}
           </Link>
         )}
