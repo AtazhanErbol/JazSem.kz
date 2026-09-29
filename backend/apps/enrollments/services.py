@@ -39,7 +39,7 @@ def enroll(actor, student, course, group_assignment=None):
         defaults={"assigned_by": actor, "group_assignment": group_assignment},
     )
     if created:
-        notify(student, "COURSE", course.title, link=f"/app/courses/{course.pk}")
+        notify(student, "COURSE", course.title, link=f"/app/courses/{course.pk}", email=True)
     return enrollment
 
 

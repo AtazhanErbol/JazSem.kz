@@ -140,11 +140,29 @@ def generate_course(self, pk):
 
 
 def fail(job, error_type, started):
-    AIJob.objects.filter(pk=job.pk).exclude(status="CANCELLED").update(
-        status="FAILED",
-        error=f"Generation failed ({error_type}). Check provider configuration, sources and schema.",
-        finished_at=timezone.now(),
+    changed = (
+        AIJob.objects.filter(pk=job.pk)
+        .exclude(status__in=["CANCELLED", "FAILED"])
+        .update(
+            status="FAILED",
+            error=f"Generation failed ({error_type}). Check provider configuration, sources and schema.",
+            finished_at=timezone.now(),
+        )
     )
+    if changed:
+        from apps.accounts.models import User
+        from apps.notifications.services import notify
+
+        for admin in User.objects.filter(role="ADMIN", is_active=True):
+            notify(
+                admin,
+                "AI_FAILED",
+                "JazSem — ошибка генерации AI",
+                job.course.title,
+                "/app/ai",
+                email=True,
+                key=f"ai-failed:{job.pk}:{admin.pk}",
+            )
     AIUsageLog.objects.create(
         user=job.user,
         operation=job.type,

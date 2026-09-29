@@ -10,6 +10,7 @@ import { useUser } from "../../app/Auth";
 import { useAction } from "../../hooks/useAction";
 import { RecordForm } from "./RecordForm";
 import { fields } from "./fields";
+import { RecordDetails } from "./RecordDetails";
 
 export function ResourcePage({ resource }: { resource: string }) {
   const { t } = useTranslation();
@@ -58,6 +59,26 @@ export function ResourcePage({ resource }: { resource: string }) {
           </button>
         )}
       </div>
+      {user.role !== "STUDENT" &&
+        ["assignments", "tests"].includes(resource) && (
+          <section className="help-card">
+            <div>
+              <strong>{t("activityAuthoringTitle")}</strong>
+              <p>{t("activityAuthoringHint")}</p>
+            </div>
+            <Link className="button" to="/app/courses">
+              {t("openCourseBuilder")} <ArrowUpRight size={18} />
+            </Link>
+          </section>
+        )}
+      {["content", "audit"].includes(resource) && (
+        <section className="help-card">
+          <div>
+            <strong>{t(resource + "HelpTitle")}</strong>
+            <p>{t(resource + "Help")}</p>
+          </div>
+        </section>
+      )}
       <div className="toolbar">
         <Search size={18} />
         <input
@@ -238,20 +259,7 @@ export function ResourcePage({ resource }: { resource: string }) {
       )}
       {detail && (
         <Modal title={t("details")} onClose={() => setDetail(undefined)}>
-          <dl className="details">
-            {Object.entries(detail)
-              .filter(([key]) => !["id", "file"].includes(key))
-              .map(([key, value]) => (
-                <div key={key}>
-                  <dt>{t(key)}</dt>
-                  <dd>
-                    {typeof value === "object"
-                      ? JSON.stringify(value)
-                      : String(value ?? "—")}
-                  </dd>
-                </div>
-              ))}
-          </dl>
+          <RecordDetails row={detail} />
         </Modal>
       )}
     </>

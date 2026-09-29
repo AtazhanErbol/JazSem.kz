@@ -323,17 +323,117 @@ small {
 dialog {
   border: 0;
   border-radius: 16px;
-  padding: 28px;
+  padding: 0;
   max-width: 620px;
   width: calc(100% - 32px);
-  max-height: 90vh;
+  max-height: min(90dvh, 820px);
+  overflow: hidden;
   box-shadow: 0 24px 120px #0004;
+}
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.modal-body {
+  padding: 8px 26px 26px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b7bdc8 transparent;
+}
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: #b7bdc8;
+  border: 2px solid white;
+  border-radius: 10px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #8c95a5;
+}
+.details {
+  margin: 0;
+}
+.details dd {
+  white-space: pre-wrap;
+}
+.record-json {
+  margin: 0;
+  white-space: pre-wrap;
+  font: inherit;
+}
+.help-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid #eadde0;
+  background: #fff9f9;
+  padding: 22px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+.help-card p {
+  color: var(--muted);
+  margin: 6px 0 0;
+  max-width: 720px;
+}
+.help-card .button {
+  flex-shrink: 0;
+}
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.settings-layout .panel {
+  margin: 0;
+}
+.settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.settings-section-title svg {
+  color: var(--red);
+}
+.settings-section-title h2 {
+  margin: 0;
+}
+.security-card p {
+  color: var(--muted);
+}
+.security-card .button {
+  margin-top: 12px;
+}
+@media (max-width: 900px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+  .help-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+@media (max-width: 480px) {
+  .modal-body {
+    padding: 6px 18px 20px;
+  }
 }
 dialog::backdrop {
   background: #11182780;
   backdrop-filter: blur(3px);
 }
 .modal-head {
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+  background: white;
   display: flex;
   justify-content: space-between;
   gap: 16px;

@@ -1,7 +1,9 @@
 import { ruLabels, kkLabels } from "./labels";
+import { ruUX, kkUX } from "./ux";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 const ru = {
+  ...ruUX,
   ...ruLabels,
   app: "Образовательная среда",
   home: "Обзор",
@@ -216,6 +218,7 @@ const ru = {
     "Настройки инфраструктуры задаются через environment. Здесь доступны настройки вашего профиля.",
 };
 const kk: typeof ru = {
+  ...kkUX,
   ...ru,
   ...kkLabels,
   app: "Білім беру ортасы",

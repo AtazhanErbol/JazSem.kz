@@ -7,7 +7,8 @@ test('AI wizard reviews and imports a draft without a real provider call',async(
  await page.route('**/api/v1/**',async route=>{
   const url=new URL(route.request().url());const path=url.pathname;
   let data:unknown={count:0,results:[],next:null,previous:null};
-  if(path.endsWith('/auth/me/'))data=user;
+  if(path.endsWith('/ai-status/'))data={enabled:true,configured:true,worker_available:true,daily_budget:'0.25',model:'test-model'};
+  else if(path.endsWith('/auth/me/'))data=user;
   else if(path.endsWith('/auth/login/'))data={csrfToken:'test-csrf'};
   else if(path.endsWith('/courses/'))data={count:1,results:[{id:'course',title:'My course'}],next:null,previous:null};
   else if(path.endsWith('/sources/'))data={count:1,results:[{id:'source',filename:'lesson.txt',processing_status:'COMPLETED'}],next:null,previous:null};

@@ -101,20 +101,33 @@ export function Modal({
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const { t } = useTranslation();
   useEffect(() => {
     const dialog = ref.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     dialog?.showModal();
-    return () => dialog?.close();
+    return () => {
+      dialog?.close();
+      document.body.style.overflow = previousOverflow;
+    };
   }, []);
   return (
     <dialog ref={ref} onCancel={onClose} aria-label={title}>
       <div className="modal-head">
         <h2>{title}</h2>
-        <button className="icon-button" onClick={onClose} aria-label="Close">
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onClose}
+          aria-label={t("close")}
+        >
           <X />
         </button>
       </div>
-      {children}
+      <div className="modal-body" tabIndex={0}>
+        {children}
+      </div>
     </dialog>
   );
 }

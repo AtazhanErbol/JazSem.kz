@@ -14,7 +14,7 @@ test("student studies, submits, takes a test; teacher grades", async ({
     page.getByRole("heading", { name: /Здравствуйте/ }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Мои курсы", exact: true }).click();
-  await page.getByRole("link", { name: "Продолжить обучение" }).first().click();
+  await page.getByRole("article").filter({has: page.getByRole("heading", {name: "Прикладная математика · Летний семестр", exact: true})}).getByRole("link", { name: "Продолжить обучение" }).click();
   await page
     .getByRole("button", { name: "Конспект: Линейные уравнения" })
     .click();
@@ -26,9 +26,8 @@ test("student studies, submits, takes a test; teacher grades", async ({
     ).toBeDisabled();
   }
   await page.goto("/app/assignments");
-  await page
+  await page.getByRole("article").filter({has: page.getByRole("heading", {name:"Практическая работа 1",exact:true})})
     .getByRole("link", { name: "Отправить работу", exact: true })
-    .first()
     .click();
   await page.getByLabel("Ваш ответ").fill("x = 3. Проверка: 3 × 3 − 9 = 0.");
   await page
@@ -36,9 +35,8 @@ test("student studies, submits, takes a test; teacher grades", async ({
     .click();
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.goto("/app/tests");
-  await page
+  await page.getByRole("article").filter({has: page.getByRole("heading", {name:"Проверка знаний 1",exact:true})})
     .getByRole("link", { name: "Начать тест", exact: true })
-    .first()
     .click();
   await page
     .getByRole("button", { name: "Начать тест / Продолжить обучение" })

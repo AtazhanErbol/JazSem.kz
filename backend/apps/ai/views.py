@@ -5,9 +5,11 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.accounts.models import User
 from apps.common.api import ReadOnlyScoped, lookup, private_response, representation
+from apps.common.background import require_worker, worker_available
 from apps.common.permissions import is_teacher
 from apps.common.serializers import serializer_for
 from apps.courses.models import Course
@@ -16,6 +18,50 @@ from apps.materials.validation import validate_upload
 from .models import AICourseDraft, AIJob, AIUsageLog, DocumentChunk, SourceDocument
 from .services import import_draft, validated_draft
 from .tasks import extract_document, generate_course
+
+
+def require_generation():
+    if not settings.AI_ENABLED:
+        raise ValidationError("Генерация AI отключена администратором.")
+    if not all(
+        [
+            settings.OPENAI_API_KEY,
+            settings.OPENAI_MODEL,
+            settings.AI_INPUT_PRICE,
+            settings.AI_OUTPUT_PRICE,
+        ]
+    ):
+        raise ValidationError("Не настроены ключ, модель или лимиты стоимости AI.")
+    require_worker()
+
+
+class AIStatusView(APIView):
+    class AIStatusOutput(serializers.Serializer):
+        enabled = serializers.BooleanField()
+        configured = serializers.BooleanField()
+        worker_available = serializers.BooleanField()
+        daily_budget = serializers.CharField()
+        model = serializers.CharField()
+
+    serializer_class = AIStatusOutput
+
+    def get(self, request):
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        return Response(
+            {
+                "enabled": settings.AI_ENABLED,
+                "configured": bool(
+                    settings.OPENAI_API_KEY
+                    and settings.OPENAI_MODEL
+                    and settings.AI_INPUT_PRICE
+                    and settings.AI_OUTPUT_PRICE
+                ),
+                "worker_available": worker_available(),
+                "daily_budget": str(settings.AI_DAILY_BUDGET_USD),
+                "model": settings.OPENAI_MODEL,
+            }
+        )
 
 
 class SourceViewSet(ReadOnlyScoped):
@@ -35,6 +81,7 @@ class SourceViewSet(ReadOnlyScoped):
         if not file:
             raise ValidationError("Выберите файл.")
         validate_upload(file)
+        require_worker()
         with transaction.atomic():
             source = SourceDocument.objects.create(
                 course=course,
@@ -83,6 +130,7 @@ class JobViewSet(ReadOnlyScoped):
     def create(self, request):
         if not is_teacher(request.user):
             raise PermissionDenied()
+        require_generation()
         data = GenerationSerializer(data=request.data)
         data.is_valid(raise_exception=True)
         params = data.validated_data
@@ -135,6 +183,7 @@ class DraftViewSet(ReadOnlyScoped):
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def regenerate(self, request, pk=None):
+        require_generation()
         draft = self.get_object()
         if draft.imported_version:
             raise ValidationError("Черновик уже импортирован.")

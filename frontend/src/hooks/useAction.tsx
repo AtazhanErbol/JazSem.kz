@@ -14,6 +14,7 @@ export function useAction() {
     path: string,
     body?: unknown,
     method = "POST",
+    successMessage?: string,
   ): Promise<T | undefined> {
     setPending(true);
     setError(undefined);
@@ -21,7 +22,7 @@ export function useAction() {
     try {
       const result = await api<T>(path, method, body);
       await cache.invalidateQueries();
-      setSuccess(t("saved"));
+      setSuccess(successMessage ?? t("saved"));
       return result;
     } catch (e) {
       setError(e);

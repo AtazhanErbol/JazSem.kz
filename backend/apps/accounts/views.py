@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
@@ -87,6 +88,7 @@ class ChangePasswordView(APIView):
     serializer_class = PasswordSerializer
     throttle_scope = "auth"
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -97,6 +99,9 @@ class ChangePasswordView(APIView):
         request.user.must_change_password = False
         request.user.save()
         update_session_auth_hash(request, request.user)
+        from apps.notifications.services import password_changed
+
+        password_changed(request.user)
         return Response(UserSerializer(request.user).data)
 
 
@@ -117,13 +122,21 @@ class ForgotView(APIView):
             url = f"{settings.FRONTEND_URL}/reset-password?uid={urlsafe_base64_encode(force_bytes(user.pk))}&token={default_token_generator.make_token(user)}"
             queue_mail(
                 user,
-                "JazSem.kz",
+                "JazSem — құпиясөзді қалпына келтіру"
+                if user.preferred_language == "kk"
+                else "JazSem — восстановление пароля",
                 (
                     "Құпиясөзді қалпына келтіру: "
                     if user.preferred_language == "kk"
                     else "Восстановить пароль: "
                 )
-                + url,
+                + url
+                + "\n\n"
+                + (
+                    "Сілтеме 1 сағат жарамды және бір рет қолданылады. Сұрау жібермесеңіз, бұл хатты елемеңіз."
+                    if user.preferred_language == "kk"
+                    else "Ссылка действует 1 час и используется один раз. Если вы не запрашивали сброс, просто проигнорируйте это письмо."
+                ),
             )
         return Response({"message": "Если аккаунт существует, письмо будет отправлено."})
 
@@ -140,7 +153,7 @@ class ResetView(ForgotView):
         try:
             uid = urlsafe_base64_decode(data.get("uid", "")).decode()
             user = User.objects.select_for_update().get(pk=uid, is_active=True)
-        except (ValueError, UnicodeDecodeError, User.DoesNotExist):
+        except (ValueError, UnicodeDecodeError, DjangoValidationError, User.DoesNotExist):
             raise ValidationError("Ссылка недействительна.")
         if not default_token_generator.check_token(user, data.get("token", "")):
             raise ValidationError("Ссылка недействительна.")
@@ -148,6 +161,9 @@ class ResetView(ForgotView):
         user.set_password(data["password"])
         user.must_change_password = False
         user.save()
+        from apps.notifications.services import password_changed
+
+        password_changed(user)
         return Response({"message": "Пароль изменён."})
 
 

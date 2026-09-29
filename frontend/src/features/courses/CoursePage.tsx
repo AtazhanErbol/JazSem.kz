@@ -21,6 +21,7 @@ interface Editor {
   resource: string;
   initial?: Row;
   fixed?: Record<string, unknown>;
+  defaults?: Record<string, unknown>;
 }
 export function CoursePage() {
   const { id } = useParams();
@@ -28,7 +29,7 @@ export function CoursePage() {
   const { t } = useTranslation();
   const action = useAction();
   const [version, setVersion] = useState("");
-  const [selected, setSelected] = useState<{ type: string; item: Activity }>();
+  const [selection, setSelected] = useState<{ type: string; item: Activity }>();
   const [editor, setEditor] = useState<Editor>();
   const [confirm, setConfirm] = useState<string>();
   const [student, setStudent] = useState("");
@@ -68,6 +69,21 @@ export function CoursePage() {
   if (query.isPending) return <Loading />;
   if (query.error) return <ErrorState error={query.error} />;
   const data = query.data;
+  const topics = data.weeks.flatMap((week) => week.topics);
+  const selectedItem: Activity | undefined =
+    selection &&
+    (selection.type === "topic"
+      ? topics
+      : topics.flatMap((topic) => [
+          ...topic.materials,
+          ...topic.assignments,
+          ...topic.tests,
+        ])
+    ).find((item) => item.id === selection.item.id);
+  const selected =
+    selection && selectedItem
+      ? { type: selection.type, item: selectedItem }
+      : undefined;
   const editable =
     teacher && ["DRAFT", "REVIEW"].includes(String(data.version.status));
   const edit = (resource: string, initial: Row) =>
@@ -137,6 +153,11 @@ export function CoursePage() {
       </div>
       {action.feedback}
       {teacher && !editable && <p className="notice">{t("immutable")}</p>}
+      {editable && (
+        <section className="help-card">
+          <p>{t("builderHint")}</p>
+        </section>
+      )}
       {!teacher && progress.data && (
         <div className="course-progress">
           <span>
@@ -221,7 +242,19 @@ export function CoursePage() {
           ))}
           {editable && (
             <button
-              onClick={() => add("weeks", { course_version: data.version.id })}
+              onClick={() =>
+                setEditor({
+                  resource: "weeks",
+                  fixed: { course_version: data.version.id },
+                  defaults: {
+                    number:
+                      Math.max(
+                        0,
+                        ...data.weeks.map((week) => Number(week.number)),
+                      ) + 1,
+                  },
+                })
+              }
             >
               <Plus size={16} />
               {t("addWeek")}
@@ -394,6 +427,7 @@ export function CoursePage() {
               {t("student")}
               <select
                 value={student}
+                aria-label={t("student")}
                 onChange={(e) => setStudent(e.target.value)}
               >
                 <option value="">—</option>
@@ -415,7 +449,11 @@ export function CoursePage() {
             </button>
             <label>
               {t("groups")}
-              <select value={group} onChange={(e) => setGroup(e.target.value)}>
+              <select
+                aria-label={t("groups")}
+                value={group}
+                onChange={(e) => setGroup(e.target.value)}
+              >
                 <option value="">—</option>
                 {groups.data?.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -444,9 +482,9 @@ export function CoursePage() {
             resource={editor.resource}
             initial={editor.initial}
             fixed={editor.fixed}
+            defaults={editor.defaults}
             onDone={() => {
               setEditor(undefined);
-              setSelected(undefined);
             }}
           />
         </Modal>

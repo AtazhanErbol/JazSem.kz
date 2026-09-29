@@ -64,5 +64,6 @@ def deadline_reminders():
                 assignment.title,
                 str(assignment.deadline),
                 "/app/assignments",
+                email=True,
                 key=f"deadline:{assignment.pk}:{enrollment.pk}",
             )

@@ -18,15 +18,30 @@ export function AuthPage({
   const [params] = useSearchParams();
   const action = useAction();
   const cache = useQueryClient();
-  const schema = z.object({
-    email: mode === "login" || mode === "forgot" ? z.email() : z.string(),
-    password:
-      mode === "forgot" ? z.string() : z.string().min(mode === "login" ? 1 : 8),
-    current_password: z.string(),
-  });
+  const schema = z
+    .object({
+      email: mode === "login" || mode === "forgot" ? z.email() : z.string(),
+      password:
+        mode === "forgot"
+          ? z.string()
+          : z.string().min(mode === "login" ? 1 : 8),
+      current_password: z.string(),
+      confirm_password: z.string(),
+    })
+    .refine(
+      (data) =>
+        !["reset", "change"].includes(mode) ||
+        data.password === data.confirm_password,
+      { message: t("passwordMismatch"), path: ["confirm_password"] },
+    );
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", password: "", current_password: "" },
+    defaultValues: {
+      email: "",
+      password: "",
+      current_password: "",
+      confirm_password: "",
+    },
   });
   const title = {
     login: "login",
@@ -41,11 +56,18 @@ export function AuthPage({
       reset: "reset-password",
       change: "change-password",
     }[mode];
-    const result = await action.run<User>(`auth/${endpoint}/`, {
-      ...data,
-      uid: params.get("uid"),
-      token: params.get("token"),
-    });
+    const result = await action.run<User>(
+      `auth/${endpoint}/`,
+      {
+        email: data.email,
+        password: data.password,
+        current_password: data.current_password,
+        uid: params.get("uid"),
+        token: params.get("token"),
+      },
+      "POST",
+      mode === "forgot" ? t("resetEmailSent") : undefined,
+    );
     if (result && mode === "login") {
       cache.setQueryData(["me"], result);
       nav(result.must_change_password ? "/change-temporary-password" : "/app");
@@ -62,6 +84,7 @@ export function AuthPage({
       <main className="auth-card">
         <span className="eyebrow">JAZSEM / {t("app")}</span>
         <h1>{t(title)}</h1>
+        {mode === "forgot" && <p className="muted">{t("forgotHint")}</p>}
         <form onSubmit={form.handleSubmit(submit)}>
           {(mode === "login" || mode === "forgot") && (
             <label>
@@ -100,6 +123,16 @@ export function AuthPage({
               {t(key)}: {error.message}
             </p>
           ))}
+          {["reset", "change"].includes(mode) && (
+            <label>
+              {t("confirmPassword")}
+              <input
+                type="password"
+                autoComplete="new-password"
+                {...form.register("confirm_password")}
+              />
+            </label>
+          )}
           <button className="primary" disabled={action.pending}>
             {t(title)}
           </button>

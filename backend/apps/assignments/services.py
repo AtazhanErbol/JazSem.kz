@@ -65,6 +65,18 @@ def submit(assignment, student, text, files):
     from apps.progress.services import summary
 
     summary(enrollment, persist=True)
+    teacher = assignment.topic.week.course_version.course.teacher
+    notify(
+        teacher,
+        "SUBMISSION",
+        "Жаңа жұмыс тапсырылды"
+        if teacher.preferred_language == "kk"
+        else "Новая работа на проверку",
+        f"{student.get_full_name() or student.email}: {assignment.title}",
+        "/app/submissions",
+        email=True,
+        key=f"submission:{submission.pk}",
+    )
     return submission
 
 

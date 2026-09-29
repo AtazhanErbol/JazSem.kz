@@ -116,6 +116,10 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true") == "true"
+EMAIL_TIMEOUT = 15
+CELERY_TASK_PUBLISH_RETRY = False
+CELERY_BROKER_CONNECTION_TIMEOUT = 2
+CELERY_BROKER_TRANSPORT_OPTIONS = {"socket_connect_timeout": 1, "socket_timeout": 1}
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@localhost")
 MAIL_ENCRYPTION_KEY = os.environ.get("MAIL_ENCRYPTION_KEY", "")
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "25")) * 1024 * 1024

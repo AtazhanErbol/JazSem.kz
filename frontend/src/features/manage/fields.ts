@@ -13,6 +13,8 @@ export interface Field {
   source?: string;
   required?: boolean;
   default?: unknown;
+  min?: number;
+  max?: number;
 }
 const text = (name: string, required = true): Field => ({ name, required });
 const select = (name: string, source: string): Field => ({
@@ -64,7 +66,7 @@ export const fields: Record<string, Field[]> = {
   ],
   weeks: [
     text("title"),
-    { name: "number", type: "number", default: 1, required: true },
+    { name: "number", type: "number", default: 1, required: true, min: 1 },
     { name: "order", type: "number", default: 0 },
   ],
   topics: [
@@ -98,7 +100,7 @@ export const fields: Record<string, Field[]> = {
   assignments: [
     text("title"),
     { name: "instructions", type: "textarea", required: true },
-    { name: "max_score", type: "number", default: 100 },
+    { name: "max_score", type: "number", default: 100, min: 1 },
     { name: "deadline", type: "datetime-local" },
     { name: "allow_late_submission", type: "checkbox", default: false },
     { name: "is_required", type: "checkbox", default: true },
@@ -106,9 +108,9 @@ export const fields: Record<string, Field[]> = {
   tests: [
     text("title"),
     { name: "description", type: "textarea" },
-    { name: "time_limit_minutes", type: "number", default: 30 },
-    { name: "max_attempts", type: "number", default: 2 },
-    { name: "passing_score", type: "number", default: 50 },
+    { name: "time_limit_minutes", type: "number", default: 30, min: 1 },
+    { name: "max_attempts", type: "number", default: 2, min: 1 },
+    { name: "passing_score", type: "number", default: 50, max: 100 },
     { name: "available_from", type: "datetime-local" },
     { name: "available_until", type: "datetime-local" },
     { name: "shuffle_questions", type: "checkbox", default: true },
@@ -124,7 +126,7 @@ export const fields: Record<string, Field[]> = {
       options: ["SINGLE_CHOICE", "MULTIPLE_CHOICE"],
       default: "SINGLE_CHOICE",
     },
-    { name: "score", type: "number", default: 1 },
+    { name: "score", type: "number", default: 1, min: 1 },
     { name: "explanation", type: "textarea" },
     { name: "order", type: "number", default: 0 },
   ],
@@ -141,7 +143,7 @@ export const fields: Record<string, Field[]> = {
       options: ["ASSIGNMENTS", "TESTS", "FINAL"],
       default: "ASSIGNMENTS",
     },
-    { name: "weight", type: "number", required: true, default: 100 },
+    { name: "weight", type: "number", required: true, default: 100, max: 100 },
   ],
   content: [
     text("key"),

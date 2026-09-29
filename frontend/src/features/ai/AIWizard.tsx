@@ -23,6 +23,23 @@ export function AIWizard() {
   const [draftText, setDraftText] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [imported, setImported] = useState("");
+  const availability = useQuery({
+    queryKey: ["ai-status"],
+    queryFn: () =>
+      api<{
+        enabled: boolean;
+        configured: boolean;
+        worker_available: boolean;
+        daily_budget: string;
+        model: string;
+      }>("ai-status/"),
+    refetchInterval: 30000,
+    retry: false,
+  });
+  const canGenerate =
+    availability.data?.enabled &&
+    availability.data.configured &&
+    availability.data.worker_available;
   const courses = useQuery({
     queryKey: ["options", "courses"],
     queryFn: () => allRows("courses/"),
@@ -71,6 +88,32 @@ export function AIWizard() {
         </div>
         <Sparkles size={32} />
       </div>
+      <section className="help-card" aria-live="polite">
+        <div>
+          <strong>{t("aiStatusTitle")}</strong>
+          {availability.error && <p>{t("aiCheckFailed")}</p>}
+          {availability.data && (
+            <>
+              {!availability.data.enabled && <p>{t("aiDisabled")}</p>}
+              {!availability.data.configured && <p>{t("aiUnconfigured")}</p>}
+              {!availability.data.worker_available && (
+                <p>{t("aiWorkerUnavailable")}</p>
+              )}
+              {canGenerate && (
+                <p>
+                  {t("aiReady")} · {availability.data.model}
+                </p>
+              )}
+              <small>
+                {t("aiBudget")}: ${availability.data.daily_budget}
+              </small>
+            </>
+          )}
+        </div>
+        <Link className="button" to="/app/courses">
+          {t("openCourseBuilder")}
+        </Link>
+      </section>
       <ol className="wizard-steps">
         {[
           "course",
@@ -122,7 +165,12 @@ export function AIWizard() {
             />
           </label>
           <button
-            disabled={!course || !file || action.pending}
+            disabled={
+              !course ||
+              !file ||
+              action.pending ||
+              !availability.data?.worker_available
+            }
             onClick={async () => {
               const body = new FormData();
               body.append("course", course);
@@ -193,6 +241,7 @@ export function AIWizard() {
           <button
             className="primary"
             disabled={
+              !canGenerate ||
               !course ||
               action.pending ||
               !sources.data?.results.length ||

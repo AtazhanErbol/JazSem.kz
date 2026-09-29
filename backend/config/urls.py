@@ -19,7 +19,14 @@ from apps.accounts.views import (
     ResetView,
     UserViewSet,
 )
-from apps.ai.views import ChunkViewSet, DraftViewSet, JobViewSet, SourceViewSet, UsageViewSet
+from apps.ai.views import (
+    AIStatusView,
+    ChunkViewSet,
+    DraftViewSet,
+    JobViewSet,
+    SourceViewSet,
+    UsageViewSet,
+)
 from apps.assignments.models import Submission
 from apps.assignments.views import AssignmentViewSet, SubmissionFileViewSet, SubmissionViewSet
 from apps.audit.views import AuditViewSet
@@ -112,7 +119,15 @@ def ready(request):
         import redis
         from django.conf import settings
 
-        redis.Redis.from_url(settings.REDIS_URL, socket_connect_timeout=2, socket_timeout=2).ping()
+        if settings.CELERY_BROKER_URL == "filesystem://":
+            from apps.common.background import worker_available
+
+            if not worker_available():
+                return JsonResponse({"status": "worker_unavailable"}, status=503)
+        else:
+            redis.Redis.from_url(
+                settings.REDIS_URL, socket_connect_timeout=2, socket_timeout=2
+            ).ping()
         return JsonResponse({"status": "ready"})
     except Exception:
         return JsonResponse({"status": "unavailable"}, status=503)
@@ -123,6 +138,7 @@ urlpatterns = [
     path("ready/", ready),
     path("api/v1/", include(router.urls)),
     path("api/v1/auth/login/", AuthView.as_view()),
+    path("api/v1/ai-status/", AIStatusView.as_view()),
     path("api/v1/auth/me/", MeView.as_view()),
     path("api/v1/auth/logout/", LogoutView.as_view()),
     path("api/v1/auth/change-password/", ChangePasswordView.as_view()),

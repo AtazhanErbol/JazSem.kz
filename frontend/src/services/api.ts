@@ -10,19 +10,52 @@ export class ApiError extends Error {
   }
 }
 let csrf = "";
+async function request(url: string, options: RequestInit) {
+  try {
+    return await fetch(url, options);
+  } catch {
+    throw new ApiError(0, i18n.t("networkError"));
+  }
+}
+function errorMessages(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(errorMessages);
+  if (value && typeof value === "object")
+    return Object.values(value).flatMap(errorMessages);
+  return [];
+}
+async function readResponse(response: Response) {
+  if (!response.headers.get("content-type")?.includes("application/json"))
+    throw new ApiError(response.status, i18n.t("serviceUnavailable"));
+  const data = await response.json();
+  if (!response.ok) {
+    const details = errorMessages(data.errors);
+    throw new ApiError(
+      response.status,
+      [
+        ...new Set(
+          details.length
+            ? details
+            : [data.message || i18n.t("serviceUnavailable")],
+        ),
+      ].join(" "),
+    );
+  }
+  return data;
+}
 export async function api<T>(
   path: string,
   method = "GET",
   body?: unknown,
 ): Promise<T> {
   if (method !== "GET" && !csrf) {
-    const response = await fetch("/api/v1/auth/login/", {
+    const response = await request("/api/v1/auth/login/", {
       credentials: "same-origin",
     });
-    csrf = ((await response.json()) as { csrfToken: string }).csrfToken;
+    csrf = ((await readResponse(response)) as { csrfToken: string }).csrfToken;
   }
   const form = body instanceof FormData;
-  const response = await fetch("/api/v1/" + path, {
+  const response = await request("/api/v1/" + path, {
     method,
     credentials: "same-origin",
     headers: {
@@ -32,20 +65,9 @@ export async function api<T>(
     },
     body: body === undefined ? undefined : form ? body : JSON.stringify(body),
   });
-  if (path === "auth/login/" && method === "POST" && response.ok) csrf = "";
+  if (path.startsWith("auth/") && method === "POST" && response.ok) csrf = "";
   if (response.status === 204) return undefined as T;
-  if (!response.headers.get("content-type")?.includes("application/json"))
-    throw new ApiError(
-      response.status,
-      "Сервис временно недоступен. Повторите позже.",
-    );
-  const data = await response.json();
-  if (!response.ok)
-    throw new ApiError(
-      response.status,
-      data.message + (data.errors ? " " + JSON.stringify(data.errors) : ""),
-    );
-  return data as T;
+  return (await readResponse(response)) as T;
 }
 export async function allRows(path: string): Promise<Row[]> {
   const result: Row[] = [];

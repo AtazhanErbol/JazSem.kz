@@ -37,7 +37,10 @@ describe("login form", () => {
   it("surfaces server authentication errors", async () => {
     vi.spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ csrfToken: "token" }), { status: 200 }),
+        new Response(JSON.stringify({ csrfToken: "token" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
       )
       .mockResolvedValueOnce(
         new Response(

@@ -13,11 +13,13 @@ export function RecordForm({
   resource,
   initial,
   fixed = {},
+  defaults: suppliedDefaults = {},
   onDone,
 }: {
   resource: string;
   initial?: Row;
   fixed?: Record<string, unknown>;
+  defaults?: Record<string, unknown>;
   onDone: () => void;
 }) {
   const { t } = useTranslation();
@@ -36,12 +38,16 @@ export function RecordForm({
         : field.type === "file"
           ? z.unknown()
           : field.type === "number"
-            ? z.coerce.number().min(0)
+            ? z.coerce
+                .number()
+                .min(field.min ?? 0)
+                .max(field.max ?? Number.MAX_SAFE_INTEGER)
             : field.required
               ? z.string().min(1)
               : z.string();
     defaults[field.name] =
       initial?.[field.name] ??
+      suppliedDefaults[field.name] ??
       field.default ??
       (field.type === "checkbox" ? false : "");
     if (field.type === "datetime-local" && defaults[field.name])
@@ -104,7 +110,7 @@ export function RecordForm({
               registration={form.register(field.name)}
             />
           ) : field.type === "select" ? (
-            <select {...form.register(field.name)}>
+            <select aria-label={t(field.name)} {...form.register(field.name)}>
               {field.options
                 ?.filter(
                   (o) =>
@@ -123,6 +129,8 @@ export function RecordForm({
           ) : (
             <input
               type={field.type || "text"}
+              min={field.min}
+              max={field.max}
               {...form.register(field.name)}
               accept={
                 field.type === "file"
@@ -163,7 +171,7 @@ function SourceSelect({
   });
   const { t } = useTranslation();
   return (
-    <select {...registration}>
+    <select aria-label={t(field.name)} {...registration}>
       <option value="">{t("noSelection")}</option>
       {query.data?.map((row) => (
         <option key={row.id} value={row.id}>

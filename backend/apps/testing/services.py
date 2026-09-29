@@ -112,6 +112,7 @@ def finalize(attempt, student):
         attempt.test.title,
         str(attempt.score),
         "/app/grades",
+        email=True,
         key=f"test:{attempt.pk}",
     )
     from apps.progress.services import summary
