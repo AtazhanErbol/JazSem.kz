@@ -37,7 +37,7 @@ export function Shell() {
     ["courses", "courses", BookOpen],
     ...(user.role !== "STUDENT"
       ? [
-          ["users", "students", Users],
+          ["users", user.role === "ADMIN" ? "users" : "students", Users],
           ["groups", "groups", Layers],
           ["disciplines", "disciplines", GraduationCap],
         ]

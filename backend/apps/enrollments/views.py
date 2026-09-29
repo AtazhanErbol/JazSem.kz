@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -8,9 +9,17 @@ from apps.grading.services import grades
 from apps.progress.services import summary
 
 
+class EnrollmentSerializer(serializer_for(Enrollment)):
+    course_title = serializers.CharField(source="course.title", read_only=True)
+    student_name = serializers.SerializerMethodField()
+
+    def get_student_name(self, obj) -> str:
+        return obj.student.get_full_name() or obj.student.email
+
+
 class EnrollmentViewSet(ReadOnlyScoped):
     queryset = Enrollment.objects.select_related("student", "course", "course_version")
-    serializer_class = serializer_for(Enrollment)
+    serializer_class = EnrollmentSerializer
     filterset_fields = ["course", "student", "status"]
 
     @action(detail=True, methods=["get"])

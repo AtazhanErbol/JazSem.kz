@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -11,6 +12,7 @@ class AssignmentViewSet(ScopedViewSet):
     queryset = Assignment.objects.all()
     serializer_class = serializer_for(Assignment)
     filterset_fields = ["status", "topic"]
+    ordering_fields = ["created_at", "deadline", "title", "order"]
 
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
@@ -23,9 +25,18 @@ class AssignmentViewSet(ScopedViewSet):
         return Response(representation(obj, request), status=201)
 
 
+class SubmissionDisplaySerializer(serializer_for(Submission)):
+    assignment_title = serializers.CharField(source="assignment.title", read_only=True)
+    max_score = serializers.IntegerField(source="assignment.max_score", read_only=True)
+    student_name = serializers.SerializerMethodField()
+
+    def get_student_name(self, obj) -> str:
+        return obj.student.get_full_name() or obj.student.email
+
+
 class SubmissionViewSet(ReadOnlyScoped):
     queryset = Submission.objects.select_related("assignment", "student")
-    serializer_class = serializer_for(Submission)
+    serializer_class = SubmissionDisplaySerializer
     filterset_fields = ["status", "assignment", "student"]
     search_fields = ["student__email", "assignment__title"]
 

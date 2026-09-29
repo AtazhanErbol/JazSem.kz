@@ -33,18 +33,20 @@ export function RecordForm({
   const defaults: Record<string, unknown> = {};
   for (const field of activeFields) {
     shape[field.name] =
-      field.type === "checkbox"
-        ? z.boolean()
-        : field.type === "file"
-          ? z.unknown()
-          : field.type === "number"
-            ? z.coerce
-                .number()
-                .min(field.min ?? 0)
-                .max(field.max ?? Number.MAX_SAFE_INTEGER)
-            : field.required
-              ? z.string().min(1)
-              : z.string();
+      field.name === "teachers"
+        ? z.array(z.string()).min(1)
+        : field.type === "checkbox"
+          ? z.boolean()
+          : field.type === "file"
+            ? z.unknown()
+            : field.type === "number"
+              ? z.coerce
+                  .number()
+                  .min(field.min ?? 0)
+                  .max(field.max ?? Number.MAX_SAFE_INTEGER)
+              : field.required
+                ? z.string().min(1)
+                : z.string();
     defaults[field.name] =
       initial?.[field.name] ??
       suppliedDefaults[field.name] ??
@@ -58,8 +60,8 @@ export function RecordForm({
         .toISOString()
         .slice(0, 16);
     if (field.type === "file") defaults[field.name] = undefined;
-    if (field.name === "teachers" && Array.isArray(defaults[field.name]))
-      defaults[field.name] = (defaults[field.name] as string[])[0] || "";
+    if (field.name === "teachers" && !Array.isArray(defaults[field.name]))
+      defaults[field.name] = [];
   }
   const form = useForm<Record<string, unknown>>({
     resolver: zodResolver(z.object(shape)),
@@ -78,7 +80,6 @@ export function RecordForm({
         payload[field.name] = payload[field.name]
           ? new Date(String(payload[field.name])).toISOString()
           : null;
-      if (field.name === "teachers") payload.teachers = [payload.teachers];
     }
     let body: unknown = payload;
     const upload = payload.file as FileList | undefined;
@@ -107,6 +108,7 @@ export function RecordForm({
           {field.source ? (
             <SourceSelect
               field={field}
+              value={form.watch(field.name) as string | string[]}
               registration={form.register(field.name)}
             />
           ) : field.type === "select" ? (
@@ -161,8 +163,10 @@ export function RecordForm({
 function SourceSelect({
   field,
   registration,
+  value,
 }: {
   field: Field;
+  value: string | string[];
   registration: ReturnType<ReturnType<typeof useForm>["register"]>;
 }) {
   const query = useQuery({
@@ -171,8 +175,15 @@ function SourceSelect({
   });
   const { t } = useTranslation();
   return (
-    <select aria-label={t(field.name)} {...registration}>
-      <option value="">{t("noSelection")}</option>
+    <select
+      multiple={field.name === "teachers"}
+      value={value}
+      aria-label={t(field.name)}
+      {...registration}
+    >
+      {field.name !== "teachers" && (
+        <option value="">{t("noSelection")}</option>
+      )}
       {query.data?.map((row) => (
         <option key={row.id} value={row.id}>
           {String(row.title || row.name || row.email || row.id)}

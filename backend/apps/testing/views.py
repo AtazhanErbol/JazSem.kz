@@ -20,6 +20,7 @@ class TestViewSet(ScopedViewSet):
 class AttemptViewSet(ReadOnlyScoped):
     queryset = TestAttempt.objects.select_related("test", "student")
     serializer_class = serializer_for(TestAttempt)
+    filterset_fields = ["test", "status"]
 
     def retrieve(self, request, *args, **kwargs):
         attempt = self.get_object()

@@ -39,6 +39,9 @@ def import_draft(draft, actor):
         return draft.imported_version
     data = validated_draft(draft.data, draft.job.course)
     version = new_version(draft.job.course, actor)
+    course = version.course
+    course.title, course.description = data.title, data.description
+    course.save(update_fields=["title", "description", "updated_at"])
     has_assignments = has_tests = False
     for index, week_data in enumerate(data.weeks, 1):
         week = Week.objects.create(

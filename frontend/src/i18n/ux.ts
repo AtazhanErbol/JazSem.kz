@@ -1,4 +1,14 @@
 export const ruUX = {
+  attemptHistory: "История попыток",
+  submissionLocked:
+    "Работа уже отправлена. Новую попытку можно отправить после возврата на доработку.",
+  assignment_title: "Задание",
+  student_name: "Студент",
+  retryTest: "Новая попытка",
+  previous: "Назад",
+  pages: "Страницы",
+  accessDenied: "Нет доступа",
+  accessDeniedHint: "Этот раздел недоступен для вашей роли.",
   profileHint: "Ваши данные, язык интерфейса и безопасность аккаунта.",
   personalDetails: "Личные данные",
   accountSecurity: "Безопасность",
@@ -65,6 +75,16 @@ export const ruUX = {
   REVISION_REQUESTED: "Нужна доработка",
 };
 export const kkUX: Record<keyof typeof ruUX, string> = {
+  attemptHistory: "Талпыныстар тарихы",
+  submissionLocked:
+    "Жұмыс жіберілген. Қайта өңдеуге қайтарылғаннан кейін жаңа талпыныс жіберуге болады.",
+  assignment_title: "Тапсырма",
+  student_name: "Студент",
+  retryTest: "Жаңа талпыныс",
+  previous: "Артқа",
+  pages: "Беттер",
+  accessDenied: "Қолжетімсіз",
+  accessDeniedHint: "Бұл бөлім сіздің рөліңізге қолжетімсіз.",
   profileHint: "Жеке деректеріңіз, интерфейс тілі және аккаунт қауіпсіздігі.",
   personalDetails: "Жеке деректер",
   accountSecurity: "Қауіпсіздік",

@@ -91,5 +91,6 @@ npm run e2e
 - [API](docs/API.md), [OpenAPI](docs/openapi.yml), [AI pipeline](docs/AI_PIPELINE.md)
 - [Безопасность](docs/SECURITY.md), [развёртывание](docs/DEPLOYMENT.md), [резервное копирование](docs/BACKUP.md)
 - [Ход реализации и проверки](docs/PROGRESS.md)
+- [Полный аудит от 29.09.2026](docs/AUDIT_2026-09-29.md), [матрица 146 разделов ТЗ](docs/SPEC_COMPLIANCE.csv)
 
 В репозитории нет реальных контактов, юридических реквизитов, production-паролей или API keys. Публичные текстовые блоки настраиваются администратором в разделе «Контент».

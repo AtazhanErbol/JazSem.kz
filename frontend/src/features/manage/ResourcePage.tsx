@@ -13,7 +13,7 @@ import { fields } from "./fields";
 import { RecordDetails } from "./RecordDetails";
 
 export function ResourcePage({ resource }: { resource: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const user = useUser();
   const action = useAction();
   const [page, setPage] = useState(1);
@@ -141,11 +141,20 @@ export function ResourcePage({ resource }: { resource: string }) {
                   )}
                   {row.created_at != null && (
                     <small className="muted">
-                      {new Date(String(row.created_at)).toLocaleDateString()}
+                      {new Date(String(row.created_at)).toLocaleDateString(
+                        i18n.language === "kk" ? "kk-KZ" : "ru-RU",
+                      )}
                     </small>
                   )}
                 </div>
                 <div className="row-actions">
+                  {resource === "notifications" &&
+                    typeof row.link === "string" &&
+                    row.link.startsWith("/app/") && (
+                      <Link className="button" to={row.link}>
+                        {t("continue")} <ArrowUpRight size={16} />
+                      </Link>
+                    )}
                   {resource === "courses" ? (
                     <Link className="button" to={"/app/courses/" + row.id}>
                       {t(user.role === "STUDENT" ? "continue" : "builder")}

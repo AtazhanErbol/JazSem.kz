@@ -9,7 +9,7 @@ import { Empty, ErrorState, Loading } from "../../components/UI";
 
 export function Dashboard() {
   const user = useUser();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const stats = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => api<Record<string, number>>("dashboard/"),
@@ -27,11 +27,14 @@ export function Dashboard() {
       <div className="page-heading">
         <div>
           <span className="eyebrow">
-            {new Date().toLocaleDateString(undefined, {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+            {new Date().toLocaleDateString(
+              i18n.language === "kk" ? "kk-KZ" : "ru-RU",
+              {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              },
+            )}
           </span>
           <h1>
             {t("greeting")}, {user.first_name || user.email.split("@")[0]}{" "}
@@ -73,7 +76,9 @@ export function Dashboard() {
         <div className="stats-grid">
           {(user.role === "STUDENT"
             ? ["courses", "enrollments"]
-            : ["courses", "students", "groups", "review"]
+            : user.role === "ADMIN"
+              ? ["teachers", "students", "courses", "enrollments"]
+              : ["courses", "students", "groups", "review"]
           ).map((key) => (
             <div className="stat" key={key}>
               <span>{t(key)}</span>

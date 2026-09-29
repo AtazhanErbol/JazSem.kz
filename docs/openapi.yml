@@ -601,6 +601,15 @@ paths:
         description: A search term.
         schema:
           type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: test
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -3134,7 +3143,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedSubmissionList'
+                $ref: '#/components/schemas/PaginatedSubmissionDisplayList'
           description: ''
   /api/v1/submissions/{id}/:
     get:
@@ -3156,7 +3165,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
+                $ref: '#/components/schemas/SubmissionDisplay'
           description: ''
   /api/v1/submissions/{id}/files/:
     get:
@@ -3178,7 +3187,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
+                $ref: '#/components/schemas/SubmissionDisplay'
           description: ''
   /api/v1/submissions/{id}/grade/:
     post:
@@ -3265,13 +3274,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionRequest'
+              $ref: '#/components/schemas/SubmissionDisplayRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SubmissionRequest'
+              $ref: '#/components/schemas/SubmissionDisplayRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SubmissionRequest'
+              $ref: '#/components/schemas/SubmissionDisplayRequest'
         required: true
       security:
       - cookieAuth: []
@@ -3280,7 +3289,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
+                $ref: '#/components/schemas/SubmissionDisplay'
           description: ''
   /api/v1/tests/:
     get:
@@ -4607,6 +4616,12 @@ components:
           type: string
           format: uuid
           readOnly: true
+        course_title:
+          type: string
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -4653,11 +4668,13 @@ components:
       - assigned_at
       - assigned_by
       - course
+      - course_title
       - course_version
       - created_at
       - id
       - source_type
       - student
+      - student_name
       - updated_at
     GenerationLanguageEnum:
       enum:
@@ -5446,6 +5463,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StudyGroup'
+    PaginatedSubmissionDisplayList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmissionDisplay'
     PaginatedSubmissionFileList:
       type: object
       required:
@@ -5469,29 +5509,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SubmissionFile'
-    PaginatedSubmissionList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/Submission'
     PaginatedTestAttemptList:
       type: object
       required:
@@ -6263,6 +6280,115 @@ components:
       - student
       - submitted_at
       - updated_at
+    SubmissionDisplay:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        assignment_title:
+          type: string
+          readOnly: true
+        max_score:
+          type: integer
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        attempt_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        text_answer:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          type: string
+          maxLength: 30
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        teacher_comment:
+          type: string
+        graded_at:
+          type: string
+          format: date-time
+          nullable: true
+        assignment:
+          type: string
+          format: uuid
+        student:
+          type: string
+          format: uuid
+        graded_by:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - assignment
+      - assignment_title
+      - attempt_number
+      - created_at
+      - id
+      - max_score
+      - student
+      - student_name
+      - submitted_at
+      - updated_at
+    SubmissionDisplayRequest:
+      type: object
+      properties:
+        attempt_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        text_answer:
+          type: string
+        status:
+          type: string
+          minLength: 1
+          maxLength: 30
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        teacher_comment:
+          type: string
+        graded_at:
+          type: string
+          format: date-time
+          nullable: true
+        assignment:
+          type: string
+          format: uuid
+        student:
+          type: string
+          format: uuid
+        graded_by:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - assignment
+      - attempt_number
+      - student
     SubmissionFile:
       type: object
       properties:
@@ -6304,45 +6430,6 @@ components:
       - size
       - submission
       - updated_at
-    SubmissionRequest:
-      type: object
-      properties:
-        attempt_number:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        text_answer:
-          type: string
-        status:
-          type: string
-          minLength: 1
-          maxLength: 30
-        score:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
-          nullable: true
-        teacher_comment:
-          type: string
-        graded_at:
-          type: string
-          format: date-time
-          nullable: true
-        assignment:
-          type: string
-          format: uuid
-        student:
-          type: string
-          format: uuid
-        graded_by:
-          type: string
-          format: uuid
-          nullable: true
-      required:
-      - assignment
-      - attempt_number
-      - student
     SubmitWorkRequest:
       type: object
       properties:

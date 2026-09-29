@@ -1,3 +1,5 @@
+from django.db.models import Max
+
 from apps.assignments.models import Assignment, Submission
 from apps.testing.models import Test, TestAttempt
 
@@ -8,30 +10,44 @@ def grades(enrollment):
     version = enrollment.course_version
     results = []
     total = 0.0
+    latest_scores = {}
+    for row in (
+        Submission.objects.filter(
+            student_id=enrollment.student_id,
+            assignment__topic__week__course_version=version,
+            status="GRADED",
+        )
+        .order_by("assignment_id", "-attempt_number")
+        .values("assignment_id", "score")
+    ):
+        latest_scores.setdefault(row["assignment_id"], float(row["score"]))
+    assignment_scores = [
+        latest_scores.get(pk, 0)
+        for pk in Assignment.objects.filter(topic__week__course_version=version).values_list(
+            "pk", flat=True
+        )
+    ]
+    best_scores = dict(
+        TestAttempt.objects.filter(
+            student_id=enrollment.student_id,
+            test__topic__week__course_version=version,
+            status__in=["GRADED", "EXPIRED"],
+            score__isnull=False,
+        )
+        .values("test_id")
+        .annotate(best=Max("score"))
+        .values_list("test_id", "best")
+    )
+    tests = list(Test.objects.filter(topic__week__course_version=version).values("pk", "is_final"))
     for component in GradingComponent.objects.filter(scheme__course_version=version):
-        values = []
         if component.kind == "ASSIGNMENTS":
-            for assignment in Assignment.objects.filter(topic__week__course_version=version):
-                latest = (
-                    Submission.objects.filter(
-                        assignment=assignment, student=enrollment.student, status="GRADED"
-                    )
-                    .order_by("-attempt_number")
-                    .first()
-                )
-                values.append(float(latest.score) if latest else 0)
+            values = assignment_scores
         else:
-            for test in Test.objects.filter(
-                topic__week__course_version=version, is_final=component.kind == "FINAL"
-            ):
-                best = (
-                    TestAttempt.objects.filter(
-                        test=test, student=enrollment.student, score__isnull=False
-                    )
-                    .order_by("-score")
-                    .first()
-                )
-                values.append(float(best.score) if best else 0)
+            values = [
+                float(best_scores.get(test["pk"], 0))
+                for test in tests
+                if test["is_final"] == (component.kind == "FINAL")
+            ]
         score = sum(values) / len(values) if values else 0
         total += score * component.weight / 100
         results.append(

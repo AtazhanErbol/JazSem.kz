@@ -1,11 +1,33 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { api, ApiError } from "../services/api";
 import type { User } from "../entities/types";
 import { Loading, ErrorState } from "../components/UI";
 
 const AuthContext = createContext<User | null>(null);
+export function RoleGate({
+  children,
+  roles,
+}: {
+  children: ReactNode;
+  roles: string[];
+}) {
+  const user = useUser();
+  const { t } = useTranslation();
+  return roles.includes(user.role) ? (
+    children
+  ) : (
+    <section className="panel">
+      <h1>{t("accessDenied")}</h1>
+      <p>{t("accessDeniedHint")}</p>
+      <Link className="button" to="/app">
+        {t("home")}
+      </Link>
+    </section>
+  );
+}
 export function useUser() {
   const user = useContext(AuthContext);
   if (!user) throw new Error("Authentication required");

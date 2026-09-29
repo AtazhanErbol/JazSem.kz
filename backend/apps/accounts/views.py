@@ -183,7 +183,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.all().order_by("-created_at")
         if user.role == "TEACHER":
             return User.objects.filter(created_by=user, role="STUDENT").order_by("-created_at")
-        return User.objects.filter(pk=user.pk)
+        return User.objects.filter(pk=user.pk).order_by("pk")
 
     @transaction.atomic
     def perform_create(self, serializer):

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { Attempt, Page, Progress, Row } from "../../entities/types";
 import { api, allRows } from "../../services/api";
@@ -30,6 +30,8 @@ export function AssignmentPage() {
   });
   if (assignment.isPending) return <Loading />;
   if (assignment.error) return <ErrorState error={assignment.error} />;
+  const latest = history.data?.results[0];
+  const submitted = latest && latest.status !== "REVISION_REQUESTED";
   return (
     <>
       <Link to="/app/assignments">← {t("assignments")}</Link>
@@ -42,6 +44,8 @@ export function AssignmentPage() {
             {new Date(String(assignment.data.deadline)).toLocaleString()}
           </p>
         )}
+        {history.error && <ErrorState error={history.error} />}
+        {submitted && <p className="notice">{t("submissionLocked")}</p>}
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -53,27 +57,36 @@ export function AssignmentPage() {
             await action.run(`assignments/${id}/submit/`, body);
           }}
         >
-          <label>
-            {t("answer")}
-            <textarea
-              rows={9}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-          </label>
-          <label>
-            {t("files")}
-            <input
-              type="file"
-              multiple
-              accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
-              onChange={(e) => setFiles(e.target.files)}
-            />
-          </label>
-          <button className="primary" disabled={action.pending}>
-            {t("submit")}
-          </button>
-          {action.feedback}
+          <fieldset
+            disabled={
+              action.pending ||
+              history.isPending ||
+              !!history.error ||
+              !!submitted
+            }
+          >
+            <label>
+              {t("answer")}
+              <textarea
+                rows={9}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+            </label>
+            <label>
+              {t("files")}
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
+                onChange={(e) => setFiles(e.target.files)}
+              />
+            </label>
+            <button className="primary" disabled={action.pending}>
+              {t("submit")}
+            </button>
+            {action.feedback}
+          </fieldset>
         </form>
       </section>
       <h2>{t("submissions")}</h2>
@@ -93,7 +106,12 @@ export function TestPage() {
   const { id } = useParams();
   const { t } = useTranslation();
   const action = useAction();
-  const [attemptId, setAttemptId] = useState("");
+  const [params, setParams] = useSearchParams();
+  const attemptId = params.get("attempt") || "";
+  const setAttemptId = (value: string) => {
+    setLocalAnswers({});
+    setParams({ attempt: value }, { replace: true });
+  };
   const [confirm, setConfirm] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [offset, setOffset] = useState(0);
@@ -103,6 +121,10 @@ export function TestPage() {
   const info = useQuery({
     queryKey: ["test", id],
     queryFn: () => api<Row>(`tests/${id}/`),
+  });
+  const history = useQuery({
+    queryKey: ["attempts", id],
+    queryFn: () => api<Page<Row>>(`attempts/?test=${id}`),
   });
   const query = useQuery({
     queryKey: ["attempt", attemptId],
@@ -145,6 +167,33 @@ export function TestPage() {
         )}
       </div>
       {action.feedback}
+      {history.data && history.data.count > 0 && (
+        <section className="panel">
+          <h2>{t("attemptHistory")}</h2>
+          <div className="row-actions">
+            {history.data.results.map((attempt) => (
+              <button key={attempt.id} onClick={() => setAttemptId(attempt.id)}>
+                {t("attempt_number")} {String(attempt.attempt_number)} ·{" "}
+                {t(String(attempt.status))}
+                {attempt.score != null ? ` · ${attempt.score}/100` : ""}
+              </button>
+            ))}
+            {query.data &&
+              query.data.status !== "IN_PROGRESS" &&
+              history.data.count < Number(info.data.max_attempts) && (
+                <button
+                  disabled={action.pending}
+                  onClick={async () => {
+                    const result = await action.run<Row>(`tests/${id}/start/`);
+                    if (result) setAttemptId(result.id);
+                  }}
+                >
+                  {t("retryTest")}
+                </button>
+              )}
+          </div>
+        </section>
+      )}
       {!attemptId ? (
         <section className="panel">
           <p>{String(info.data.description)}</p>
@@ -231,7 +280,11 @@ export function TestPage() {
             </fieldset>
           ))}
           {query.data.status === "IN_PROGRESS" && (
-            <button className="primary" onClick={() => setConfirm(true)}>
+            <button
+              className="primary"
+              disabled={action.pending}
+              onClick={() => setConfirm(true)}
+            >
               {t("finish")}
             </button>
           )}
@@ -278,6 +331,10 @@ export function GradePage() {
       <section className="panel">
         <Badge>{String(query.data.status)}</Badge>
         <h2>{t("studentWork")}</h2>
+        <p>
+          {String(query.data.student_name || "")} ·{" "}
+          {String(query.data.assignment_title || "")}
+        </p>
         <p className="prose">{String(query.data.text_answer)}</p>
         {files.data?.map((file) => (
           <a
@@ -298,10 +355,12 @@ export function GradePage() {
           }}
         >
           <label>
-            {t("score")}
+            {t("score")} (0–{String(query.data.max_score || 100)})
             <input
               type="number"
+              aria-label={t("score")}
               min="0"
+              max={Number(query.data.max_score || 100)}
               value={score}
               onChange={(e) => setScore(e.target.value)}
               required
@@ -340,9 +399,10 @@ export function GradePage() {
 
 export function ResultsPage({ mode }: { mode: "grades" | "progress" }) {
   const { t } = useTranslation();
+  const [page, setPage] = useState(1);
   const query = useQuery({
-    queryKey: ["enrollments", "results"],
-    queryFn: () => api<Page<Row>>("enrollments/"),
+    queryKey: ["enrollments", "results", page],
+    queryFn: () => api<Page<Row>>(`enrollments/?page=${page}`),
   });
   return (
     <>
@@ -357,6 +417,22 @@ export function ResultsPage({ mode }: { mode: "grades" | "progress" }) {
         ))
       ) : (
         <Empty />
+      )}
+      {query.data && query.data.count > 25 && (
+        <nav className="pagination" aria-label={t("pages")}>
+          <button
+            disabled={!query.data.previous}
+            onClick={() => setPage(page - 1)}
+          >
+            {t("previous")}
+          </button>
+          <span>
+            {page} / {Math.ceil(query.data.count / 25)}
+          </span>
+          <button disabled={!query.data.next} onClick={() => setPage(page + 1)}>
+            {t("next")}
+          </button>
+        </nav>
       )}
     </>
   );
@@ -373,14 +449,11 @@ function ResultRow({ row, mode }: { row: Row; mode: "grades" | "progress" }) {
         }
       >(`enrollments/${row.id}/${mode}/`),
   });
-  const course = useQuery({
-    queryKey: ["course", row.course],
-    queryFn: () => api<Row>(`courses/${String(row.course)}/`),
-  });
   return (
     <section className="panel">
-      <h2>{String(course.data?.title || "…")}</h2>
-      <small>{String(row.student)}</small>
+      <h2>{String(row.course_title || t("course"))}</h2>
+      <small>{String(row.student_name || "")}</small>
+      {query.isPending && <Loading />}
       {query.data &&
         (mode === "progress" ? (
           <>

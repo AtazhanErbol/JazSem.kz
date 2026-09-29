@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./i18n";
 import "./styles/main.css";
-import { Protected } from "./app/Auth";
+import { Protected, RoleGate } from "./app/Auth";
 import { Shell } from "./layouts/Shell";
 import { Landing } from "./features/landing/Landing";
 import { AuthPage } from "./features/auth/AuthPage";
@@ -68,17 +68,55 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route
                 key={resource}
                 path={resource}
-                element={<ResourcePage key={resource} resource={resource} />}
+                element={
+                  <RoleGate
+                    roles={
+                      ["content", "audit", "ai-usage"].includes(resource)
+                        ? ["ADMIN"]
+                        : [
+                              "users",
+                              "groups",
+                              "disciplines",
+                              "submissions",
+                            ].includes(resource)
+                          ? ["ADMIN", "TEACHER"]
+                          : ["ADMIN", "TEACHER", "STUDENT"]
+                    }
+                  >
+                    <ResourcePage key={resource} resource={resource} />
+                  </RoleGate>
+                }
               />
             ))}
             <Route path="courses/:id" element={<CoursePage />} />
             <Route path="assignments/:id" element={<AssignmentPage />} />
             <Route path="tests/:id" element={<TestPage />} />
-            <Route path="submissions/:id" element={<GradePage />} />
-            <Route path="groups/:id" element={<GroupPage />} />
+            <Route
+              path="submissions/:id"
+              element={
+                <RoleGate roles={["ADMIN", "TEACHER"]}>
+                  <GradePage />
+                </RoleGate>
+              }
+            />
+            <Route
+              path="groups/:id"
+              element={
+                <RoleGate roles={["ADMIN", "TEACHER"]}>
+                  <GroupPage />
+                </RoleGate>
+              }
+            />
             <Route path="grades" element={<ResultsPage mode="grades" />} />
             <Route path="progress" element={<ResultsPage mode="progress" />} />
-            <Route path="ai" element={<AIWizard />} />
+            <Route
+              path="ai"
+              element={
+                <RoleGate roles={["ADMIN", "TEACHER"]}>
+                  <AIWizard />
+                </RoleGate>
+              }
+            />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
