@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.test import APIClient
 
@@ -90,6 +91,7 @@ def test_submission_notifies_teacher_once_and_smtp_failure_retries(world, settin
         flush_mail()
     queued.refresh_from_db()
     assert queued.attempts == 1 and queued.sent_at is None and queued.encrypted_payload
+    MailOutbox.objects.filter(pk=queued.pk).update(next_retry_at=timezone.now())
     flush_mail()
     queued.refresh_from_db()
     assert queued.sent_at and queued.attempts == 2 and not queued.encrypted_payload

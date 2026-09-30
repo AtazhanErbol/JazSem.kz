@@ -50,3 +50,11 @@ Runtime input serializers validate coursework, grading, revisions, version/cours
 Local checkpoint: **68 backend passed, 2 PostgreSQL-only skipped**; **7 frontend passed**, lint/typecheck/build pass. Migration tested from historical accounts schema and on a new synthetic QA DB. PostgreSQL concurrency and expanded contracts/observability remain gates, not assumed successes.
 
 QA app: ports 8006/5179, isolated `.runtime/rc/qa.sqlite3`, AI disabled, filebased email, no production records. Rollback: do not revert the ownership schema after newly owned admin-created students exist; roll back to a compatible application image or migrate ownership explicitly. The data-copy reverse is intentionally a no-op and never rewrites creator history.
+
+Stage A commit `5cf22c3` pushed to `release/rc-hardening`. [CI run 36689475086](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36689475086) passed backend (real PostgreSQL, including both concurrency tests), frontend and containers. Existing 15 browser scenarios passed on a fresh `.runtime/rc2/qa.sqlite3` (8006/5179). A sixteenth session-transition scenario hit the real auth throttle in the full run and passed separately after quota reset; this is recorded rather than presenting the full run as green. CI browser isolation/rate policy remains to be completed.
+
+## Mail recovery checkpoint
+
+B3 reproduced with three failing regressions (SMTP lock duration, silent failure/backoff, missing operator retry). Implemented explicit delivery states, short claims, expiring leases, fenced completion, bounded delayed retries, admin-only metadata/retry/metrics, key rotation and a RU/KK operator screen. `notifications.0002_delivery_leases` preserves old queued records and marks exhausted deliveries for review. See MAIL_RECOVERY.md.
+
+Local check before AI changes: **73 backend passed, 2 PostgreSQL-only skipped**, **7 frontend passed**, lint/typecheck pass. Lease/rotation tests include missing keys and retained ciphertext. No real recipient or paid provider was contacted. Production SMTP and competing PostgreSQL mail claims are still acceptance gates.

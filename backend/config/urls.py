@@ -40,7 +40,7 @@ from apps.enrollments.models import Enrollment
 from apps.enrollments.views import EnrollmentViewSet
 from apps.grading.models import GradingComponent, GradingScheme
 from apps.materials.views import MaterialViewSet
-from apps.notifications.views import NotificationViewSet
+from apps.notifications.views import MailOutboxViewSet, NotificationViewSet
 from apps.testing.models import AnswerOption, Question
 from apps.testing.views import AttemptViewSet, TestViewSet
 
@@ -65,6 +65,7 @@ for prefix, view in [
     ("grading-schemes", content_view(GradingScheme)),
     ("grading-components", content_view(GradingComponent)),
     ("notifications", NotificationViewSet),
+    ("mail-outbox", MailOutboxViewSet),
     ("audit", AuditViewSet),
     ("content", ContentViewSet),
     ("public-content", PublicContentViewSet),

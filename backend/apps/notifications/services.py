@@ -1,10 +1,16 @@
 import json
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, MultiFernet
 from django.conf import settings
 from django.utils.html import escape
 
 from .models import MailOutbox, Notification
+
+
+def mail_cipher():
+    # New messages use the primary key; retained keys decrypt older queued mail.
+    keys = [settings.MAIL_ENCRYPTION_KEY, *settings.MAIL_PREVIOUS_ENCRYPTION_KEYS]
+    return MultiFernet([Fernet(key.encode()) for key in keys])
 
 
 def password_changed(user):
@@ -31,9 +37,7 @@ def queue_mail(user, subject, message):
         "text": message,
         "html": f'<html lang="{user.preferred_language}"><body><h1>JazSem.kz</h1><p>{escape(message).replace(chr(10), "<br>")}</p></body></html>',
     }
-    encrypted = (
-        Fernet(settings.MAIL_ENCRYPTION_KEY.encode()).encrypt(json.dumps(payload).encode()).decode()
-    )
+    encrypted = mail_cipher().encrypt(json.dumps(payload).encode()).decode()
     MailOutbox.objects.create(recipient=user.email, encrypted_payload=encrypted)
 
 

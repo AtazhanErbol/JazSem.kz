@@ -122,6 +122,11 @@ CELERY_BROKER_CONNECTION_TIMEOUT = 2
 CELERY_BROKER_TRANSPORT_OPTIONS = {"socket_connect_timeout": 1, "socket_timeout": 1}
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@localhost")
 MAIL_ENCRYPTION_KEY = os.environ.get("MAIL_ENCRYPTION_KEY", "")
+MAIL_PREVIOUS_ENCRYPTION_KEYS = [
+    key for key in os.environ.get("MAIL_PREVIOUS_ENCRYPTION_KEYS", "").split(",") if key
+]
+MAIL_MAX_ATTEMPTS = 5
+MAIL_LEASE_SECONDS = 120  # longer than EMAIL_TIMEOUT; uncertain SMTP may duplicate
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "25")) * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_BYTES
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024

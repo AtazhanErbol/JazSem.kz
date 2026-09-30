@@ -22,6 +22,7 @@ import {
   TestPage,
 } from "./features/learning/Activities";
 import { AIWizard } from "./features/ai/AIWizard";
+import { MailDelivery } from "./features/manage/MailDelivery";
 
 const client = new QueryClient({
   defaultOptions: {
@@ -128,6 +129,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               }
             />
             <Route path="settings" element={<Settings />} />
+            <Route path="mail-outbox" element={<RoleGate roles={["ADMIN"]}><MailDelivery /></RoleGate>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

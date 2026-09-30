@@ -1,9 +1,11 @@
 import { ruLabels, kkLabels } from "./labels";
 import { ruUX, kkUX } from "./ux";
 import { ruWorkspace, kkWorkspace } from "./workspace";
+import { ruMail, kkMail } from "./operations";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 const ru = {
+  mail: ruMail,
   owner_teacher: "Ответственный преподаватель",
   workspace: ruWorkspace,
   ...ruUX,
@@ -222,6 +224,7 @@ const ru = {
 };
 const kk: typeof ru = {
   ...ru,
+  mail: kkMail,
   owner_teacher: "Жауапты оқытушы",
   workspace: kkWorkspace,
   ...kkUX,

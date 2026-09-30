@@ -22,6 +22,7 @@ import {
   Activity,
   CircleHelp,
   X,
+  Mail,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Logo, Language } from "../components/UI";
@@ -63,6 +64,7 @@ export function Shell() {
           ["content", "content", Globe],
           ["audit", "audit", ShieldCheck],
           ["ai-usage", "usage", Activity],
+          ["mail-outbox", "mail.title", Mail],
         ]
       : []),
   ] as [string, string, LucideIcon][];
@@ -85,7 +87,7 @@ export function Shell() {
           { title: "workspace.people", paths: ["users", "groups"] },
           {
             title: "workspace.management",
-            paths: ["ai", "content", "audit", "ai-usage"],
+            paths: ["ai", "content", "audit", "ai-usage", "mail-outbox"],
           },
         ]
       : [{ title: "", paths: links.map(([path]) => path) }];
