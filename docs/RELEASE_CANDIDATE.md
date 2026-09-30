@@ -58,3 +58,9 @@ Stage A commit `5cf22c3` pushed to `release/rc-hardening`. [CI run 36689475086](
 B3 reproduced with three failing regressions (SMTP lock duration, silent failure/backoff, missing operator retry). Implemented explicit delivery states, short claims, expiring leases, fenced completion, bounded delayed retries, admin-only metadata/retry/metrics, key rotation and a RU/KK operator screen. `notifications.0002_delivery_leases` preserves old queued records and marks exhausted deliveries for review. See MAIL_RECOVERY.md.
 
 Local check before AI changes: **73 backend passed, 2 PostgreSQL-only skipped**, **7 frontend passed**, lint/typecheck pass. Lease/rotation tests include missing keys and retained ciphertext. No real recipient or paid provider was contacted. Production SMTP and competing PostgreSQL mail claims are still acceptance gates.
+
+## AI recovery checkpoint
+
+B1/B2 reproduced with three failing API regressions: broker loss after commit returns 500, a failed source blocks a valid selection, and exclusion is missing. Added transactional delivery outbox, stable identity, bounded dispatch/execution retries, expiring leases and fenced completion; persistent source snapshots; course lock and active-job uniqueness; explicit AI input/read contracts; early assessed-activity validation. Sources support retry/exclusion, UI selection and paginated history/costs; polling stops on terminal/error state. No real provider calls.
+
+Local checkpoint: **87 backend passed, 5 PostgreSQL-only skipped**, migration drift/lint/format/typecheck pass; mocked AI browser review/import passes. New tests simulate hard death after budget reservation, cancellation during provider response, duplicate delivery and late completion. PDF/OOXML/image limits have fixtures; renderer resource closure is exercised. Real process/broker/SMTP fault injection, orphan storage cleanup and container resource separation are still pending. Migration/operating semantics: BACKGROUND_RECOVERY.md.

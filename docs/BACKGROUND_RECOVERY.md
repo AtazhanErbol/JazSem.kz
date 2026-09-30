@@ -1,0 +1,21 @@
+# Background delivery and AI recovery
+
+AI remains disabled by default. Development acceptance uses a fake provider. This document does not authorize paid calls or production activation.
+
+Source uploads and generation requests persist `TaskDelivery` in the same transaction as the business record. No broker call occurs in the HTTP transaction or its commit callback. Beat dispatches pending records every five seconds; `manage.py dispatch_background` is an operator fallback when beat is unavailable. Recovery cannot progress while both beat and the operator dispatcher are stopped.
+
+Delivery is at-least-once. A stable delivery UUID is the Celery task identity. Short claim transactions persist attempt counters, lease tokens and deadlines; network IO occurs after commit. Consumer claims and completions serialize on Course, and token checks fence stale workers. Broker errors retry with bounded delay, up to five dispatches. Expired pre-provider/extraction execution may retry up to three executions. Completed/cancelled rows never return to active state due to a late worker. Keep worker hard limits (540 seconds) below lease duration (600 seconds). Extractors heartbeat between pages; a provider call has a bounded SDK timeout.
+
+Before a possible paid call the job records `provider_started_at`. Timeout, hard kill or missing response after that boundary is `PROVIDER_OUTCOME_UNCERTAIN`; recovery marks FAILED and does not automatically replay. Existing budget reservations remain. Operators must compare provider usage before starting another generation. A late response can record actual usage but cannot overwrite cancellation or create a late draft. The typed AIProvider protocol is used at the worker boundary for test substitution.
+
+Only explicitly selected, completed, non-excluded sources of the same course can start generation. Course locking and a partial unique constraint enforce one QUEUED/PROCESSING job across ADMIN/TEACHER actors. Each job stores bounded immutable chunk text/ID/page/hash snapshots. The API never exposes the raw snapshot in job lists. Sources can be excluded without deleting citations. Failed extraction can retry if no immutable chunks exist. Successful extraction never replaces cited chunk IDs. Import remains idempotent and creates a draft version; publication remains explicit.
+
+AI requests with both assignments/tests disabled are rejected early with a field error: current publication requires assessed activities. No artificial test or implicit change to progress rules is introduced. Manual text-only content remains a draft until a real assessed activity is added; the course editor must explain this before publication.
+
+Extraction checks bytes before parsing; archive entries/expanded bytes, PDF pages, slide counts, image/render pixels and accumulated text are bounded. PDF OCR opens the PDF once and closes pages, bitmaps and images explicitly. Celery soft/hard timeouts remain mandatory. Container CPU/memory limits and separation of long OCR from short critical jobs require production-profile verification; parsing limits alone do not prove bounded native memory use.
+
+## Upgrade
+
+Stop old API writers/workers and take a backup before `ai.0003_durable_generation`. Old active jobs have no reliable paid-call marker/snapshot: migration preserves records but retires them as FAILED/LEGACY_OUTCOME_UNCERTAIN instead of replaying. It restores pending source extraction deliveries without deleting files/chunks. Terminal jobs, drafts, imported versions and usage are preserved. Start the matching API, worker and beat afterwards. Do not reverse this migration into an old worker while new deliveries/snapshots exist; use an application rollback that understands this additive schema.
+
+Unit/API tests cover broker failure after commit, deferred dispatch, cancellation, duplicate delivery, retained budget after a simulated hard kill, immutable source snapshot, source exclusion, import idempotence and early extraction limits. PDF resource tests invoke the real PDF renderer with mocked OCR; OOXML/UTF-8 preserve RU/KK/EN. These do not replace real process-kill/broker/SMTP fault injection, which remains a release gate until CI evidence is attached.

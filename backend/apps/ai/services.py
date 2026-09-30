@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 from apps.assignments.models import Assignment
 from apps.audit.services import record
 from apps.common.scope import require_visible
-from apps.courses.models import Topic, Week
+from apps.courses.models import Course, Topic, Week
 from apps.courses.services import new_version
 from apps.grading.models import GradingComponent, GradingScheme
 from apps.materials.models import Material
@@ -14,12 +14,14 @@ from .models import AICourseDraft, DocumentChunk
 from .schema import CourseDraft, validate_citations
 
 
-def validated_draft(data, course):
+def validated_draft(data, course, allowed_ids=None):
     try:
         draft = CourseDraft.model_validate(data)
         validate_citations(
             draft,
-            {
+            allowed_ids
+            if allowed_ids is not None
+            else {
                 str(pk)
                 for pk in DocumentChunk.objects.filter(document__course=course).values_list(
                     "pk", flat=True
@@ -34,10 +36,12 @@ def validated_draft(data, course):
 @transaction.atomic
 def import_draft(draft, actor):
     require_visible(draft, actor)
+    Course.objects.select_for_update().get(pk=draft.job.course_id)
     draft = AICourseDraft.objects.select_for_update().get(pk=draft.pk)
     if draft.imported_version:
         return draft.imported_version
-    data = validated_draft(draft.data, draft.job.course)
+    allowed = {chunk["id"] for chunk in draft.job.source_snapshot} or None
+    data = validated_draft(draft.data, draft.job.course, allowed)
     version = new_version(draft.job.course, actor)
     course = version.course
     course.title, course.description = data.title, data.description

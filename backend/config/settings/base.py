@@ -80,6 +80,7 @@ CELERY_TASK_TIME_LIMIT = 600
 CELERY_TASK_SOFT_TIME_LIMIT = 540
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULE = {
+    "dispatch-ai": {"task": "apps.ai.tasks.dispatch_pending", "schedule": 5.0},
     "expire-tests": {"task": "apps.testing.tasks.expire_attempts", "schedule": 30.0},
     "deliver-mail": {"task": "apps.notifications.tasks.flush_mail", "schedule": 60.0},
     "deadlines": {"task": "apps.notifications.tasks.deadline_reminders", "schedule": 3600.0},

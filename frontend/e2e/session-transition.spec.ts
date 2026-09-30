@@ -1,8 +1,11 @@
 import { test, expect } from "@playwright/test";
 
-test("logout followed by another login keeps the new session", async ({ page }) => {
+test("logout followed by another login keeps the new session", async ({
+  page,
+}) => {
   const password = process.env.DEV_SEED_PASSWORD;
-  if (!password) throw new Error("DEV_SEED_PASSWORD is required for real API tests");
+  if (!password)
+    throw new Error("DEV_SEED_PASSWORD is required for real API tests");
   await page.goto("/login");
   for (const email of ["student@example.test", "teacher@example.test"]) {
     await page.getByLabel("Email").fill(email);
@@ -16,7 +19,11 @@ test("logout followed by another login keeps the new session", async ({ page }) 
     }
   }
   await page.getByRole("link", { name: "Проверка работ", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Проверка работ", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Проверка работ", exact: true }),
+  ).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Проверка работ", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Проверка работ", exact: true }),
+  ).toBeVisible();
 });

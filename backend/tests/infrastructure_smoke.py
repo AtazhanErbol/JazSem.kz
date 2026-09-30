@@ -40,7 +40,8 @@ try:
     assert source.chunks.filter(content__contains="x + 1 = 2").exists()
 finally:
     source.file.delete(save=False)
-    source.delete()
+    # Preserve the completed source and its delivery/citation history in this
+    # disposable QA database; compose down removes the isolated stack.
 
 languages = subprocess.check_output(["tesseract", "--list-langs"], text=True).splitlines()
 assert {"rus", "kaz", "eng"}.issubset(languages)

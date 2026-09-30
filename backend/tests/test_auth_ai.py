@@ -11,6 +11,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.test import APIClient
 
+from apps.ai.jobs import snapshot
 from apps.ai.models import AICourseDraft, AIJob, SourceDocument
 from apps.ai.schema import CourseDraft
 from apps.ai.tasks import extract_document, generate_course
@@ -139,6 +140,7 @@ def draft_data(chunk):
 
 
 def test_ai_private_draft_import_does_not_publish(world, client_for):
+    world["settings"].AI_ENABLED = True
     source = SourceDocument.objects.create(
         course=world["course"],
         uploaded_by=world["teacher"],
@@ -155,6 +157,7 @@ def test_ai_private_draft_import_does_not_publish(world, client_for):
         user=world["teacher"],
         course=world["course"],
         parameters={"weeks": 1, "assignments": True, "tests": False},
+        source_snapshot=snapshot(world["course"], [source.pk]),
     )
     with patch(
         "apps.ai.tasks.OpenAIProvider.generate_course",

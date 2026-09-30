@@ -4,7 +4,8 @@ from rest_framework import serializers
 
 def annotate_actions():
     from apps.academics.views import GroupViewSet
-    from apps.ai.views import DraftViewSet, GenerationSerializer, JobViewSet, SourceViewSet
+    from apps.ai.contracts import GenerationInput
+    from apps.ai.views import DraftViewSet, JobViewSet, SourceViewSet
     from apps.assignments.models import Submission
     from apps.assignments.views import AssignmentViewSet, SubmissionViewSet
     from apps.common.serializers import serializer_for
@@ -69,7 +70,7 @@ def annotate_actions():
     )
     mark(AttemptViewSet, "finish", "FinishAttempt", {}, serializer_for(TestAttempt))
     mark(TestViewSet, "start", "StartAttempt", {}, serializer_for(TestAttempt))
-    JobViewSet.create = extend_schema(request=GenerationSerializer)(JobViewSet.create)
+    JobViewSet.create = extend_schema(request=GenerationInput)(JobViewSet.create)
     mark(
         SourceViewSet,
         "create",

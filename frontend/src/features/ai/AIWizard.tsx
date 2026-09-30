@@ -6,13 +6,22 @@ import { Link } from "react-router-dom";
 import { Upload, Sparkles } from "lucide-react";
 import { api, allRows } from "../../services/api";
 import type { Page, Row } from "../../entities/types";
-import { Badge, ErrorState, Modal, ProgressBar } from "../../components/UI";
+import {
+  Badge,
+  ErrorState,
+  Modal,
+  ProgressBar,
+  Loading,
+} from "../../components/UI";
 import { useAction } from "../../hooks/useAction";
 
 export function AIWizard() {
   const { t, i18n } = useTranslation();
   const action = useAction();
   const [course, setCourse] = useState("");
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [sourcePage, setSourcePage] = useState(1);
+  const [jobPage, setJobPage] = useState(1);
   const [file, setFile] = useState<File>();
   const [weeks, setWeeks] = useState(4);
   const [language, setLanguage] = useState(i18n.language);
@@ -45,23 +54,41 @@ export function AIWizard() {
     queryFn: () => allRows("courses/"),
   });
   const sources = useQuery({
-    queryKey: ["sources", course],
-    queryFn: () => api<Page<Row>>(`sources/?course=${course}`),
+    queryKey: ["sources", course, sourcePage],
+    queryFn: () =>
+      api<Page<Row>>(`sources/?course=${course}&page=${sourcePage}`),
     enabled: !!course,
-    refetchInterval: 4000,
+    refetchInterval: (q) =>
+      !q.state.error &&
+      q.state.data?.results.some((s) =>
+        ["QUEUED", "PROCESSING"].includes(String(s.processing_status)),
+      )
+        ? 4000
+        : false,
   });
   const jobs = useQuery({
-    queryKey: ["jobs", course],
-    queryFn: () => api<Page<Row>>(`ai-jobs/?course=${course}`),
+    queryKey: ["jobs", course, jobPage],
+    queryFn: () => api<Page<Row>>(`ai-jobs/?course=${course}&page=${jobPage}`),
     enabled: !!course,
-    refetchInterval: 4000,
+    refetchInterval: (q) =>
+      !q.state.error &&
+      q.state.data?.results.some((j) =>
+        ["QUEUED", "PROCESSING"].includes(String(j.status)),
+      )
+        ? 4000
+        : false,
   });
   const activeId = job || jobs.data?.results[0]?.id || "";
   const active = useQuery({
     queryKey: ["job", activeId],
     queryFn: () => api<Row>(`ai-jobs/${activeId}/`),
     enabled: !!activeId,
-    refetchInterval: 3000,
+    refetchInterval: (q) =>
+      !q.state.error &&
+      q.state.data &&
+      ["QUEUED", "PROCESSING"].includes(String(q.state.data.status))
+        ? 3000
+        : false,
   });
   const draft = useQuery({
     queryKey: ["draft", activeId],
@@ -139,6 +166,9 @@ export function AIWizard() {
               value={course}
               onChange={(e) => {
                 setCourse(e.target.value);
+                setSelectedSources([]);
+                setSourcePage(1);
+                setJobPage(1);
                 setJob("");
                 setDraftText("");
                 setImported("");
@@ -152,6 +182,13 @@ export function AIWizard() {
               ))}
             </select>
           </label>
+          {courses.isPending && <Loading />}
+          {courses.isError && (
+            <ErrorState
+              error={courses.error}
+              retry={() => void courses.refetch()}
+            />
+          )}
           <Link to="/app/courses">+ {t("createCourse")}</Link>
           <h2>02 / {t("sources")}</h2>
           <label className="upload-area">
@@ -181,13 +218,86 @@ export function AIWizard() {
           >
             {t("upload")}
           </button>
+          {course && sources.isPending && <Loading />}
+          {sources.isError && (
+            <ErrorState
+              error={sources.error}
+              retry={() => void sources.refetch()}
+            />
+          )}
+          {sources.data && !sources.data.results.length && (
+            <p>{t("aiRecovery.noSources")}</p>
+          )}
           {sources.data?.results.map((s) => (
             <div className="source-row" key={s.id}>
-              <span>{String(s.filename)}</span>
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={selectedSources.includes(s.id)}
+                  disabled={
+                    s.processing_status !== "COMPLETED" || Boolean(s.excluded)
+                  }
+                  onChange={(event) =>
+                    setSelectedSources((ids) =>
+                      event.target.checked
+                        ? [...ids, s.id]
+                        : ids.filter((id) => id !== s.id),
+                    )
+                  }
+                />
+                {String(s.filename)}
+              </label>
               <Badge>{String(s.processing_status)}</Badge>
-              {s.error != null && <small>{String(s.error)}</small>}
+              {Boolean(s.error) && (
+                <small>
+                  {t(`aiRecovery.errors.${s.error}`, {
+                    defaultValue: t("aiRecovery.errors.EXTRACTION_FAILED"),
+                  })}
+                </small>
+              )}
+              {s.processing_status === "FAILED" && (
+                <button
+                  disabled={action.pending}
+                  onClick={() => void action.run(`sources/${s.id}/retry/`)}
+                >
+                  {t("retry")}
+                </button>
+              )}
+              {s.excluded ? (
+                <small>{t("aiRecovery.excluded")}</small>
+              ) : (
+                <button
+                  disabled={action.pending}
+                  onClick={async () => {
+                    const result = await action.run(`sources/${s.id}/exclude/`);
+                    if (result.ok)
+                      setSelectedSources((ids) =>
+                        ids.filter((id) => id !== s.id),
+                      );
+                  }}
+                >
+                  {t("aiRecovery.exclude")}
+                </button>
+              )}
             </div>
           ))}
+          {sources.data && (
+            <div className="toolbar">
+              <button
+                disabled={!sources.data.previous}
+                onClick={() => setSourcePage((p) => p - 1)}
+              >
+                {t("previous")}
+              </button>
+              <span>{sourcePage}</span>
+              <button
+                disabled={!sources.data.next}
+                onClick={() => setSourcePage((p) => p + 1)}
+              >
+                {t("next")}
+              </button>
+            </div>
+          )}
         </section>
         <section className="panel">
           <h2>03 / {t("generationSettings")}</h2>
@@ -244,14 +354,16 @@ export function AIWizard() {
               !canGenerate ||
               !course ||
               action.pending ||
-              !sources.data?.results.length ||
-              sources.data.results.some(
-                (s) => s.processing_status !== "COMPLETED",
+              !selectedSources.length ||
+              (!assignments && !tests) ||
+              jobs.data?.results.some((j) =>
+                ["QUEUED", "PROCESSING"].includes(String(j.status)),
               )
             }
             onClick={async () => {
               const result = await action.run<Row>("ai-jobs/", {
                 course,
+                sources: selectedSources,
                 weeks,
                 language,
                 complexity,
@@ -267,13 +379,37 @@ export function AIWizard() {
             <Sparkles size={18} />
             {t("generate")}
           </button>
+          {!assignments && !tests && (
+            <p role="alert">{t("aiRecovery.gradingRequired")}</p>
+          )}
+          {jobs.isError && (
+            <ErrorState error={jobs.error} retry={() => void jobs.refetch()} />
+          )}
+          {active.isError && (
+            <ErrorState
+              error={active.error}
+              retry={() => void active.refetch()}
+            />
+          )}
+          {draft.isError && (
+            <ErrorState
+              error={draft.error}
+              retry={() => void draft.refetch()}
+            />
+          )}
           {active.data && (
             <div className="job-progress">
               <Badge>{String(active.data.status)}</Badge>
               <p>{t(String(active.data.current_step))}</p>
               <ProgressBar value={Number(active.data.progress)} />
               {Boolean(active.data.error) && (
-                <ErrorState error={String(active.data.error)} />
+                <ErrorState
+                  error={t(`aiRecovery.errors.${active.data.error}`, {
+                    defaultValue: t(
+                      "aiRecovery.errors.GENERATION_VALIDATION_FAILED",
+                    ),
+                  })}
+                />
               )}{" "}
               {["QUEUED", "PROCESSING"].includes(
                 String(active.data.status),
@@ -288,6 +424,53 @@ export function AIWizard() {
           )}
         </section>
       </div>
+      {!!course && (
+        <section className="panel">
+          <h2>{t("aiRecovery.history")}</h2>
+          {jobs.isPending && <Loading />}
+          {jobs.data?.results.map((j) => (
+            <div className="source-row" key={j.id}>
+              <button
+                disabled={Boolean(draftText)}
+                onClick={() => {
+                  setJob(j.id);
+                  setDraftText("");
+                }}
+              >
+                {new Date(String(j.created_at)).toLocaleString(
+                  i18n.language === "kk" ? "kk-KZ" : "ru-RU",
+                )}
+              </button>
+              <Badge>{String(j.status)}</Badge>
+              <span>
+                {j.estimated_cost != null
+                  ? `$${j.estimated_cost}`
+                  : t("aiRecovery.costUnknown")}
+              </span>
+            </div>
+          ))}
+          {jobs.data && !jobs.data.results.length && (
+            <p>{t("aiRecovery.noJobs")}</p>
+          )}
+          {jobs.data && (
+            <div className="toolbar">
+              <button
+                disabled={!jobs.data.previous}
+                onClick={() => setJobPage((p) => p - 1)}
+              >
+                {t("previous")}
+              </button>
+              <span>{jobPage}</span>
+              <button
+                disabled={!jobs.data.next}
+                onClick={() => setJobPage((p) => p + 1)}
+              >
+                {t("next")}
+              </button>
+            </div>
+          )}
+        </section>
+      )}
       {draft.data && (
         <section className="panel">
           <h2>05 / {t("draft")}</h2>

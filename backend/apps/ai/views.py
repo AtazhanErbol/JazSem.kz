@@ -7,17 +7,28 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.models import User
+from apps.audit.services import record
 from apps.common.api import ReadOnlyScoped, lookup, private_response, representation
 from apps.common.background import require_worker, worker_available
+from apps.common.inputs import EmptyInput, validated
 from apps.common.permissions import is_teacher
-from apps.common.serializers import serializer_for
 from apps.courses.models import Course
 from apps.materials.validation import validate_upload
 
-from .models import AICourseDraft, AIJob, AIUsageLog, DocumentChunk, SourceDocument
+from .contracts import (
+    ChunkOutput,
+    DraftInput,
+    DraftOutput,
+    GenerationInput,
+    JobOutput,
+    RegenerateInput,
+    SourceInput,
+    SourceOutput,
+    UsageOutput,
+)
+from .jobs import create_job
+from .models import AICourseDraft, AIJob, AIUsageLog, DocumentChunk, SourceDocument, TaskDelivery
 from .services import import_draft, validated_draft
-from .tasks import extract_document, generate_course
 
 
 def require_generation():
@@ -66,7 +77,7 @@ class AIStatusView(APIView):
 
 class SourceViewSet(ReadOnlyScoped):
     queryset = SourceDocument.objects.all()
-    serializer_class = serializer_for(SourceDocument)
+    serializer_class = SourceOutput
     throttle_scope = "upload"
     filterset_fields = ["course"]
 
@@ -76,10 +87,9 @@ class SourceViewSet(ReadOnlyScoped):
     def create(self, request):
         if not is_teacher(request.user):
             raise PermissionDenied()
-        course = lookup(Course, request.data.get("course"), request.user)
-        file = request.FILES.get("file")
-        if not file:
-            raise ValidationError("Выберите файл.")
+        data = validated(request, SourceInput)
+        course = lookup(Course, data["course"], request.user)
+        file = data["file"]
         validate_upload(file)
         require_worker()
         with transaction.atomic():
@@ -91,8 +101,47 @@ class SourceViewSet(ReadOnlyScoped):
                 mime_type=file.content_type,
                 size=file.size,
             )
-            transaction.on_commit(lambda: extract_document.delay(str(source.pk)))
-        return Response(representation(source, request), status=201)
+            TaskDelivery.objects.create(source=source)
+        return Response(self.get_serializer(source).data, status=201)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def retry(self, request, pk=None):
+        validated(request, EmptyInput)
+        source = self.get_object()
+        Course.objects.select_for_update().get(pk=source.course_id)
+        source.refresh_from_db()
+        if source.processing_status != "FAILED" or source.chunks.exists():
+            raise ValidationError(
+                "Повтор доступен только для сбойного источника без готовых цитат."
+            )
+        source.processing_status, source.error = "QUEUED", ""
+        source.save()
+        TaskDelivery.objects.update_or_create(
+            source=source,
+            defaults={
+                "status": "PENDING",
+                "attempts": 0,
+                "executions": 0,
+                "lease_token": None,
+                "lease_until": None,
+                "next_retry_at": None,
+                "error_code": "",
+            },
+        )
+        record(request.user, "source.retry", source)
+        return Response(self.get_serializer(source).data)
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def exclude(self, request, pk=None):
+        validated(request, EmptyInput)
+        source = self.get_object()
+        Course.objects.select_for_update().get(pk=source.course_id)
+        source.excluded = True
+        source.save(update_fields=["excluded", "updated_at"])
+        record(request.user, "source.exclude", source)
+        return Response(self.get_serializer(source).data)
 
     @action(detail=True, methods=["get"])
     def download(self, request, pk=None):
@@ -106,20 +155,9 @@ class SourceViewSet(ReadOnlyScoped):
         return self.get_paginated_response([representation(c, request) for c in page])
 
 
-class GenerationSerializer(serializers.Serializer):
-    course = serializers.UUIDField()
-    weeks = serializers.IntegerField(min_value=1, max_value=16)
-    language = serializers.ChoiceField(choices=["ru", "kk"])
-    complexity = serializers.ChoiceField(
-        choices=["basic", "intermediate", "advanced"], default="intermediate"
-    )
-    assignments = serializers.BooleanField(default=True)
-    tests = serializers.BooleanField(default=True)
-
-
 class JobViewSet(ReadOnlyScoped):
-    queryset = AIJob.objects.all()
-    serializer_class = serializer_for(AIJob)
+    queryset = AIJob.objects.select_related("usage")
+    serializer_class = JobOutput
     throttle_scope = "ai"
     filterset_fields = ["course", "status"]
 
@@ -131,37 +169,27 @@ class JobViewSet(ReadOnlyScoped):
         if not is_teacher(request.user):
             raise PermissionDenied()
         require_generation()
-        data = GenerationSerializer(data=request.data)
-        data.is_valid(raise_exception=True)
-        params = data.validated_data
+        params = validated(request, GenerationInput)
         course = lookup(Course, params.pop("course"), request.user)
-        User.objects.select_for_update().get(pk=request.user.pk)
-        if AIJob.objects.filter(course=course, status__in=["QUEUED", "PROCESSING"]).exists():
-            raise ValidationError("Генерация уже запущена.")
-        if (
-            AIJob.objects.filter(user=request.user, created_at__date=timezone.now().date()).count()
-            >= settings.AI_MAX_DAILY_JOBS
-        ):
-            raise ValidationError("Дневной лимит генерации исчерпан.")
-        if (
-            not course.sources.exists()
-            or course.sources.exclude(processing_status="COMPLETED").exists()
-        ):
-            raise ValidationError("Дождитесь обработки всех источников.")
-        job = AIJob.objects.create(
-            user=request.user, course=course, parameters=params, request_id=request.request_id
-        )
-        transaction.on_commit(lambda: generate_course.delay(str(job.pk)))
-        return Response(representation(job, request), status=202)
+        sources = params.pop("sources")
+        job = create_job(request.user, course, params, request.request_id, sources=sources)
+        return Response(self.get_serializer(job).data, status=202)
 
     @action(detail=True, methods=["post"])
+    @transaction.atomic
     def cancel(self, request, pk=None):
+        validated(request, EmptyInput)
         job = self.get_object()
+        Course.objects.select_for_update().get(pk=job.course_id)
+        TaskDelivery.objects.filter(job=job).exclude(
+            status__in=["DONE", "FAILED", "CANCELLED"]
+        ).update(status="CANCELLED", lease_token=None, lease_until=None)
         AIJob.objects.filter(pk=job.pk, status__in=["QUEUED", "PROCESSING"]).update(
-            status="CANCELLED", finished_at=timezone.now()
+            status="CANCELLED", current_step="CANCELLED", finished_at=timezone.now()
         )
         job.refresh_from_db()
-        return Response(representation(job, request))
+        record(request.user, "ai.cancel", job, new={"status": job.status})
+        return Response(self.get_serializer(job).data)
 
     @action(detail=True, methods=["get"])
     def draft(self, request, pk=None):
@@ -169,12 +197,12 @@ class JobViewSet(ReadOnlyScoped):
         draft = AICourseDraft.objects.filter(job=job).first()
         if not draft:
             raise ValidationError("Черновик ещё не готов.")
-        return Response(representation(draft, request))
+        return Response(DraftOutput(draft).data)
 
 
 class DraftViewSet(ReadOnlyScoped):
     queryset = AICourseDraft.objects.all()
-    serializer_class = serializer_for(AICourseDraft)
+    serializer_class = DraftOutput
     throttle_scope = "ai"
 
     def get_throttles(self):
@@ -185,31 +213,16 @@ class DraftViewSet(ReadOnlyScoped):
     def regenerate(self, request, pk=None):
         require_generation()
         draft = self.get_object()
+        Course.objects.select_for_update().get(pk=draft.job.course_id)
+        draft = AICourseDraft.objects.select_for_update().get(pk=draft.pk)
         if draft.imported_version:
             raise ValidationError("Черновик уже импортирован.")
 
-        class Input(serializers.Serializer):
-            week_index = serializers.IntegerField(min_value=0)
-            topic_index = serializers.IntegerField(min_value=0)
-            instruction = serializers.CharField(max_length=2000)
-
-        data = Input(data=request.data)
-        data.is_valid(raise_exception=True)
-        params = data.validated_data
+        params = validated(request, RegenerateInput)
         try:
             draft.data["weeks"][params["week_index"]]["topics"][params["topic_index"]]
-        except IndexError:
+        except (IndexError, KeyError, TypeError):
             raise ValidationError("Тема не найдена.")
-        User.objects.select_for_update().get(pk=request.user.pk)
-        if AIJob.objects.filter(
-            course=draft.job.course, status__in=["QUEUED", "PROCESSING"]
-        ).exists():
-            raise ValidationError("Генерация уже запущена.")
-        if (
-            AIJob.objects.filter(user=request.user, created_at__date=timezone.now().date()).count()
-            >= settings.AI_MAX_DAILY_JOBS
-        ):
-            raise ValidationError("Дневной лимит генерации исчерпан.")
         params.update(
             {
                 "draft_data": draft.data,
@@ -218,37 +231,40 @@ class DraftViewSet(ReadOnlyScoped):
                 "tests": True,
             }
         )
-        job = AIJob.objects.create(
-            user=request.user,
-            course=draft.job.course,
-            type="REGENERATE_TOPIC",
-            parameters=params,
-            request_id=request.request_id,
+        job = create_job(
+            request.user,
+            draft.job.course,
+            params,
+            request.request_id,
+            source_snapshot=draft.job.source_snapshot,
+            kind="REGENERATE_TOPIC",
         )
-        transaction.on_commit(lambda: generate_course.delay(str(job.pk)))
-        return Response(representation(job, request), status=202)
+        return Response(JobOutput(job).data, status=202)
 
     @transaction.atomic
     def partial_update(self, request, pk=None):
         draft = self.get_object()
+        Course.objects.select_for_update().get(pk=draft.job.course_id)
         draft = AICourseDraft.objects.select_for_update().get(pk=draft.pk)
         if draft.imported_version:
             raise ValidationError("Черновик уже импортирован. Редактируйте версию курса.")
-        data = validated_draft(request.data.get("data"), draft.job.course)
+        allowed = {chunk["id"] for chunk in draft.job.source_snapshot} or None
+        data = validated_draft(validated(request, DraftInput)["data"], draft.job.course, allowed)
         draft.data = data.model_dump()
         draft.save()
-        return Response(representation(draft, request))
+        return Response(DraftOutput(draft).data)
 
     @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
+        validated(request, EmptyInput)
         return Response(representation(import_draft(self.get_object(), request.user), request))
 
 
 class UsageViewSet(ReadOnlyScoped):
     queryset = AIUsageLog.objects.all()
-    serializer_class = serializer_for(AIUsageLog)
+    serializer_class = UsageOutput
 
 
 class ChunkViewSet(ReadOnlyScoped):
     queryset = DocumentChunk.objects.all()
-    serializer_class = serializer_for(DocumentChunk)
+    serializer_class = ChunkOutput

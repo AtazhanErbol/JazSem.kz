@@ -76,3 +76,65 @@ def test_concurrent_enrollment_is_idempotent(world):
     )
     assert responses == [200, 200]
     assert Enrollment.objects.filter(student=world["student"], course=world["course"]).count() == 1
+
+
+def test_concurrent_admin_teacher_generation_has_one_winner(world, settings):
+    from unittest.mock import patch
+
+    from apps.ai.models import AIJob
+    from tests.test_ai_recovery import configured, source
+
+    configured(settings)
+    document = source(world)
+    data = {
+        "course": str(world["course"].pk),
+        "weeks": 1,
+        "language": "ru",
+        "sources": [str(document.pk)],
+    }
+    with patch("apps.ai.views.require_worker"):
+        responses = race(
+            *[
+                lambda actor=world[role]: (
+                    client(actor).post("/api/v1/ai-jobs/", data, format="json").status_code
+                )
+                for role in ["admin", "teacher"]
+            ]
+        )
+    assert sorted(responses) == [202, 409]
+    assert AIJob.objects.filter(course=world["course"], status="QUEUED").count() == 1
+
+
+def test_concurrent_mail_claim_has_one_owner(world):
+    from apps.notifications.models import MailOutbox
+    from apps.notifications.services import queue_mail
+    from apps.notifications.tasks import claim_mail
+
+    MailOutbox.objects.all().delete()
+    queue_mail(world["student"], "Synthetic", "Synthetic")
+    queued = MailOutbox.objects.get()
+    responses = race(*[lambda: claim_mail(queued.pk) is not None for _ in range(2)])
+    assert sorted(responses) == [False, True]
+    queued.refresh_from_db()
+    assert queued.attempts == 1
+
+
+def test_concurrent_budget_reservation_never_exceeds_cap(world, settings):
+    from decimal import Decimal
+
+    from apps.ai.budget import reserve_budget
+    from apps.ai.models import AIBudgetDay
+    from tests.test_ai_recovery import configured
+
+    configured(settings)
+    settings.AI_DAILY_BUDGET_USD = "0.012"
+
+    def reserve():
+        try:
+            reserve_budget({}, {}, 100)
+            return True
+        except ValueError:
+            return False
+
+    assert sorted(race(reserve, reserve)) == [False, True]
+    assert Decimal("0") < AIBudgetDay.objects.get().reserved_usd <= Decimal("0.012")
