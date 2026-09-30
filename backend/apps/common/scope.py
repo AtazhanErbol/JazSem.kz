@@ -117,8 +117,9 @@ def editable(obj, user):
     require_visible(obj, user)
     version = version_of(obj)
     if version:
-        from apps.courses.models import CourseVersion
+        from apps.courses.models import Course, CourseVersion
 
+        Course.objects.select_for_update().get(pk=version.course_id)
         version = CourseVersion.objects.select_for_update().get(pk=version.pk)
     if version and version.status not in ["DRAFT", "REVIEW"]:
         raise ValidationError("Опубликованная версия неизменяема. Создайте копию.")

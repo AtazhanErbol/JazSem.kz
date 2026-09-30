@@ -34,6 +34,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 CELERY_RESULT_BACKEND = "cache+memory://"
 CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_ROUTES = {}  # One local solo worker; production isolates heavy work.
 CELERY_BEAT_SCHEDULE_FILENAME = str(_runtime / "celerybeat-schedule")
 CACHES = {
     "default": {

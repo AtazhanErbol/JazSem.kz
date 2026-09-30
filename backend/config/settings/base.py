@@ -76,6 +76,15 @@ CACHES = {
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_TASK_SERIALIZER = "json"
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ROUTES = {
+    "apps.ai.tasks.extract_document": {"queue": "heavy"},
+    "apps.ai.tasks.generate_course": {"queue": "heavy"},
+}
+REQUIRED_WORKER_ROLES = [
+    role for role in os.environ.get("REQUIRED_WORKER_ROLES", "").split(",") if role
+]
+STORAGE_PROBE_KEY = os.environ.get("STORAGE_PROBE_KEY", "")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_TIME_LIMIT = 600
 CELERY_TASK_SOFT_TIME_LIMIT = 540
@@ -115,7 +124,21 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "JazSem.kz API",
     "VERSION": "1.0.0",
     "COMPONENT_SPLIT_REQUEST": True,
-    "ENUM_NAME_OVERRIDES": {"LanguageEnum": [("ru", "RU"), ("kk", "KZ")]},
+    "ENUM_NAME_OVERRIDES": {
+        "LanguageEnum": [("ru", "RU"), ("kk", "KZ")],
+        **{
+            name + "Enum": "apps.common.states." + name + ".choices"
+            for name in [
+                "CourseState",
+                "VersionState",
+                "EnrollmentState",
+                "SubmissionState",
+                "AttemptState",
+                "SourceState",
+                "JobState",
+            ]
+        },
+    },
 }
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")

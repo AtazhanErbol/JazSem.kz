@@ -1,5 +1,6 @@
 """DB outbox for extraction/generation. All business transitions lock Course first."""
 
+import logging
 import uuid
 from datetime import timedelta
 
@@ -13,6 +14,19 @@ from .models import AIJob, SourceDocument, TaskDelivery
 
 TERMINAL = ["DONE", "FAILED", "CANCELLED"]
 LEASE_SECONDS = 600  # exceeds the Celery hard limit of 540s
+
+
+def event(row, name, **extra):
+    logging.getLogger("background").info(
+        name,
+        extra={
+            "request_id": row.request_id,
+            "task_id": str(row.pk),
+            "job_id": str(row.job_id or ""),
+            "source_id": str(row.source_id or ""),
+            **extra,
+        },
+    )
 
 
 def lock_course(delivery):
@@ -60,6 +74,7 @@ def reconcile():
             row.lease_token = row.lease_until = None
             row.next_retry_at = now
             row.save()
+            event(row, "delivery_reconciled", status=row.status, error_code=row.error_code)
             if terminal:
                 finish_target(row, "FAILED", row.error_code)
             elif row.job_id:
@@ -114,6 +129,7 @@ def dispatch():
                 )
                 if changed and terminal:
                     finish_target(row, "FAILED", "BROKER_UNAVAILABLE")
+                event(row, "dispatch_failed", error_code="BROKER_UNAVAILABLE")
         else:
             # The consumer may have already claimed/completed this row.
             owned.update(
@@ -122,6 +138,7 @@ def dispatch():
                 lease_until=timezone.now() + timedelta(seconds=LEASE_SECONDS),
                 error_code="",
             )
+            event(row, "delivery_sent")
 
 
 @transaction.atomic
@@ -142,6 +159,7 @@ def claim(*, job=None, source=None):
     row.heartbeat_at = timezone.now()
     row.lease_until = timezone.now() + timedelta(seconds=LEASE_SECONDS)
     row.save()
+    event(row, "delivery_started", execution=row.executions)
     if job:
         AIJob.objects.filter(pk=job.pk).update(
             status="PROCESSING",
@@ -175,6 +193,7 @@ def complete(row):
     row.lease_token = row.lease_until = None
     row.error_code = ""
     row.save()
+    event(row, "delivery_completed")
 
 
 @transaction.atomic
@@ -188,3 +207,4 @@ def failed(row, code):
     row.lease_token = row.lease_until = None
     row.save()
     finish_target(row, "FAILED", code)
+    event(row, "delivery_failed", error_code=code)

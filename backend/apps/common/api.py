@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from apps.audit.services import record, selected_fields
 from apps.common.permissions import AccountReady, AuthorReady, is_teacher
 from apps.common.scope import editable, require_visible, version_of, visible
 from apps.common.serializers import serializer_for
@@ -67,18 +68,22 @@ class ScopedViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self, serializer):
         self.validate_write(serializer)
-        serializer.save()
+        obj = serializer.save()
+        record(self.request.user, "content.created", obj, new=selected_fields(obj))
 
     @transaction.atomic
     def perform_update(self, serializer):
         self.validate_write(serializer)
-        serializer.save()
+        old = selected_fields(serializer.instance)
+        obj = serializer.save()
+        record(self.request.user, "content.updated", obj, old, selected_fields(obj))
 
     @transaction.atomic
     def perform_destroy(self, instance):
         editable(instance, self.request.user)
         if not version_of(instance):
             raise ValidationError("Используйте архивирование.")
+        record(self.request.user, "content.deleted", instance, old=selected_fields(instance))
         instance.delete()
 
 

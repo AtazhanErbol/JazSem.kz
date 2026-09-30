@@ -120,6 +120,7 @@ def generate_course(pk):
             ):
                 return
         provider_called = True
+        delivery.event(lease, "provider_started")
         provider: AIProvider = OpenAIProvider()
         if job.type == "REGENERATE_TOPIC":
             draft = CourseDraft.model_validate(job.parameters["draft_data"])

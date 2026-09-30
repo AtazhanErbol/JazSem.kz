@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.decorators import action
@@ -6,6 +7,7 @@ from rest_framework.response import Response
 
 from apps.academics.models import Discipline, GroupMembership, StudyGroup
 from apps.accounts.models import User
+from apps.audit.services import record
 from apps.common.api import ScopedViewSet, lookup, representation
 from apps.common.inputs import CourseInput, EmptyInput, StudentInput, validated
 from apps.common.permissions import is_admin
@@ -28,7 +30,10 @@ class DisciplineViewSet(ScopedViewSet):
 
     def perform_create(self, serializer):
         self.validate_write(serializer)
-        serializer.save(created_by=self.request.user)
+        obj = serializer.save(created_by=self.request.user)
+        record(
+            self.request.user, "discipline.created", obj, new={"name": obj.name, "code": obj.code}
+        )
 
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
@@ -38,6 +43,7 @@ class DisciplineViewSet(ScopedViewSet):
         obj = self.get_object()
         obj.status = "ARCHIVED"
         obj.save()
+        record(request.user, "discipline.archived", obj)
         return Response(representation(obj, request))
 
 
@@ -54,7 +60,13 @@ class GroupViewSet(ScopedViewSet):
             not is_admin(self.request.user) and teacher != self.request.user
         ):
             raise PermissionDenied()
-        serializer.save(teacher=teacher)
+        obj = serializer.save(teacher=teacher)
+        record(
+            self.request.user,
+            "group.created",
+            obj,
+            new={"teacher": str(teacher.pk), "name": obj.name},
+        )
 
     @action(detail=True, methods=["get", "post"])
     def members(self, request, pk=None):
@@ -71,17 +83,20 @@ class GroupViewSet(ScopedViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="remove-member")
+    @transaction.atomic
     def remove_member(self, request, pk=None):
         data = validated(request, StudentInput)
+        group = StudyGroup.objects.select_for_update().get(pk=self.get_object().pk)
         member = get_object_or_404(
             GroupMembership,
-            group=self.get_object(),
+            group=group,
             student_id=data["student"],
             status="ACTIVE",
         )
         member.status = "LEFT"
         member.left_at = timezone.now()
         member.save()
+        record(request.user, "group.member_removed", member, new={"status": "LEFT"})
         return Response(status=204)
 
     @action(detail=True, methods=["post"])
@@ -95,10 +110,12 @@ class GroupViewSet(ScopedViewSet):
         return Response(representation(obj, request))
 
     @action(detail=True, methods=["post"])
+    @transaction.atomic
     def archive(self, request, pk=None):
         validated(request, EmptyInput)
-        group = self.get_object()
+        group = StudyGroup.objects.select_for_update().get(pk=self.get_object().pk)
         group.status = "ARCHIVED"
         group.save()
         group.course_assignments.update(status="ARCHIVED")
+        record(request.user, "group.archived", group)
         return Response(representation(group, request))

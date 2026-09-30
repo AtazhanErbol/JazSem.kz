@@ -20,6 +20,10 @@ class RequestIDMiddleware:
         finally:
             request_context.reset(token)
         response["X-Request-ID"] = request.request_id
+        from .observability import observe_http
+
+        duration_ms = round((time.monotonic() - started) * 1000, 2)
+        observe_http(response.status_code, duration_ms)
         logging.getLogger("http").info(
             "%s %s %s",
             request.method,
@@ -27,7 +31,7 @@ class RequestIDMiddleware:
             response.status_code,
             extra={
                 "request_id": request.request_id,
-                "duration_ms": round((time.monotonic() - started) * 1000, 2),
+                "duration_ms": duration_ms,
                 "status_code": response.status_code,
             },
         )

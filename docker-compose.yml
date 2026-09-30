@@ -40,7 +40,17 @@ services:
   celery:
     build: {context: backend, target: development}
     env_file: .env
-    command: celery -A config worker --loglevel=info --concurrency=2
+    command: celery -A config worker --loglevel=info --concurrency=2 --queues=celery --hostname=short@%h
+    environment: {WORKER_ROLE: short}
+    depends_on: [backend]
+    volumes: [./backend:/app]
+  heavy:
+    build: {context: backend, target: development}
+    env_file: .env
+    environment: {WORKER_ROLE: heavy}
+    command: celery -A config worker --loglevel=info --concurrency=1 --queues=heavy --hostname=heavy@%h --max-tasks-per-child=10 --max-memory-per-child=800000
+    mem_limit: 1536m
+    cpus: 1
     depends_on: [backend]
     volumes: [./backend:/app]
   beat:

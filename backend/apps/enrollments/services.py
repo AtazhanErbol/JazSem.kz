@@ -3,7 +3,9 @@ from rest_framework.exceptions import ValidationError
 
 from apps.academics.models import GroupMembership, StudyGroup
 from apps.accounts.models import User
+from apps.audit.services import record
 from apps.common.scope import require_visible
+from apps.courses.models import Course
 from apps.notifications.services import notify
 
 from .models import Enrollment, EnrollmentSource, GroupCourseAssignment
@@ -13,6 +15,7 @@ from .models import Enrollment, EnrollmentSource, GroupCourseAssignment
 def enroll(actor, student, course, group_assignment=None):
     require_visible(course, actor)
     require_visible(student, actor)
+    course = Course.objects.select_for_update().get(pk=course.pk)
     student = User.objects.select_for_update().get(pk=student.pk)
     if (
         student.role != "STUDENT"
@@ -41,6 +44,12 @@ def enroll(actor, student, course, group_assignment=None):
         defaults={"assigned_by": actor, "group_assignment": group_assignment},
     )
     if created:
+        record(
+            actor,
+            "enrollment.created",
+            enrollment,
+            new={"course": str(course.pk), "version": str(version.pk), "student": str(student.pk)},
+        )
         notify(student, "COURSE", course.title, link=f"/app/courses/{course.pk}", email=True)
     return enrollment
 
@@ -50,6 +59,7 @@ def assign_group(actor, group, course):
     require_visible(group, actor)
     require_visible(course, actor)
     group = StudyGroup.objects.select_for_update().get(pk=group.pk)
+    course = Course.objects.select_for_update().get(pk=course.pk)
     if (
         group.teacher_id != course.teacher_id
         or group.status != "ACTIVE"
@@ -65,8 +75,16 @@ def assign_group(actor, group, course):
             "status": "ACTIVE",
         },
     )
-    for membership in group.memberships.filter(status="ACTIVE").select_related("student"):
+    for membership in (
+        group.memberships.filter(status="ACTIVE").select_related("student").order_by("student_id")
+    ):
         enroll(actor, membership.student, course, assignment)
+    record(
+        actor,
+        "group.course_assigned",
+        assignment,
+        new={"course": str(course.pk), "version": str(assignment.course_version_id)},
+    )
     return assignment
 
 
@@ -75,6 +93,18 @@ def add_member(actor, group, student):
     require_visible(group, actor)
     require_visible(student, actor)
     group = StudyGroup.objects.select_for_update().get(pk=group.pk)
+    assignments = list(
+        group.course_assignments.filter(status="ACTIVE")
+        .select_related("course", "course_version")
+        .order_by("course_id")
+    )
+    # Group -> every course (stable order) -> Student. Never acquire a new
+    # course lock after taking the student lock during inheritance.
+    list(
+        Course.objects.select_for_update()
+        .filter(pk__in=[a.course_id for a in assignments])
+        .order_by("pk")
+    )
     student = User.objects.select_for_update().get(pk=student.pk)
     if (
         student.role != "STUDENT"
@@ -86,8 +116,12 @@ def add_member(actor, group, student):
     membership, _ = GroupMembership.objects.get_or_create(
         group=group, student=student, status="ACTIVE"
     )
-    for assignment in group.course_assignments.filter(status="ACTIVE").select_related(
-        "course", "course_version"
-    ):
+    record(
+        actor,
+        "group.member_added",
+        membership,
+        new={"group": str(group.pk), "student": str(student.pk)},
+    )
+    for assignment in assignments:
         enroll(actor, student, assignment.course, assignment)
     return membership

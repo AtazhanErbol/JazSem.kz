@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.common.models import Entity
+from apps.common.states import EnrollmentState
 
 
 class Enrollment(Entity):
@@ -22,11 +23,17 @@ class Enrollment(Entity):
     assigned_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True)
     completed_at = models.DateTimeField(null=True)
-    status = models.CharField(max_length=20, default="ASSIGNED", db_index=True)
+    status = models.CharField(
+        choices=EnrollmentState.choices, max_length=20, default="ASSIGNED", db_index=True
+    )
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["student", "course"], name="one_learning_per_course")
+            models.CheckConstraint(
+                condition=models.Q(status__in=EnrollmentState.values),
+                name="enrollments_enrollment_state",
+            ),
+            models.UniqueConstraint(fields=["student", "course"], name="one_learning_per_course"),
         ]
 
 

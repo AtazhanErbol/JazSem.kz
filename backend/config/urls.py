@@ -32,6 +32,7 @@ from apps.assignments.views import AssignmentViewSet, SubmissionFileViewSet, Sub
 from apps.audit.views import AuditViewSet
 from apps.cms.views import ContentViewSet, PublicContentViewSet
 from apps.common.api import content_view
+from apps.common.observability import OperationsView, storage_ready, worker_freshness
 from apps.common.openapi import annotate_actions
 from apps.common.scope import visible
 from apps.courses.models import Course, Week
@@ -129,6 +130,11 @@ def ready(request):
             redis.Redis.from_url(
                 settings.REDIS_URL, socket_connect_timeout=2, socket_timeout=2
             ).ping()
+        workers = worker_freshness()
+        if any(age is None or age > 60 for age in workers.values()):
+            return JsonResponse({"status": "worker_unavailable"}, status=503)
+        if storage_ready() is False:
+            return JsonResponse({"status": "storage_unavailable"}, status=503)
         return JsonResponse({"status": "ready"})
     except Exception:
         return JsonResponse({"status": "unavailable"}, status=503)
@@ -146,6 +152,7 @@ urlpatterns = [
     path("api/v1/auth/forgot-password/", ForgotView.as_view()),
     path("api/v1/auth/reset-password/", ResetView.as_view()),
     path("api/v1/dashboard/", DashboardView.as_view()),
+    path("api/v1/operations/", OperationsView.as_view()),
     path("api/schema/", SpectacularAPIView.as_view()),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
 ]

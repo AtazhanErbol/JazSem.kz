@@ -1,3 +1,4 @@
+/* global process, console, window, PerformanceObserver, document, performance */
 // Production build lab measurements. Run separately from correctness tests.
 import { chromium } from "@playwright/test";
 import { writeFile, mkdir } from "node:fs/promises";

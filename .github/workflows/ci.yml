@@ -59,7 +59,7 @@ jobs:
           docker compose up -d postgres redis minio minio-init
           docker compose run --rm backend python manage.py migrate --noinput
           docker compose run --rm backend python manage.py seed_dev
-          docker compose up -d backend celery beat frontend
+          docker compose up -d backend celery heavy beat frontend
       - name: Exercise real services without paid AI
         run: |
           curl --fail --retry 20 --retry-all-errors --retry-delay 3 http://127.0.0.1:8000/ready/
@@ -71,7 +71,7 @@ jobs:
           docker build --target production -t jazsem-frontend:ci frontend
       - name: Service logs on failure
         if: failure()
-        run: docker compose logs --tail=80 backend celery minio
+        run: docker compose logs --tail=80 backend celery heavy minio
       - name: Remove isolated CI containers
         if: always()
         run: docker compose down -v

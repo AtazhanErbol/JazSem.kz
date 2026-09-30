@@ -1,0 +1,17 @@
+# Operational checks and incident response — RC
+
+`GET /health/` is liveness. `/ready/` checks PostgreSQL, Redis (or local worker), configured worker heartbeats and the private storage sentinel. Production requires the short and heavy worker roles, each heartbeat newer than 60 seconds. Initialize `private/health/readiness.txt` once with `python manage.py storage_probe --initialize`; ordinary readiness only performs HEAD/read checks. This is evidence of storage access, not a proof of correct IAM or bucket policy. Private access tests are separate.
+
+`GET /api/v1/operations/` is admin-only and returns a bounded five-minute HTTP window: request counts, 5xx, 429 and noncumulative latency buckets ≤100/250/500/1000/2500/5000 ms plus slower. Queue counts/oldest age, failed mail, worker age and cached storage status are included. Redis keys expire after ten minutes. Counters are operational indicators, not billing/accounting; local file cache is only a development approximation. No per-user/path labels, recipient addresses or bodies appear. Configure your monitoring system to scrape as a dedicated admin session or consume structured logs; an external monitor is **not claimed configured**.
+
+Starting alert thresholds to validate under staging load: worker age >60 s, storage/readiness false, any failed mail needing action, oldest due short work >120 s, heavy work >10 min, HTTP 5xx >1% with ≥100 requests/5 min, sustained 429 spikes. Tune latency buckets/thresholds from load tests. HTTP logs carry duration/status/request ID; task delivery logs carry task/job/source/request IDs and safe error codes. Exceptions retain filenames/functions/line numbers, not exception values or locals.
+
+Heavy OCR/generation runs in its own queue and process: concurrency 1, 1 CPU, 1536 MiB container cap, 800000 KiB post-task worker recycle, 480 s soft / 540 s hard time limits, 600 s execution lease. Short mail/expiry/dispatch work has separate capacity and prefetch 1. Hard OOM/kill can leave uncertain effects; reconciler applies the documented recovery policy, never blind paid replay. Local Windows uses one solo file-queue worker and does not prove container limits.
+
+- **Login failures:** inspect safe request ID, Host/CSRF/proxy checks and auth throttles; never copy passwords/cookies into tickets.
+- **Mail failure:** inspect delivery status/code/age, repair SMTP or restore encryption keys, then admin retry; SMTP uncertainty may duplicate. See MAIL_RECOVERY.md.
+- **AI/extraction stalled:** inspect delivery lease/worker/queue, restore broker/consumer, run `dispatch_background`; uncertain paid jobs need cost/provider reconciliation before a new explicit generation. See BACKGROUND_RECOVERY.md.
+- **Storage outage:** preserve DB/history, repair access to matching object versions, verify private downloads and readiness sentinel. Never delete references to make readiness green.
+- **Bad release:** stop traffic to the new image, roll back the application by recorded digest if schema compatible; keep new migrations/history. Restore only in an isolated environment first (BACKUP.md).
+
+Business audit records account activity/owner, content metadata, course publication/copy, group membership/assignment, enrollment, grades and recovery actions. Content bodies, passwords, mail payloads and answer keys are excluded from generic snapshots. Audit is application history, not tamper-proof external storage.

@@ -10,6 +10,8 @@ services:
     restart: unless-stopped
     read_only: true
     tmpfs: [/tmp]
+    mem_limit: 1g
+    cpus: 2
     healthcheck:
       test: [CMD, python, -m, config.healthcheck]
       interval: 30s
@@ -18,11 +20,23 @@ services:
   celery:
     build: {context: ../backend, target: production}
     env_file: ../.env
-    environment: {DJANGO_SETTINGS_MODULE: config.settings.production, TRUSTED_PROXY_CIDRS: "172.30.0.20/32"}
-    command: celery -A config worker --loglevel=info --concurrency=2
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production, TRUSTED_PROXY_CIDRS: "172.30.0.20/32", WORKER_ROLE: short}
+    command: celery -A config worker --loglevel=info --concurrency=2 --queues=celery --hostname=short@%h
     restart: unless-stopped
     read_only: true
     tmpfs: [/tmp]
+    mem_limit: 768m
+    cpus: 1
+  heavy:
+    build: {context: ../backend, target: production}
+    env_file: ../.env
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production, TRUSTED_PROXY_CIDRS: "172.30.0.20/32", WORKER_ROLE: heavy}
+    command: celery -A config worker --loglevel=info --concurrency=1 --queues=heavy --hostname=heavy@%h --max-tasks-per-child=10 --max-memory-per-child=800000
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 1536m
+    cpus: 1
   beat:
     build: {context: ../backend, target: production}
     env_file: ../.env
@@ -38,6 +52,8 @@ services:
     ports: ['127.0.0.1:8080:8080']
     depends_on: [backend]
     restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
 
 networks:
   default:

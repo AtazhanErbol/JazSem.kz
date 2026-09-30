@@ -19,9 +19,9 @@ def new_version(course, user):
 
 @transaction.atomic
 def publish(version, user):
+    course = Course.objects.select_for_update().get(pk=version.course_id)
     version = CourseVersion.objects.select_for_update().get(pk=version.pk)
     editable(version, user)
-    course = Course.objects.select_for_update().get(pk=version.course_id)
     topics = [
         topic for week in version.weeks.prefetch_related("topics") for topic in week.topics.all()
     ]
@@ -100,6 +100,8 @@ def publish(version, user):
 
 @transaction.atomic
 def duplicate(version, user):
+    Course.objects.select_for_update().get(pk=version.course_id)
+    version = CourseVersion.objects.select_for_update().get(pk=version.pk)
     target = new_version(version.course, user)
 
     def copy(obj, **changes):
@@ -130,4 +132,5 @@ def duplicate(version, user):
         new_scheme = copy(scheme, course_version=target)
         for component in scheme.components.all():
             copy(component, scheme=new_scheme)
+    record(user, "course.duplicated", target, new={"source_version": str(version.pk)})
     return target

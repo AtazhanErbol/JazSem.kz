@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.common.models import Entity
+from apps.common.states import SubmissionState
 from apps.materials.models import private_name
 
 
@@ -32,7 +33,9 @@ class Submission(Entity):
     attempt_number = models.PositiveIntegerField()
     text_answer = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=30, default="SUBMITTED", db_index=True)
+    status = models.CharField(
+        choices=SubmissionState.choices, max_length=30, default="SUBMITTED", db_index=True
+    )
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     teacher_comment = models.TextField(blank=True)
     graded_by = models.ForeignKey(
@@ -42,6 +45,10 @@ class Submission(Entity):
 
     class Meta:
         constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=SubmissionState.values),
+                name="assignments_submission_state",
+            ),
             models.UniqueConstraint(
                 fields=["assignment", "student", "attempt_number"], name="submission_attempt_number"
             ),

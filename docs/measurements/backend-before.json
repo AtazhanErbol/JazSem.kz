@@ -8,205 +8,205 @@
   },
   "samples": 7,
   "student_tree": {
-    "p50_ms": 76.04,
-    "p95_ms": 136.46,
+    "p50_ms": 71.69,
+    "p95_ms": 132.12,
     "observations": [
       {
-        "ms": 136.46,
+        "ms": 113.99,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 70.21,
+        "ms": 70.54,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 69.69,
+        "ms": 71.14,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 134.12,
+        "ms": 132.12,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 76.04,
+        "ms": 71.69,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 75.89,
+        "ms": 67.76,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 135.44,
+        "ms": 122.47,
         "queries": 12,
         "bytes": 121233
       }
     ]
   },
   "editor_tree": {
-    "p50_ms": 430.31,
-    "p95_ms": 541.04,
+    "p50_ms": 402.13,
+    "p95_ms": 442.98,
     "observations": [
       {
-        "ms": 398.95,
+        "ms": 394.05,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 490.26,
+        "ms": 435.39,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 430.31,
+        "ms": 403.41,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 476.75,
+        "ms": 402.13,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 411.46,
+        "ms": 393.18,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 541.04,
+        "ms": 442.98,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 417.86,
+        "ms": 398.08,
         "queries": 11,
         "bytes": 431899
       }
     ]
   },
   "publish": {
-    "p50_ms": 41.24,
-    "p95_ms": 109.59,
+    "p50_ms": 40.37,
+    "p95_ms": 103.6,
     "observations": [
       {
-        "ms": 43.2,
+        "ms": 41.33,
         "queries": 58,
         "bytes": 0
       },
       {
-        "ms": 45.88,
+        "ms": 39.76,
         "queries": 58,
         "bytes": 0
       },
       {
-        "ms": 109.59,
+        "ms": 103.6,
         "queries": 58,
         "bytes": 0
       },
       {
-        "ms": 40.98,
+        "ms": 40.81,
         "queries": 58,
         "bytes": 0
       },
       {
-        "ms": 40.94,
+        "ms": 40.37,
         "queries": 58,
         "bytes": 0
       },
       {
-        "ms": 41.24,
+        "ms": 39.76,
         "queries": 58,
         "bytes": 0
       },
       {
-        "ms": 40.74,
+        "ms": 40.36,
         "queries": 58,
         "bytes": 0
       }
     ]
   },
   "duplicate": {
-    "p50_ms": 358.04,
-    "p95_ms": 373.71,
+    "p50_ms": 340.6,
+    "p95_ms": 431.13,
     "observations": [
       {
-        "ms": 350.3,
+        "ms": 342.24,
         "queries": 1799,
         "bytes": 0
       },
       {
-        "ms": 358.04,
+        "ms": 338.37,
         "queries": 1799,
         "bytes": 0
       },
       {
-        "ms": 352.4,
+        "ms": 340.6,
         "queries": 1799,
         "bytes": 0
       },
       {
-        "ms": 351.71,
+        "ms": 341.8,
         "queries": 1799,
         "bytes": 0
       },
       {
-        "ms": 373.71,
-        "queries": 1321,
+        "ms": 337.94,
+        "queries": 1799,
         "bytes": 0
       },
       {
-        "ms": 365.08,
-        "queries": 0,
+        "ms": 431.13,
+        "queries": 1799,
         "bytes": 0
       },
       {
-        "ms": 360.07,
-        "queries": 0,
+        "ms": 339.94,
+        "queries": 1799,
         "bytes": 0
       }
     ]
   },
   "results_25_rows": {
-    "p50_ms": 387.32,
-    "p95_ms": 439.32,
+    "p50_ms": 387.45,
+    "p95_ms": 434.82,
     "observations": [
       {
-        "ms": 387.32,
+        "ms": 351.97,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 439.32,
+        "ms": 427.15,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 373.59,
+        "ms": 387.45,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 379.67,
+        "ms": 434.82,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 438.38,
+        "ms": 362.71,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 360.79,
+        "ms": 346.04,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 439.03,
+        "ms": 426.41,
         "queries": 375,
         "bytes": 5950
       }

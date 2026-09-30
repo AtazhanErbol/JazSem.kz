@@ -12,6 +12,8 @@ from apps.materials.models import Material
 
 
 def referenced(key):
+    if key.startswith("private/health/"):
+        return True
     return any(
         model.objects.filter(file=key).exists()
         for model in [Material, SubmissionFile, SourceDocument]

@@ -182,3 +182,50 @@ def test_start_and_expire_follow_one_lock_order(world):
 
     assert race(starting, finishing) == [2, "EXPIRED"]
     assert TestAttempt.objects.filter(test=world["test"], status="IN_PROGRESS").count() == 1
+
+
+def test_group_assignment_and_join_inherit_once(world):
+    from apps.academics.models import GroupMembership
+    from apps.enrollments.models import EnrollmentSource, GroupCourseAssignment
+    from apps.enrollments.services import add_member, assign_group
+
+    race(
+        lambda: add_member(world["teacher"], world["group"], world["student"]),
+        lambda: assign_group(world["teacher"], world["group"], world["course"]),
+    )
+    assert GroupMembership.objects.filter(group=world["group"], status="ACTIVE").count() == 1
+    assignment = GroupCourseAssignment.objects.get(group=world["group"])
+    assert (
+        EnrollmentSource.objects.filter(
+            enrollment=world["enrollment"], group_assignment=assignment
+        ).count()
+        == 1
+    )
+
+
+def test_publish_and_edit_are_serialized(world):
+    from apps.courses.services import duplicate
+
+    version = duplicate(world["version"], world["teacher"])
+    topic = version.weeks.first().topics.first()
+    responses = race(
+        lambda: (
+            client(world["teacher"])
+            .post(f"/api/v1/courses/{world['course'].pk}/publish/", {"version": str(version.pk)})
+            .status_code
+        ),
+        lambda: (
+            client(world["teacher"])
+            .patch(f"/api/v1/topics/{topic.pk}/", {"title": "Concurrent edit"})
+            .status_code
+        ),
+    )
+    assert responses[0] == 200 and responses[1] in [200, 400]
+    version.refresh_from_db()
+    assert version.status == "PUBLISHED"
+    assert (
+        client(world["teacher"])
+        .patch(f"/api/v1/topics/{topic.pk}/", {"title": "After publication"})
+        .status_code
+        == 400
+    )

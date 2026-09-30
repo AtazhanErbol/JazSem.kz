@@ -101,7 +101,7 @@ class SourceViewSet(ReadOnlyScoped):
                 mime_type=file.content_type,
                 size=file.size,
             )
-            TaskDelivery.objects.create(source=source)
+            TaskDelivery.objects.create(source=source, request_id=request.request_id)
         return Response(self.get_serializer(source).data, status=201)
 
     @action(detail=True, methods=["post"])

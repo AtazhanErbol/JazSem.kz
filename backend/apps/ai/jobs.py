@@ -75,5 +75,5 @@ def create_job(
         type=kind,
         request_id=request_id,
     )
-    TaskDelivery.objects.create(job=job)
+    TaskDelivery.objects.create(job=job, request_id=job.request_id)
     return job

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.common.models import Entity
+from apps.common.states import AttemptState
 
 
 class Test(Entity):
@@ -69,13 +70,16 @@ class TestAttempt(Entity):
     started_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     submitted_at = models.DateTimeField(null=True)
-    status = models.CharField(max_length=20, default="IN_PROGRESS")
+    status = models.CharField(choices=AttemptState.choices, max_length=20, default="IN_PROGRESS")
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     question_order = models.JSONField(default=list)
     option_order = models.JSONField(default=dict)
 
     class Meta:
         constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=AttemptState.values), name="testing_testattempt_state"
+            ),
             models.UniqueConstraint(
                 fields=["test", "student", "attempt_number"], name="test_attempt_number"
             ),

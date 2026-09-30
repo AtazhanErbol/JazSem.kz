@@ -68,6 +68,7 @@ def test_large_course_metrics(world, client_for):
         observations = []
         operation()  # warm database/query paths; not browser cache
         for _ in range(7):
+            connection.queries_log.clear()  # avoid Django's 9000-query deque truncation
             with CaptureQueriesContext(connection) as queries:
                 started = time.perf_counter()
                 payload = operation()

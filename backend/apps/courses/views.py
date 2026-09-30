@@ -64,6 +64,7 @@ class CourseViewSet(ScopedViewSet):
         data = validated(request, VersionInput)
 
         course = self.get_object()
+        Course.objects.select_for_update().get(pk=course.pk)
         version = get_object_or_404(course.versions.select_for_update(), pk=data["version"])
         editable(version, request.user)
         kinds = []
@@ -104,11 +105,13 @@ class CourseViewSet(ScopedViewSet):
         return Response(representation(obj, request))
 
     @action(detail=True, methods=["post"])
+    @transaction.atomic
     def archive(self, request, pk=None):
         validated(request, EmptyInput)
         obj = self.get_object()
         if not is_teacher(request.user):
             raise PermissionDenied()
+        obj = Course.objects.select_for_update().get(pk=obj.pk)
         obj.status = "ARCHIVED"
         obj.save()
         record(request.user, "course.archived", obj)

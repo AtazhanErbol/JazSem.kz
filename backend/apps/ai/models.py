@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.common.models import Entity
+from apps.common.states import JobState, SourceState
 from apps.materials.models import private_name
 
 
@@ -12,10 +13,20 @@ class SourceDocument(Entity):
     filename = models.CharField(max_length=255)
     mime_type = models.CharField(max_length=150)
     size = models.PositiveIntegerField()
-    processing_status = models.CharField(max_length=20, default="QUEUED")
+    processing_status = models.CharField(
+        choices=SourceState.choices, max_length=20, default="QUEUED"
+    )
     extracted_text = models.TextField(blank=True)
     error = models.CharField(max_length=250, blank=True)
     excluded = models.BooleanField(default=False)
+
+    class Meta(Entity.Meta):
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(processing_status__in=SourceState.values),
+                name="ai_sourcedocument_state",
+            ),
+        ]
 
 
 class DocumentChunk(Entity):
@@ -35,7 +46,9 @@ class AIJob(Entity):
     type = models.CharField(max_length=40, default="COURSE")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     course = models.ForeignKey("courses.Course", on_delete=models.PROTECT)
-    status = models.CharField(max_length=20, default="QUEUED", db_index=True)
+    status = models.CharField(
+        choices=JobState.choices, max_length=20, default="QUEUED", db_index=True
+    )
     progress = models.PositiveIntegerField(default=0)
     current_step = models.CharField(max_length=100, default="QUEUED")
     error = models.CharField(max_length=250, blank=True)
@@ -48,11 +61,14 @@ class AIJob(Entity):
 
     class Meta(Entity.Meta):
         constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=JobState.values), name="ai_aijob_state"
+            ),
             models.UniqueConstraint(
                 fields=["course"],
                 condition=models.Q(status__in=["QUEUED", "PROCESSING"]),
                 name="one_active_generation_per_course",
-            )
+            ),
         ]
 
 
@@ -71,6 +87,7 @@ class TaskDelivery(Entity):
     heartbeat_at = models.DateTimeField(null=True)
     next_retry_at = models.DateTimeField(null=True)
     error_code = models.CharField(max_length=50, blank=True)
+    request_id = models.CharField(max_length=36, blank=True)
 
     class Meta(Entity.Meta):
         constraints = [
