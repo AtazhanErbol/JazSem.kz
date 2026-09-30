@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from apps.common.api import ScopedViewSet, private_response
+from apps.common.inputs import EmptyInput, validated
 from apps.common.serializers import serializer_for
 from apps.enrollments.models import Enrollment
 from apps.materials.models import Material
@@ -14,7 +15,7 @@ from apps.progress.services import summary
 
 class MaterialViewSet(ScopedViewSet):
     queryset = Material.objects.all()
-    serializer_class = serializer_for(Material, ["original_filename"])
+    serializer_class = serializer_for(Material, ["original_filename", "mime_type", "size"])
     throttle_scope = "upload"
 
     def get_throttles(self):
@@ -23,7 +24,21 @@ class MaterialViewSet(ScopedViewSet):
     def perform_create(self, serializer):
         self.validate_write(serializer)
         file = serializer.validated_data.get("file")
-        serializer.save(original_filename=file.name if file else "")
+        serializer.save(
+            original_filename=file.name if file else "",
+            mime_type=file.content_type if file else "",
+            size=file.size if file else None,
+        )
+
+    def perform_update(self, serializer):
+        self.validate_write(serializer)
+        file = serializer.validated_data.get("file")
+        metadata = (
+            {"original_filename": file.name, "mime_type": file.content_type, "size": file.size}
+            if file
+            else {}
+        )
+        serializer.save(**metadata)
 
     @action(detail=True, methods=["get"])
     def download(self, request, pk=None):
@@ -34,6 +49,7 @@ class MaterialViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
+        validated(request, EmptyInput)
         if request.user.role != "STUDENT":
             raise PermissionDenied()
         material = self.get_object()

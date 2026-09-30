@@ -18,6 +18,8 @@ class Material(Entity):
     content = models.TextField(blank=True)
     external_url = models.URLField(blank=True)
     original_filename = models.CharField(max_length=255, blank=True)
+    mime_type = models.CharField(max_length=150, blank=True)
+    size = models.PositiveIntegerField(null=True)
     order = models.PositiveIntegerField(default=0)
     is_required = models.BooleanField(default=True)
 
