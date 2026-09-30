@@ -88,6 +88,13 @@ def save_answer(attempt, student, question_id, selected):
 
 @transaction.atomic
 def finalize(attempt, student):
+    if attempt.student_id != student.pk:
+        raise PermissionDenied()
+    # start() and completion/beat must acquire the same locks in this order.
+    # Progress persists Enrollment; taking Attempt first can deadlock a start.
+    enrollment = Enrollment.objects.select_for_update().get(
+        student=student, course_version=attempt.test.topic.week.course_version
+    )
     attempt = TestAttempt.objects.select_for_update().get(pk=attempt.pk)
     if attempt.student_id != student.pk:
         raise PermissionDenied()
@@ -117,8 +124,5 @@ def finalize(attempt, student):
     )
     from apps.progress.services import summary
 
-    enrollment = Enrollment.objects.get(
-        student=student, course_version=attempt.test.topic.week.course_version
-    )
     summary(enrollment, persist=True)
     return attempt
