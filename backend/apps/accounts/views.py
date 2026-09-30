@@ -19,12 +19,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.services import record
+from apps.common.inputs import EmptyInput, validated
 from apps.common.permissions import is_admin, is_teacher
 from apps.notifications.services import queue_mail
 
 from .models import User
 from .policies import lock_account_change
-from .serializers import EmailSerializer, LoginSerializer, PasswordSerializer, UserSerializer
+from .serializers import (
+    ChangePasswordInput,
+    EmailSerializer,
+    LoginSerializer,
+    ProfileInput,
+    ResetPasswordInput,
+    UserSerializer,
+)
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -64,11 +72,7 @@ class MeView(APIView):
         return Response(UserSerializer(request.user).data)
 
     def patch(self, request):
-        data = {
-            key: request.data[key]
-            for key in ["first_name", "last_name", "preferred_language"]
-            if key in request.data
-        }
+        data = validated(request, ProfileInput)
         serializer = UserSerializer(
             request.user, data=data, partial=True, context={"request": request}
         )
@@ -79,16 +83,17 @@ class MeView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = EmailSerializer
+    serializer_class = EmptyInput
 
     def post(self, request):
+        validated(request, EmptyInput)
         logout(request)
         return Response(status=204)
 
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = PasswordSerializer
+    serializer_class = ChangePasswordInput
     throttle_scope = "auth"
 
     @transaction.atomic
@@ -146,7 +151,7 @@ class ForgotView(APIView):
 
 @method_decorator(csrf_protect, name="dispatch")
 class ResetView(ForgotView):
-    serializer_class = PasswordSerializer
+    serializer_class = ResetPasswordInput
 
     @transaction.atomic
     def post(self, request):
@@ -242,6 +247,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def deactivate(self, request, pk=None):
+        validated(request, EmptyInput)
         obj = self.get_object()
         if not is_teacher(request.user) or obj.pk == request.user.pk:
             raise PermissionDenied()

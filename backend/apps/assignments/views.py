@@ -37,6 +37,15 @@ class SubmissionDisplaySerializer(serializer_for(Submission)):
     max_score = serializers.IntegerField(source="assignment.max_score", read_only=True)
     student_name = serializers.SerializerMethodField()
 
+    class Meta(serializer_for(Submission).Meta):
+        fields = [
+            *serializer_for(Submission).Meta.fields,
+            "assignment_title",
+            "max_score",
+            "student_name",
+        ]
+        read_only_fields = fields
+
     def get_student_name(self, obj) -> str:
         return obj.student.get_full_name() or obj.student.email
 

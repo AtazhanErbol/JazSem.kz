@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from apps.common.inputs import Input, Text
 from apps.common.permissions import is_admin
 
 from .models import User
@@ -68,17 +69,29 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "username", "must_change_password", "created_by", "created_at"]
 
 
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+class LoginSerializer(Input):
+    email = serializers.EmailField(max_length=254)
+    password = Text(write_only=True, max_length=1024, trim_whitespace=False)
 
 
-class PasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(write_only=True)
-    current_password = serializers.CharField(write_only=True, required=False)
-    uid = serializers.CharField(required=False)
-    token = serializers.CharField(required=False)
+class ChangePasswordInput(Input):
+    password = Text(write_only=True, max_length=1024, trim_whitespace=False)
+    current_password = Text(write_only=True, max_length=1024, trim_whitespace=False)
 
 
-class EmailSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+class ResetPasswordInput(Input):
+    password = Text(write_only=True, max_length=1024, trim_whitespace=False)
+    uid = Text(max_length=100)
+    token = Text(max_length=200, write_only=True)
+
+
+class EmailSerializer(Input):
+    email = serializers.EmailField(max_length=254)
+
+
+class ProfileInput(Input):
+    first_name = Text(max_length=150, allow_blank=True, required=False)
+    last_name = Text(max_length=150, allow_blank=True, required=False)
+    preferred_language = serializers.ChoiceField(
+        choices=[("ru", "RU"), ("kk", "KZ")], required=False
+    )

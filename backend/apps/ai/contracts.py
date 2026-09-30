@@ -14,7 +14,7 @@ class GenerationInput(Input):
     course = serializers.UUIDField()
     sources = serializers.ListField(child=serializers.UUIDField(), min_length=1, max_length=30)
     weeks = serializers.IntegerField(min_value=1, max_value=16)
-    language = serializers.ChoiceField(choices=["ru", "kk"])
+    language = serializers.ChoiceField(choices=[("ru", "RU"), ("kk", "KZ")])
     complexity = serializers.ChoiceField(
         choices=["basic", "intermediate", "advanced"], default="intermediate"
     )

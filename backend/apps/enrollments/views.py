@@ -9,9 +9,13 @@ from apps.grading.services import grades
 from apps.progress.services import summary
 
 
-class EnrollmentSerializer(serializer_for(Enrollment)):
+class EnrollmentDisplaySerializer(serializer_for(Enrollment)):
     course_title = serializers.CharField(source="course.title", read_only=True)
     student_name = serializers.SerializerMethodField()
+
+    class Meta(serializer_for(Enrollment).Meta):
+        fields = [*serializer_for(Enrollment).Meta.fields, "course_title", "student_name"]
+        read_only_fields = fields
 
     def get_student_name(self, obj) -> str:
         return obj.student.get_full_name() or obj.student.email
@@ -19,7 +23,7 @@ class EnrollmentSerializer(serializer_for(Enrollment)):
 
 class EnrollmentViewSet(ReadOnlyScoped):
     queryset = Enrollment.objects.select_related("student", "course", "course_version")
-    serializer_class = EnrollmentSerializer
+    serializer_class = EnrollmentDisplaySerializer
     filterset_fields = ["course", "student", "status"]
 
     @action(detail=True, methods=["get"])

@@ -115,6 +115,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "JazSem.kz API",
     "VERSION": "1.0.0",
     "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {"LanguageEnum": [("ru", "RU"), ("kk", "KZ")]},
 }
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")

@@ -14,6 +14,23 @@ class TestDisplaySerializer(serializer_for(Test)):
     course_id = serializers.UUIDField(source="topic.week.course_version.course_id", read_only=True)
     course_version_id = serializers.UUIDField(source="topic.week.course_version_id", read_only=True)
 
+    class Meta(serializer_for(Test).Meta):
+        fields = [*serializer_for(Test).Meta.fields, "course_id", "course_version_id"]
+
+    def validate(self, attrs):
+        start = attrs.get("available_from", getattr(self.instance, "available_from", None))
+        end = attrs.get("available_until", getattr(self.instance, "available_until", None))
+        if start and end and start >= end:
+            raise serializers.ValidationError(
+                {"available_until": "Окончание должно быть позже начала."}
+            )
+        for field in ["max_score", "time_limit_minutes", "max_attempts"]:
+            if field in attrs and attrs[field] < 1:
+                raise serializers.ValidationError({field: "Значение должно быть больше нуля."})
+        if attrs.get("passing_score", 0) > 100:
+            raise serializers.ValidationError({"passing_score": "Укажите процент от 0 до 100."})
+        return attrs
+
 
 class TestViewSet(ScopedViewSet):
     queryset = Test.objects.select_related("topic__week__course_version")

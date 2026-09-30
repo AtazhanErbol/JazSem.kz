@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Logo, Language } from "../../components/UI";
 import { useAction } from "../../hooks/useAction";
 import type { User } from "../../entities/types";
+import { ApiError } from "../../services/api";
 
 export function AuthPage({
   mode = "login",
@@ -58,16 +59,29 @@ export function AuthPage({
     }[mode];
     const result = await action.run<User>(
       `auth/${endpoint}/`,
-      {
-        email: data.email,
-        password: data.password,
-        current_password: data.current_password,
-        uid: params.get("uid"),
-        token: params.get("token"),
-      },
+      mode === "login"
+        ? { email: data.email, password: data.password }
+        : mode === "forgot"
+          ? { email: data.email }
+          : mode === "change"
+            ? {
+                password: data.password,
+                current_password: data.current_password,
+              }
+            : {
+                password: data.password,
+                uid: params.get("uid") ?? "",
+                token: params.get("token") ?? "",
+              },
       "POST",
       mode === "forgot" ? t("resetEmailSent") : undefined,
     );
+    if (!result.ok && result.error instanceof ApiError) {
+      for (const [key, message] of Object.entries(result.error.fieldErrors)) {
+        if (key in data)
+          form.setError(key as keyof typeof data, { message: String(message) });
+      }
+    }
     if (result.ok && mode === "login") {
       cache.setQueryData(["me"], result.data);
       nav(

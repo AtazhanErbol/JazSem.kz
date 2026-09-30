@@ -32,6 +32,7 @@ class DisciplineViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
+        validated(request, EmptyInput)
         if not is_admin(request.user):
             raise PermissionDenied()
         obj = self.get_object()

@@ -4,7 +4,7 @@ from rest_framework import serializers
 class Input(serializers.Serializer):
     def to_internal_value(self, data):
         if not isinstance(data, dict) and not hasattr(data, "getlist"):
-            raise serializers.ValidationError("Ожидается объект с полями.")
+            raise serializers.ValidationError({"non_field_errors": ["Ожидается объект с полями."]})
         unknown = set(data) - set(self.fields)
         if unknown:
             raise serializers.ValidationError({key: "Неизвестное поле." for key in unknown})

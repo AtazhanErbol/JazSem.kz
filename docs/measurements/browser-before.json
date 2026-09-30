@@ -1,0 +1,296 @@
+{
+  "browser": "153.0.8010.12",
+  "viewport": "1440x900",
+  "cpuSlowdown": 4,
+  "network": "40ms, 5 Mbit/s down, 1 Mbit/s up",
+  "samples": 7,
+  "routes": {
+    "/": {
+      "p50_lcp_ms": 1344,
+      "p95_lcp_ms": 1996,
+      "cls_max": 0.000021254551263503087,
+      "samples": [
+        {
+          "lcp": 1996,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        },
+        {
+          "lcp": 1304,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        },
+        {
+          "lcp": 1344,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        },
+        {
+          "lcp": 1464,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        },
+        {
+          "lcp": 1332,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        },
+        {
+          "lcp": 1340,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        },
+        {
+          "lcp": 1348,
+          "cls": 0.000021254551263503087,
+          "transfer_bytes": 854701,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 10,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru"
+          ]
+        }
+      ]
+    },
+    "/login": {
+      "p50_lcp_ms": 844,
+      "p95_lcp_ms": 852,
+      "cls_max": 0.006598582259585009,
+      "samples": [
+        {
+          "lcp": 824,
+          "cls": 0.006598582259585009,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        },
+        {
+          "lcp": 812,
+          "cls": 0.006598582259585009,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        },
+        {
+          "lcp": 848,
+          "cls": 0.006576023177453028,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        },
+        {
+          "lcp": 844,
+          "cls": 0.006576023177453028,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        },
+        {
+          "lcp": 848,
+          "cls": 0.006598582259585009,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        },
+        {
+          "lcp": 852,
+          "cls": 0.006598582259585009,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        },
+        {
+          "lcp": 844,
+          "cls": 0.006598582259585009,
+          "transfer_bytes": 854349,
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 9,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2"
+          ]
+        }
+      ]
+    }
+  }
+}

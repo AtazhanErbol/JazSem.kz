@@ -152,7 +152,7 @@ class SourceViewSet(ReadOnlyScoped):
     def chunks(self, request, pk=None):
         qs = self.get_object().chunks.order_by("chunk_index")
         page = self.paginate_queryset(qs)
-        return self.get_paginated_response([representation(c, request) for c in page])
+        return self.get_paginated_response(ChunkOutput(page, many=True).data)
 
 
 class JobViewSet(ReadOnlyScoped):
