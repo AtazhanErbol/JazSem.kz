@@ -138,3 +138,47 @@ def test_concurrent_budget_reservation_never_exceeds_cap(world, settings):
 
     assert sorted(race(reserve, reserve)) == [False, True]
     assert Decimal("0") < AIBudgetDay.objects.get().reserved_usd <= Decimal("0.012")
+
+
+def test_start_and_expire_follow_one_lock_order(world):
+    """Force the former Enrollment->Attempt / Attempt->Enrollment deadlock."""
+    from datetime import timedelta
+    from threading import Event
+
+    from django.db import transaction
+    from django.utils import timezone
+
+    from apps.enrollments.models import Enrollment
+    from apps.testing.models import TestAttempt
+    from apps.testing.services import finalize, start
+
+    attempt = start(world["test"], world["student"])
+    TestAttempt.objects.filter(pk=attempt.pk).update(
+        expires_at=timezone.now() - timedelta(seconds=1)
+    )
+    enrollment_locked, finish_lock_started = Event(), Event()
+
+    def starting():
+        with transaction.atomic():
+            Enrollment.objects.select_for_update().get(pk=world["enrollment"].pk)
+            enrollment_locked.set()
+            assert finish_lock_started.wait(10)
+            return start(world["test"], world["student"]).attempt_number
+
+    def finishing():
+        assert enrollment_locked.wait(10)
+
+        def observe(execute, sql, params, many, context):
+            locking = "FOR UPDATE" in sql.upper()
+            if locking and "enrollments_enrollment" in sql:
+                finish_lock_started.set()
+            result = execute(sql, params, many, context)
+            if locking and "testing_testattempt" in sql:
+                finish_lock_started.set()
+            return result
+
+        with connection.execute_wrapper(observe):
+            return finalize(attempt, world["student"]).status
+
+    assert race(starting, finishing) == [2, "EXPIRED"]
+    assert TestAttempt.objects.filter(test=world["test"], status="IN_PROGRESS").count() == 1
