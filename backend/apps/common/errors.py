@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
@@ -16,12 +17,14 @@ def csrf_failure(request, reason=""):
             "code": "csrf_failed",
             "message": translate("Проверка безопасности не пройдена. Обновите страницу."),
             "errors": {},
+            "request_id": getattr(request, "request_id", ""),
         },
         status=403,
     )
 
 
 def exception_handler(exc, context):
+    request_id = getattr(context.get("request"), "request_id", "")
     if isinstance(exc, DjangoValidationError):
         exc = ValidationError(exc.messages)
     if isinstance(exc, IntegrityError):
@@ -30,6 +33,7 @@ def exception_handler(exc, context):
                 "code": "conflict",
                 "message": translate("Операция конфликтует с существующими данными."),
                 "errors": {},
+                "request_id": request_id,
             },
             status=409,
         )
@@ -38,18 +42,27 @@ def exception_handler(exc, context):
         logging.getLogger(__name__).error(
             "Unhandled API error: %s",
             type(exc).__name__,
-            extra={"request_id": getattr(context.get("request"), "request_id", "")},
+            extra={
+                "request_id": request_id,
+                "error_type": type(exc).__name__,
+                "traceback_frames": [
+                    {"file": frame.filename, "line": frame.lineno, "function": frame.name}
+                    for frame in traceback.extract_tb(exc.__traceback__)
+                ],
+            },
         )
         return Response(
             {
                 "code": "server_error",
                 "message": translate("Ошибка сервера. Повторите позже."),
                 "errors": {},
+                "request_id": request_id,
             },
             status=500,
         )
     data = response.data
     response.data = {
+        "request_id": request_id,
         "code": getattr(exc, "default_code", "invalid"),
         "message": str(data.get("detail", "Проверьте введённые данные."))
         if isinstance(data, dict)

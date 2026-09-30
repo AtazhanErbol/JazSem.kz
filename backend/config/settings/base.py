@@ -22,8 +22,9 @@ INSTALLED_APPS = [
     for name in "accounts academics courses enrollments materials assignments testing grading progress ai notifications audit cms common".split()
 ]
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
     "apps.common.middleware.RequestIDMiddleware",
+    "apps.common.proxy.TrustedProxyMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -86,6 +87,7 @@ CELERY_BEAT_SCHEDULE = {
     "deadlines": {"task": "apps.notifications.tasks.deadline_reminders", "schedule": 3600.0},
 }
 REST_FRAMEWORK = {
+    "NUM_PROXIES": 0,  # REMOTE_ADDR is normalized only by TrustedProxyMiddleware.
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["apps.common.permissions.AccountReady"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -106,6 +108,9 @@ REST_FRAMEWORK = {
     },
     "EXCEPTION_HANDLER": "apps.common.errors.exception_handler",
 }
+TRUSTED_PROXY_CIDRS = [
+    value for value in os.environ.get("TRUSTED_PROXY_CIDRS", "").split(",") if value
+]
 SPECTACULAR_SETTINGS = {
     "TITLE": "JazSem.kz API",
     "VERSION": "1.0.0",
@@ -117,6 +122,7 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true") == "true"
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "false") == "true"
 EMAIL_TIMEOUT = 15
 CELERY_TASK_PUBLISH_RETRY = False
 CELERY_BROKER_CONNECTION_TIMEOUT = 2

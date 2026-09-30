@@ -2,21 +2,23 @@
 # Place a trusted HTTPS reverse proxy in front of 127.0.0.1:8080.
 services:
   backend:
+    networks:
+      default: {ipv4_address: 172.30.0.10}
     build: {context: ../backend, target: production}
     env_file: ../.env
-    environment: {DJANGO_SETTINGS_MODULE: config.settings.production}
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production, TRUSTED_PROXY_CIDRS: "172.30.0.20/32"}
     restart: unless-stopped
     read_only: true
     tmpfs: [/tmp]
     healthcheck:
-      test: [CMD, python, -c, "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/health/',headers={'X-Forwarded-Proto':'https'}); urllib.request.urlopen(r)"]
+      test: [CMD, python, -m, config.healthcheck]
       interval: 30s
       timeout: 5s
       retries: 3
   celery:
     build: {context: ../backend, target: production}
     env_file: ../.env
-    environment: {DJANGO_SETTINGS_MODULE: config.settings.production}
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production, TRUSTED_PROXY_CIDRS: "172.30.0.20/32"}
     command: celery -A config worker --loglevel=info --concurrency=2
     restart: unless-stopped
     read_only: true
@@ -24,13 +26,20 @@ services:
   beat:
     build: {context: ../backend, target: production}
     env_file: ../.env
-    environment: {DJANGO_SETTINGS_MODULE: config.settings.production}
+    environment: {DJANGO_SETTINGS_MODULE: config.settings.production, TRUSTED_PROXY_CIDRS: "172.30.0.20/32"}
     command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat-schedule
     restart: unless-stopped
     read_only: true
     tmpfs: [/tmp]
   web:
+    networks:
+      default: {ipv4_address: 172.30.0.20}
     build: {context: ../frontend, target: production}
     ports: ['127.0.0.1:8080:8080']
     depends_on: [backend]
     restart: unless-stopped
+
+networks:
+  default:
+    ipam:
+      config: [{subnet: 172.30.0.0/24, gateway: 172.30.0.1}]

@@ -1,4 +1,5 @@
 import logging
+import time
 import uuid
 
 from .request_context import request_context
@@ -9,6 +10,7 @@ class RequestIDMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        started = time.monotonic()
         request.request_id = str(uuid.uuid4())
         token = request_context.set(
             {"request_id": request.request_id, "ip": request.META.get("REMOTE_ADDR")}
@@ -23,6 +25,10 @@ class RequestIDMiddleware:
             request.method,
             request.path,
             response.status_code,
-            extra={"request_id": request.request_id},
+            extra={
+                "request_id": request.request_id,
+                "duration_ms": round((time.monotonic() - started) * 1000, 2),
+                "status_code": response.status_code,
+            },
         )
         return response

@@ -68,3 +68,7 @@ Local checkpoint: **87 backend passed, 5 PostgreSQL-only skipped**, migration dr
 ## Locking reproduction
 
 C3 is confirmed on PostgreSQL: [run 36691868557](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36691868557), commit `0394043`, failed only `test_start_and_expire_follow_one_lock_order` with `deadlock detected` (92 passed). Separate connections/events forced start's Enrollment lock against finalization's Attempt lock. This also verifies the five preceding PostgreSQL cases (admin deactivation, enrollment, cross-actor AI uniqueness, mail claim, budget cap). Finalization now takes Enrollment → Attempt, matching start, and reuses the locked enrollment for progress persistence; fixed-run evidence is pending.
+
+Fixed run [36692180974](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36692180974), SHA `d956ec5`, passed all three jobs including the PostgreSQL deadlock regression.
+
+C5 reproduced with two failed tests: forged XFF bypassed the login quota, and different clients behind a proxy shared a quota. Added explicit trusted-peer normalization, spoofed-header removal and REMOTE_ADDR-based throttling; both regressions pass. Added fail-fast production validation, domain-aware liveness, redacted stack frames and request/error correlation. Production-image/proxy-chain smoke remains required. B4 filename replacement regression failed before the metadata fix; dry-run orphan cleanup now rechecks shared references and grace age before deletion. Only synthetic filesystem fixtures were removed.
