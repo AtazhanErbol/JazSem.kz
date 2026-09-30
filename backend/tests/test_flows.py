@@ -25,7 +25,11 @@ def test_group_and_individual_enrollment_deduplicate_and_inherit(world):
     assert Enrollment.objects.filter(student=w["student"], course=w["course"]).count() == 1
     assert enrollment.sources.count() == 2
     newcomer = User.objects.create_user(
-        username="new", email="new@example.test", role="STUDENT", created_by=w["teacher"]
+        username="new",
+        email="new@example.test",
+        role="STUDENT",
+        created_by=w["teacher"],
+        owner_teacher=w["teacher"],
     )
     add_member(w["teacher"], w["group"], newcomer)
     assert Enrollment.objects.filter(student=newcomer, course=w["course"]).count() == 1

@@ -1,4 +1,5 @@
 export const ruWorkspace = {
+  unassigned: "Не назначен — распределить позже",
   home: "Кабинет администратора",
   homeHint: "Создавайте обучение, добавляйте людей и следите за результатами.",
   startTitle: "Что хотите создать?",
@@ -122,6 +123,7 @@ export const ruWorkspace = {
 };
 
 export const kkWorkspace: Record<keyof typeof ruWorkspace, string> = {
+  unassigned: "Тағайындалмаған — кейін таңдау",
   home: "Әкімші кабинеті",
   homeHint:
     "Оқу бағдарламаларын құрыңыз, адамдарды қосыңыз және нәтижелерді бақылаңыз.",

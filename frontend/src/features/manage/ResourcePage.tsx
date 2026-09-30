@@ -353,8 +353,8 @@ export function ResourcePage({ resource }: { resource: string }) {
             className="danger"
             disabled={action.pending}
             onClick={async () => {
-              await action.run(confirm.path, confirm.body);
-              setConfirm(undefined);
+              const result = await action.run(confirm.path, confirm.body);
+              if (result.ok) setConfirm(undefined);
             }}
           >
             {t("confirm")}

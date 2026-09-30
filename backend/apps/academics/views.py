@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from apps.academics.models import Discipline, GroupMembership, StudyGroup
 from apps.accounts.models import User
 from apps.common.api import ScopedViewSet, lookup, representation
+from apps.common.inputs import CourseInput, EmptyInput, StudentInput, validated
 from apps.common.permissions import is_admin
 from apps.common.serializers import serializer_for
 from apps.courses.models import Course
@@ -43,6 +44,7 @@ class GroupViewSet(ScopedViewSet):
     queryset = StudyGroup.objects.all()
     serializer_class = serializer_for(StudyGroup)
     search_fields = ["name"]
+    filterset_fields = ["teacher", "status"]
 
     def perform_create(self, serializer):
         self.validate_write(serializer)
@@ -57,9 +59,8 @@ class GroupViewSet(ScopedViewSet):
     def members(self, request, pk=None):
         group = self.get_object()
         if request.method == "POST":
-            obj = add_member(
-                request.user, group, lookup(User, request.data.get("student"), request.user)
-            )
+            data = validated(request, StudentInput)
+            obj = add_member(request.user, group, lookup(User, data["student"], request.user))
             return Response(representation(obj, request), status=201)
         return Response(
             [
@@ -70,10 +71,11 @@ class GroupViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"], url_path="remove-member")
     def remove_member(self, request, pk=None):
+        data = validated(request, StudentInput)
         member = get_object_or_404(
             GroupMembership,
             group=self.get_object(),
-            student_id=request.data.get("student"),
+            student_id=data["student"],
             status="ACTIVE",
         )
         member.status = "LEFT"
@@ -83,15 +85,17 @@ class GroupViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def assign(self, request, pk=None):
+        data = validated(request, CourseInput)
         obj = assign_group(
             request.user,
             self.get_object(),
-            lookup(Course, request.data.get("course"), request.user),
+            lookup(Course, data["course"], request.user),
         )
         return Response(representation(obj, request))
 
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
+        validated(request, EmptyInput)
         group = self.get_object()
         group.status = "ARCHIVED"
         group.save()

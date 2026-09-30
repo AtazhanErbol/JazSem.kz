@@ -39,9 +39,14 @@ def test_student_isolation(world, client_for):
 def test_student_never_sees_answer_keys(world, client_for):
     client = client_for(world["student"])
     response = client.get("/api/v1/options/")
+    assert response.status_code == 403
+    assert client.get("/api/v1/questions/").status_code == 403
+    attempt = client.post(f"/api/v1/tests/{world['test'].pk}/start/").data
+    response = client.get(f"/api/v1/attempts/{attempt['id']}/")
     assert response.status_code == 200
-    assert all("is_correct" not in o for o in response.data["results"])
-    assert "explanation" not in client.get("/api/v1/questions/").data["results"][0]
+    for question in response.data["questions"]:
+        assert "explanation" not in question
+        assert all("is_correct" not in option for option in question["options"])
 
 
 def test_private_download_scope(world, client_for):

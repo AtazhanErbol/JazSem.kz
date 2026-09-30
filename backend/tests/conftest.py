@@ -43,6 +43,7 @@ def world(db, settings, tmp_path):
         password="Example-pass-583!",
         role="STUDENT",
         created_by=teacher,
+        owner_teacher=teacher,
         must_change_password=False,
     )
     outsider = User.objects.create_user(
@@ -51,6 +52,7 @@ def world(db, settings, tmp_path):
         password="Example-pass-583!",
         role="STUDENT",
         created_by=other,
+        owner_teacher=other,
         must_change_password=False,
     )
     discipline = Discipline.objects.create(name="Mathematics", code="MATH", created_by=admin)

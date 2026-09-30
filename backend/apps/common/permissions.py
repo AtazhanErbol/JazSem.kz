@@ -10,6 +10,16 @@ class AccountReady(BasePermission):
         )
 
 
+class AuthorReady(AccountReady):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and is_teacher(request.user)
+
+
+class AdminReady(AccountReady):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and is_admin(request.user)
+
+
 def is_admin(user):
     return user.is_superuser or user.role == "ADMIN"
 

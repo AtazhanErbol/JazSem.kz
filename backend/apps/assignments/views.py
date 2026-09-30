@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from apps.assignments.models import Assignment, Submission, SubmissionFile
 from apps.assignments.services import review, submit
 from apps.common.api import ReadOnlyScoped, ScopedViewSet, private_response, representation
+from apps.common.inputs import GradeInput, ReviewInput, RevisionInput, SubmissionInput, validated
 from apps.common.serializers import serializer_for
 
 
@@ -21,11 +22,12 @@ class AssignmentViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
+        data = validated(request, SubmissionInput)
         obj = submit(
             self.get_object(),
             request.user,
-            request.data.get("text_answer", ""),
-            request.FILES.getlist("files"),
+            data["text_answer"],
+            data.get("files", []),
         )
         return Response(representation(obj, request), status=201)
 
@@ -47,14 +49,15 @@ class SubmissionViewSet(ReadOnlyScoped):
 
     @action(detail=True, methods=["post"])
     def grade(self, request, pk=None):
+        data = validated(request, GradeInput)
         return Response(
             representation(
                 review(
                     self.get_object(),
                     request.user,
                     "grade",
-                    request.data.get("score"),
-                    request.data.get("comment", ""),
+                    data["score"],
+                    data["comment"],
                 ),
                 request,
             )
@@ -62,13 +65,14 @@ class SubmissionViewSet(ReadOnlyScoped):
 
     @action(detail=True, methods=["post"], url_path="request-revision")
     def revision(self, request, pk=None):
+        data = validated(request, RevisionInput)
         return Response(
             representation(
                 review(
                     self.get_object(),
                     request.user,
                     "revision",
-                    comment=request.data.get("comment", ""),
+                    comment=data["comment"],
                 ),
                 request,
             )
@@ -76,7 +80,12 @@ class SubmissionViewSet(ReadOnlyScoped):
 
     @action(detail=True, methods=["post"], url_path="start-review")
     def review(self, request, pk=None):
-        return Response(representation(review(self.get_object(), request.user, "review"), request))
+        data = validated(request, ReviewInput)
+        return Response(
+            representation(
+                review(self.get_object(), request.user, "review", comment=data["comment"]), request
+            )
+        )
 
     @action(detail=True, methods=["get"])
     def files(self, request, pk=None):

@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from apps.common.permissions import is_teacher
+from apps.common.permissions import AccountReady, AuthorReady, is_teacher
 from apps.common.scope import editable, require_visible, version_of, visible
 from apps.common.serializers import serializer_for
 from apps.materials.validation import validate_upload
@@ -102,6 +102,11 @@ def content_view(model):
         model.__name__ + "ViewSet",
         (ScopedViewSet,),
         {
+            "permission_classes": [
+                AuthorReady
+                if model._meta.label_lower in ["testing.question", "testing.answeroption"]
+                else AccountReady
+            ],
             "queryset": model.objects.all(),
             "serializer_class": serializer_for(model),
             "search_fields": [],

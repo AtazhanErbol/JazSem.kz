@@ -26,10 +26,11 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Logo, Language } from "../components/UI";
 import { useUser } from "../app/Auth";
-import { api } from "../services/api";
+import { useAction } from "../hooks/useAction";
 
 export function Shell() {
   const user = useUser();
+  const logout = useAction();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const nav = useNavigate();
@@ -150,10 +151,13 @@ export function Shell() {
             {t("settings")}
           </NavLink>
           <button
+            disabled={logout.pending}
             onClick={async () => {
-              await api("auth/logout/", "POST");
-              cache.clear();
-              nav("/login");
+              const result = await logout.run("auth/logout/");
+              if (result.ok) {
+                cache.clear();
+                nav("/login");
+              }
             }}
           >
             <LogOut size={18} />
@@ -196,6 +200,7 @@ export function Shell() {
           </div>
         </header>
         <main className="page">
+          {logout.feedback}
           <Outlet />
         </main>
       </div>

@@ -5,6 +5,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public fieldErrors: Record<string, string> = {},
   ) {
     super(message);
   }
@@ -39,6 +40,16 @@ async function readResponse(response: Response) {
             : [data.message || i18n.t("serviceUnavailable")],
         ),
       ].join(" "),
+      data.errors &&
+        typeof data.errors === "object" &&
+        !Array.isArray(data.errors)
+        ? Object.fromEntries(
+            Object.entries(data.errors).map(([field, value]) => [
+              field,
+              errorMessages(value).join(" "),
+            ]),
+          )
+        : {},
     );
   }
   return data;

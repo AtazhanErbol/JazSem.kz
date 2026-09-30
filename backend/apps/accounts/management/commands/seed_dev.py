@@ -42,6 +42,7 @@ class Command(BaseCommand):
                     "last_name": last,
                     "must_change_password": False,
                     "created_by": users.get("TEACHER"),
+                    "owner_teacher": users.get("TEACHER") if role == "STUDENT" else None,
                 },
             )
             if created:

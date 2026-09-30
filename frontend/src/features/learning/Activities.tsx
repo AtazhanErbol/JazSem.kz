@@ -185,7 +185,7 @@ export function TestPage() {
                   disabled={action.pending}
                   onClick={async () => {
                     const result = await action.run<Row>(`tests/${id}/start/`);
-                    if (result) setAttemptId(result.id);
+                    if (result.ok) setAttemptId(result.data.id);
                   }}
                 >
                   {t("retryTest")}
@@ -206,7 +206,7 @@ export function TestPage() {
             disabled={action.pending}
             onClick={async () => {
               const attempt = await action.run<Row>(`tests/${id}/start/`);
-              if (attempt) setAttemptId(attempt.id);
+              if (attempt.ok) setAttemptId(attempt.data.id);
             }}
           >
             {t("start")} / {t("continue")}
@@ -267,7 +267,7 @@ export function TestPage() {
                         `attempts/${attemptId}/answer/`,
                         { question: question.id, selected_options: values },
                       );
-                      if (!result)
+                      if (!result.ok)
                         setLocalAnswers((old) => ({
                           ...old,
                           [question.id]: previous,
@@ -297,8 +297,8 @@ export function TestPage() {
             className="primary"
             disabled={action.pending}
             onClick={async () => {
-              await action.run(`attempts/${attemptId}/finish/`);
-              setConfirm(false);
+              const result = await action.run(`attempts/${attemptId}/finish/`);
+              if (result.ok) setConfirm(false);
             }}
           >
             {t("confirm")}
@@ -483,21 +483,52 @@ export function GroupPage() {
   const { t } = useTranslation();
   const action = useAction();
   const [student, setStudent] = useState("");
+  const group = useQuery({
+    queryKey: ["groups", id],
+    queryFn: () => api<Row>(`groups/${id}/`),
+  });
   const members = useQuery({
     queryKey: ["members", id],
     queryFn: () => api<Row[]>(`groups/${id}/members/`),
   });
   const students = useQuery({
-    queryKey: ["options", "students"],
-    queryFn: () => allRows("users/?role=STUDENT"),
+    queryKey: ["options", "students", group.data?.teacher],
+    queryFn: () =>
+      allRows(
+        `users/?role=STUDENT&is_active=true&owner_teacher=${group.data!.teacher}`,
+      ),
+    enabled: !!group.data,
   });
   return (
     <>
       <h1>{t("members")}</h1>
+      {(group.isPending || members.isPending || students.isPending) && (
+        <Loading />
+      )}
+      {group.error && (
+        <ErrorState error={group.error} retry={() => void group.refetch()} />
+      )}
+      {members.error && (
+        <ErrorState
+          error={members.error}
+          retry={() => void members.refetch()}
+        />
+      )}
+      {students.error && (
+        <ErrorState
+          error={students.error}
+          retry={() => void students.refetch()}
+        />
+      )}
+      {members.data?.length === 0 && <Empty />}
       <section className="panel">
         <label>
           {t("student")}
-          <select value={student} onChange={(e) => setStudent(e.target.value)}>
+          <select
+            aria-label={t("student")}
+            value={student}
+            onChange={(e) => setStudent(e.target.value)}
+          >
             <option value="">—</option>
             {students.data?.map((s) => (
               <option key={s.id} value={s.id}>

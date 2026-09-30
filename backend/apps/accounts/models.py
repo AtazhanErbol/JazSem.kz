@@ -33,8 +33,17 @@ class User(AbstractUser):
     created_by = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.PROTECT, related_name="owned_users"
     )
+    owner_teacher = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.PROTECT, related_name="students"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(Lower("email"), name="user_email_ci")]
+        constraints = [
+            models.UniqueConstraint(Lower("email"), name="user_email_ci"),
+            models.CheckConstraint(
+                condition=models.Q(role="STUDENT") | models.Q(owner_teacher__isnull=True),
+                name="only_student_has_owner",
+            ),
+        ]

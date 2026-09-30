@@ -25,6 +25,11 @@ const select = (name: string, source: string): Field => ({
 });
 export const fields: Record<string, Field[]> = {
   users: [
+    {
+      name: "owner_teacher",
+      source: "users/?role=TEACHER&is_active=true",
+      type: "select",
+    },
     { name: "email", type: "email", required: true },
     text("first_name"),
     text("last_name"),

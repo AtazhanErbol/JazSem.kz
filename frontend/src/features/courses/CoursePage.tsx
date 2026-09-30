@@ -48,14 +48,18 @@ export function CoursePage() {
     enabled: teacher,
   });
   const students = useQuery({
-    queryKey: ["options", "students"],
-    queryFn: () => allRows("users/?role=STUDENT"),
-    enabled: teacher,
+    queryKey: ["options", "students", query.data?.course.teacher],
+    queryFn: () =>
+      allRows(
+        `users/?role=STUDENT&is_active=true&owner_teacher=${query.data!.course.teacher}`,
+      ),
+    enabled: teacher && !!query.data,
   });
   const groups = useQuery({
-    queryKey: ["options", "groups"],
-    queryFn: () => allRows("groups/"),
-    enabled: teacher,
+    queryKey: ["options", "groups", query.data?.course.teacher],
+    queryFn: () =>
+      allRows(`groups/?status=ACTIVE&teacher=${query.data!.course.teacher}`),
+    enabled: teacher && !!query.data,
   });
   const enrollments = useQuery({
     queryKey: ["enrollments", id],
@@ -165,7 +169,7 @@ export function CoursePage() {
                   const v = await action.run<Row>(`courses/${id}/duplicate/`, {
                     version: data.version.id,
                   });
-                  if (v) setVersion(v.id);
+                  if (v.ok) setVersion(v.data.id);
                 }}
               >
                 {t("newVersion")}
@@ -670,13 +674,16 @@ export function CoursePage() {
             className="primary"
             disabled={action.pending}
             onClick={async () => {
-              if (confirm === "publish")
-                await action.run(`courses/${id}/publish/`, {
-                  version: data.version.id,
-                });
-              else await action.run(confirm.slice(7), undefined, "DELETE");
-              setConfirm(undefined);
-              setSelected(undefined);
+              const result =
+                confirm === "publish"
+                  ? await action.run(`courses/${id}/publish/`, {
+                      version: data.version.id,
+                    })
+                  : await action.run(confirm.slice(7), undefined, "DELETE");
+              if (result.ok) {
+                setConfirm(undefined);
+                setSelected(undefined);
+              }
             }}
           >
             {t("confirm")}

@@ -29,7 +29,7 @@ export function Settings() {
           <form
             onSubmit={form.handleSubmit(async (data) => {
               const result = await action.run("auth/me/", data, "PATCH");
-              if (result) {
+              if (result.ok) {
                 localStorage.setItem("language", data.preferred_language);
                 await i18n.changeLanguage(data.preferred_language);
               }

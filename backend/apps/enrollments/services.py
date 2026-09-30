@@ -13,14 +13,16 @@ from .models import Enrollment, EnrollmentSource, GroupCourseAssignment
 def enroll(actor, student, course, group_assignment=None):
     require_visible(course, actor)
     require_visible(student, actor)
-    User.objects.select_for_update().get(pk=student.pk)
+    student = User.objects.select_for_update().get(pk=student.pk)
     if (
         student.role != "STUDENT"
         or not student.is_active
-        or student.created_by_id != course.teacher_id
+        or student.owner_teacher_id != course.teacher_id
     ):
         raise ValidationError("Студент должен принадлежать преподавателю курса.")
     version = group_assignment.course_version if group_assignment else course.current_version
+    if version and version.course_id != course.pk:
+        raise ValidationError("Версия не принадлежит курсу.")
     if course.status != "PUBLISHED" or not version or version.status != "PUBLISHED":
         raise ValidationError("Назначить можно только опубликованный курс.")
     enrollment, created = Enrollment.objects.get_or_create(
@@ -73,9 +75,11 @@ def add_member(actor, group, student):
     require_visible(group, actor)
     require_visible(student, actor)
     group = StudyGroup.objects.select_for_update().get(pk=group.pk)
+    student = User.objects.select_for_update().get(pk=student.pk)
     if (
         student.role != "STUDENT"
-        or student.created_by_id != group.teacher_id
+        or not student.is_active
+        or student.owner_teacher_id != group.teacher_id
         or group.status != "ACTIVE"
     ):
         raise ValidationError("Недопустимый участник группы.")

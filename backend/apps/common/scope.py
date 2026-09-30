@@ -23,7 +23,7 @@ def visible(qs, user):
         return qs
     if label == "accounts.user":
         return (
-            qs.filter(Q(pk=user.pk) | Q(created_by=user, role="STUDENT"))
+            qs.filter(Q(pk=user.pk) | Q(owner_teacher=user, role="STUDENT"))
             if is_teacher(user)
             else qs.filter(pk=user.pk)
         )

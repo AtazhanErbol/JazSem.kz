@@ -175,8 +175,8 @@ export function AIWizard() {
               const body = new FormData();
               body.append("course", course);
               body.append("file", file!);
-              await action.run("sources/", body);
-              setFile(undefined);
+              const uploaded = await action.run("sources/", body);
+              if (uploaded.ok) setFile(undefined);
             }}
           >
             {t("upload")}
@@ -258,8 +258,8 @@ export function AIWizard() {
                 assignments,
                 tests,
               });
-              if (result) {
-                setJob(result.id);
+              if (result.ok) {
+                setJob(result.data.id);
                 setDraftText("");
               }
             }}
@@ -304,14 +304,14 @@ export function AIWizard() {
                   { data: JSON.parse(draftText) },
                   "PATCH",
                 );
-                if (!saved) return;
+                if (!saved.ok) return;
               }
               const result = await action.run<Row>(
                 `ai-drafts/${draft.data!.id}/regenerate/`,
                 { week_index: week, topic_index: topic, instruction },
               );
-              if (result) {
-                setJob(result.id);
+              if (result.ok) {
+                setJob(result.data.id);
                 setDraftText("");
               }
             }}
@@ -328,7 +328,7 @@ export function AIWizard() {
                 { data: JSON.parse(draftText) },
                 "PATCH",
               );
-              if (saved) setDraftText("");
+              if (saved.ok) setDraftText("");
             }}
           >
             {t("save")}
@@ -357,8 +357,10 @@ export function AIWizard() {
               const result = await action.run<Row>(
                 `ai-drafts/${draft.data!.id}/confirm/`,
               );
-              if (result) setImported(result.id);
-              setConfirm(false);
+              if (result.ok) {
+                setImported(result.data.id);
+                setConfirm(false);
+              }
             }}
           >
             {t("confirm")}

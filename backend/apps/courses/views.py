@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from apps.accounts.models import User
 from apps.audit.services import record
 from apps.common.api import ScopedViewSet, lookup, representation
+from apps.common.inputs import EmptyInput, StudentInput, VersionInput, validated
 from apps.common.permissions import is_admin, is_teacher
 from apps.common.scope import editable, visible
 from apps.common.serializers import serializer_for
@@ -49,8 +50,9 @@ class CourseViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def publish(self, request, pk=None):
+        data = validated(request, VersionInput)
         course = self.get_object()
-        version = get_object_or_404(course.versions, pk=request.data.get("version"))
+        version = get_object_or_404(course.versions, pk=data["version"])
         return Response(representation(publish(version, request.user), request))
 
     @action(detail=True, methods=["post"], url_path="grading-preset")
@@ -59,10 +61,10 @@ class CourseViewSet(ScopedViewSet):
         from apps.assignments.models import Assignment
         from apps.testing.models import Test
 
+        data = validated(request, VersionInput)
+
         course = self.get_object()
-        version = get_object_or_404(
-            course.versions.select_for_update(), pk=request.data.get("version")
-        )
+        version = get_object_or_404(course.versions.select_for_update(), pk=data["version"])
         editable(version, request.user)
         kinds = []
         if Assignment.objects.filter(topic__week__course_version=version).exists():
@@ -86,23 +88,24 @@ class CourseViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def duplicate(self, request, pk=None):
+        data = validated(request, VersionInput)
         course = self.get_object()
         if not is_teacher(request.user):
             raise PermissionDenied()
-        version = get_object_or_404(course.versions, pk=request.data.get("version"))
+        version = get_object_or_404(course.versions, pk=data["version"])
         return Response(representation(duplicate(version, request.user), request), status=201)
 
     @action(detail=True, methods=["post"])
     def assign(self, request, pk=None):
+        data = validated(request, StudentInput)
         if not is_teacher(request.user):
             raise PermissionDenied()
-        obj = enroll(
-            request.user, lookup(User, request.data.get("student"), request.user), self.get_object()
-        )
+        obj = enroll(request.user, lookup(User, data["student"], request.user), self.get_object())
         return Response(representation(obj, request))
 
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
+        validated(request, EmptyInput)
         obj = self.get_object()
         if not is_teacher(request.user):
             raise PermissionDenied()
@@ -168,6 +171,7 @@ class TopicViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
+        validated(request, EmptyInput)
         if request.user.role != "STUDENT":
             raise PermissionDenied()
         topic = self.get_object()

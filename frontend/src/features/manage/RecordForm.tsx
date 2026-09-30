@@ -3,7 +3,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { allRows } from "../../services/api";
+import { allRows, ApiError } from "../../services/api";
+import { ErrorState, Loading } from "../../components/UI";
 import type { Row } from "../../entities/types";
 import { useUser } from "../../app/Auth";
 import { useAction } from "../../hooks/useAction";
@@ -29,7 +30,11 @@ export function RecordForm({
   const action = useAction();
   const activeFields = (fields[resource] || []).filter(
     (f) =>
-      !(f.name in fixed) && !(f.name === "teacher" && user.role === "TEACHER"),
+      !(f.name in fixed) &&
+      !(
+        ["teacher", "owner_teacher"].includes(f.name) && user.role === "TEACHER"
+      ) &&
+      !(f.name === "role" && initial),
   );
   const shape: Record<string, z.ZodType> = {};
   const defaults: Record<string, unknown> = {};
@@ -84,6 +89,12 @@ export function RecordForm({
           : null;
     }
     let body: unknown = payload;
+    if (resource === "users") {
+      if ((initial?.role || payload.role) !== "STUDENT")
+        delete payload.owner_teacher;
+      else if (user.role === "ADMIN")
+        payload.owner_teacher = payload.owner_teacher || null;
+    }
     const upload = payload.file as FileList | undefined;
     if (upload?.length) {
       const fd = new FormData();
@@ -97,65 +108,82 @@ export function RecordForm({
       body,
       initial ? "PATCH" : "POST",
     );
-    if (result) onDone(result);
+    if (result.ok) onDone(result.data);
+    else if (result.error instanceof ApiError)
+      for (const [name, message] of Object.entries(result.error.fieldErrors))
+        form.setError(name, { type: "server", message });
   }
   return (
     <form className="record-form" onSubmit={form.handleSubmit(submit)}>
-      {activeFields.map((field) => (
-        <label
-          key={field.name}
-          className={field.type === "checkbox" ? "check-label" : ""}
-        >
-          {t(field.name)}
-          {field.source ? (
-            <SourceSelect
-              field={field}
-              value={form.watch(field.name) as string | string[]}
-              registration={form.register(field.name)}
-            />
-          ) : field.type === "select" ? (
-            <select aria-label={t(field.name)} {...form.register(field.name)}>
-              {field.options
-                ?.filter(
-                  (o) =>
-                    field.name !== "role" ||
-                    user.role === "ADMIN" ||
-                    o === "STUDENT",
-                )
-                .map((o) => (
-                  <option key={o} value={o}>
-                    {t(o)}
-                  </option>
-                ))}
-            </select>
-          ) : field.type === "textarea" ? (
-            <textarea rows={5} {...form.register(field.name)} />
-          ) : (
-            <input
-              type={field.type || "text"}
-              min={field.min}
-              max={field.max}
-              {...form.register(field.name)}
-              accept={
-                field.type === "file"
-                  ? ".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
-                  : undefined
-              }
-            />
-          )}{" "}
-          {form.formState.errors[field.name] && (
-            <small className="field-error">
-              {String(form.formState.errors[field.name]?.message)}
-            </small>
-          )}
-        </label>
-      ))}
+      {resource === "users" && initial && (
+        <p>
+          {t("role")}: <strong>{t(String(initial.role))}</strong>
+        </p>
+      )}
+      {activeFields
+        .filter(
+          (field) =>
+            field.name !== "owner_teacher" ||
+            (initial?.role || form.watch("role")) === "STUDENT",
+        )
+        .map((field) => (
+          <label
+            key={field.name}
+            className={field.type === "checkbox" ? "check-label" : ""}
+          >
+            {t(field.name)}
+            {field.source ? (
+              <SourceSelect
+                field={field}
+                value={form.watch(field.name) as string | string[]}
+                registration={form.register(field.name)}
+              />
+            ) : field.type === "select" ? (
+              <select aria-label={t(field.name)} {...form.register(field.name)}>
+                {field.options
+                  ?.filter(
+                    (o) =>
+                      field.name !== "role" ||
+                      user.role === "ADMIN" ||
+                      o === "STUDENT",
+                  )
+                  .map((o) => (
+                    <option key={o} value={o}>
+                      {t(o)}
+                    </option>
+                  ))}
+              </select>
+            ) : field.type === "textarea" ? (
+              <textarea rows={5} {...form.register(field.name)} />
+            ) : (
+              <input
+                type={field.type || "text"}
+                min={field.min}
+                max={field.max}
+                {...form.register(field.name)}
+                accept={
+                  field.type === "file"
+                    ? ".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
+                    : undefined
+                }
+              />
+            )}{" "}
+            {form.formState.errors[field.name] && (
+              <small className="field-error">
+                {String(form.formState.errors[field.name]?.message)}
+              </small>
+            )}
+          </label>
+        ))}
       {action.feedback}
       <div className="form-actions">
         <button type="button" onClick={() => onDone()}>
           {t("cancel")}
         </button>
-        <button className="primary" disabled={action.pending}>
+        <button
+          className="primary"
+          disabled={action.pending || form.formState.isSubmitting}
+        >
           {submitLabel || t("save")}
         </button>
       </div>
@@ -176,6 +204,11 @@ function SourceSelect({
     queryFn: () => allRows(field.source!),
   });
   const { t } = useTranslation();
+  if (query.isPending) return <Loading />;
+  if (query.error)
+    return (
+      <ErrorState error={query.error} retry={() => void query.refetch()} />
+    );
   return (
     <select
       multiple={field.name === "teachers"}
@@ -184,11 +217,24 @@ function SourceSelect({
       {...registration}
     >
       {field.name !== "teachers" && (
-        <option value="">{t("noSelection")}</option>
+        <option value="">
+          {t(
+            field.name === "owner_teacher"
+              ? "workspace.unassigned"
+              : "noSelection",
+          )}
+        </option>
       )}
       {query.data?.map((row) => (
         <option key={row.id} value={row.id}>
-          {String(row.title || row.name || row.email || row.id)}
+          {String(
+            row.title ||
+              row.name ||
+              (row.first_name
+                ? `${row.first_name} ${row.last_name || ""} · ${row.email}`
+                : row.email) ||
+              row.id,
+          )}
         </option>
       ))}
     </select>

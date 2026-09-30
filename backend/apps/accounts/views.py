@@ -23,6 +23,7 @@ from apps.common.permissions import is_admin, is_teacher
 from apps.notifications.services import queue_mail
 
 from .models import User
+from .policies import lock_account_change
 from .serializers import EmailSerializer, LoginSerializer, PasswordSerializer, UserSerializer
 
 
@@ -68,7 +69,9 @@ class MeView(APIView):
             for key in ["first_name", "last_name", "preferred_language"]
             if key in request.data
         }
-        serializer = UserSerializer(request.user, data=data, partial=True)
+        serializer = UserSerializer(
+            request.user, data=data, partial=True, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -172,7 +175,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     http_method_names = ["get", "post", "patch", "head", "options"]
     search_fields = ["email", "first_name", "last_name", "username"]
-    filterset_fields = ["role", "is_active"]
+    filterset_fields = ["role", "is_active", "owner_teacher"]
     ordering_fields = ["created_at", "last_name", "email"]
 
     def get_queryset(self):
@@ -180,9 +183,13 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.none()
         user = self.request.user
         if is_admin(user):
-            return User.objects.all().order_by("-created_at")
+            return User.objects.select_related("owner_teacher").order_by("-created_at")
         if user.role == "TEACHER":
-            return User.objects.filter(created_by=user, role="STUDENT").order_by("-created_at")
+            return (
+                User.objects.select_related("owner_teacher")
+                .filter(owner_teacher=user, role="STUDENT")
+                .order_by("-created_at")
+            )
         return User.objects.filter(pk=user.pk).order_by("pk")
 
     @transaction.atomic
@@ -219,14 +226,26 @@ class UserViewSet(viewsets.ModelViewSet):
                 }
             )
         old = {"is_active": serializer.instance.is_active}
+        serializer.instance = lock_account_change(
+            self.request.user, serializer.instance, serializer.validated_data
+        )
+        old["owner_teacher"] = str(serializer.instance.owner_teacher_id or "")
         obj = serializer.save()
-        record(self.request.user, "account.updated", obj, old, {"is_active": obj.is_active})
+        record(
+            self.request.user,
+            "account.updated",
+            obj,
+            old,
+            {"is_active": obj.is_active, "owner_teacher": str(obj.owner_teacher_id or "")},
+        )
 
     @action(detail=True, methods=["post"])
+    @transaction.atomic
     def deactivate(self, request, pk=None):
         obj = self.get_object()
         if not is_teacher(request.user) or obj.pk == request.user.pk:
             raise PermissionDenied()
+        obj = lock_account_change(request.user, obj, {"is_active": False})
         obj.is_active = False
         obj.save()
         record(request.user, "account.blocked", obj)

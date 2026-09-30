@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.common.api import ReadOnlyScoped, ScopedViewSet, representation
+from apps.common.inputs import AnswerInput, EmptyInput, validated
 from apps.common.serializers import serializer_for
 from apps.testing.models import Test, TestAttempt
 from apps.testing.services import finalize, save_answer, start
@@ -20,6 +21,7 @@ class TestViewSet(ScopedViewSet):
 
     @action(detail=True, methods=["post"])
     def start(self, request, pk=None):
+        validated(request, EmptyInput)
         return Response(representation(start(self.get_object(), request.user), request))
 
 
@@ -54,14 +56,16 @@ class AttemptViewSet(ReadOnlyScoped):
 
     @action(detail=True, methods=["post"])
     def answer(self, request, pk=None):
+        data = validated(request, AnswerInput)
         save_answer(
             self.get_object(),
             request.user,
-            request.data.get("question"),
-            request.data.get("selected_options", []),
+            data["question"],
+            [str(option) for option in data["selected_options"]],
         )
         return Response({"saved": True})
 
     @action(detail=True, methods=["post"])
     def finish(self, request, pk=None):
+        validated(request, EmptyInput)
         return Response(representation(finalize(self.get_object(), request.user), request))

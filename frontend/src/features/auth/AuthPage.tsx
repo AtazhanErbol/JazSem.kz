@@ -68,10 +68,14 @@ export function AuthPage({
       "POST",
       mode === "forgot" ? t("resetEmailSent") : undefined,
     );
-    if (result && mode === "login") {
-      cache.setQueryData(["me"], result);
-      nav(result.must_change_password ? "/change-temporary-password" : "/app");
-    } else if (result && mode !== "forgot") {
+    if (result.ok && mode === "login") {
+      cache.setQueryData(["me"], result.data);
+      nav(
+        result.data.must_change_password
+          ? "/change-temporary-password"
+          : "/app",
+      );
+    } else if (result.ok && mode !== "forgot") {
       nav(mode === "change" ? "/app" : "/login");
     }
   }

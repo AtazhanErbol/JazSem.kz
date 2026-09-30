@@ -4,6 +4,7 @@ import { ruWorkspace, kkWorkspace } from "./workspace";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 const ru = {
+  owner_teacher: "Ответственный преподаватель",
   workspace: ruWorkspace,
   ...ruUX,
   ...ruLabels,
@@ -221,6 +222,7 @@ const ru = {
 };
 const kk: typeof ru = {
   ...ru,
+  owner_teacher: "Жауапты оқытушы",
   workspace: kkWorkspace,
   ...kkUX,
   ...kkLabels,
