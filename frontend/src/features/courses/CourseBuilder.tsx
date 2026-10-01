@@ -472,16 +472,23 @@ export function CourseBuilder() {
               </button>
             </div>
           )}
-          {data.components.map((c) => (
-            <div className="record-row" key={c.id}>
-              <span>
-                {t(String(c.kind))} · {String(c.weight)}%
-              </span>
-              {editable && controls("grading-components", c)}
-            </div>
-          ))}
+          <p className="muted">{t("learningDisplay.weightHint")}</p>
+          <div className="grading-components">
+            {data.components.map((c) => (
+              <div className="record-row" key={c.id}>
+                <span>
+                  <strong>{t(String(c.kind))}</strong>
+                  <small>
+                    {t("learningDisplay.weight")}: {String(c.weight)}%
+                  </small>
+                </span>
+                {editable && controls("grading-components", c)}
+              </div>
+            ))}
+          </div>
           {editable && (
             <button
+              className="contextual-action"
               onClick={() =>
                 data.scheme
                   ? add("grading-components", { scheme: data.scheme.id })

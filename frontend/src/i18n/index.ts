@@ -1,3 +1,4 @@
+import { ruLearningDisplay, kkLearningDisplay } from "./learningDisplay";
 import { ruRelease, kkRelease } from "./release";
 import { ruLabels, kkLabels } from "./labels";
 import { ruUX, kkUX } from "./ux";
@@ -6,6 +7,7 @@ import { ruMail, kkMail, ruAIRecovery, kkAIRecovery } from "./operations";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 const ru = {
+  learningDisplay: ruLearningDisplay,
   ux: ruRelease,
   aiRecovery: ruAIRecovery,
   mail: ruMail,
@@ -227,6 +229,7 @@ const ru = {
 };
 const kk: typeof ru = {
   ...ru,
+  learningDisplay: kkLearningDisplay,
   ux: kkRelease,
   mail: kkMail,
   aiRecovery: kkAIRecovery,

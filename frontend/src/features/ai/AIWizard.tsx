@@ -204,7 +204,9 @@ function AIWorkspace({ course }: { course: string }) {
               setParams(value ? { course: String(value) } : {});
             }}
           />
-          <Link to="/app/courses">+ {t("createCourse")}</Link>
+          <Link className="button contextual-action" to="/app/courses?create=1">
+            + {t("createCourse")}
+          </Link>
           <h2>02 / {t("sources")}</h2>
           <label className="upload-area">
             <Upload />

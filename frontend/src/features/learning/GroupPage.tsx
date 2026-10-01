@@ -50,7 +50,7 @@ export function GroupPage() {
             onChange={(value) => setStudent(String(value))}
           />
           <button
-            className="primary"
+            className="primary contextual-action"
             disabled={!student || action.pending}
             onClick={async () => {
               const result = await action.run(`groups/${id}/members/`, {
@@ -61,6 +61,9 @@ export function GroupPage() {
           >
             {t("addMember")}
           </button>
+          {!student && (
+            <p className="field-hint">{t("learningDisplay.chooseStudent")}</p>
+          )}
         </section>
       )}
       {action.feedback}

@@ -44,28 +44,76 @@ export function ResultsPage({ mode }: { mode: "grades" | "progress" }) {
         <ErrorState error={query.error} retry={() => void query.refetch()} />
       ) : query.data.results.length ? (
         query.data.results.map((row) => (
-          <section className="panel" key={row.id}>
+          <section className="panel learning-result-card" key={row.id}>
             <h2>
               <Link to={`/app/courses/${row.course}`}>{row.course_title}</Link>
             </h2>
-            <small>{row.student_name}</small>
+            <p className="result-student">
+              {t("learningDisplay.student", { name: row.student_name })}
+            </p>
             {mode === "progress" ? (
               <>
-                <h3>{row.progress.percent}%</h3>
+                <div className="result-summary">
+                  <span>{t("learningDisplay.progressTitle")}</span>
+                  <strong>{row.progress.percent}%</strong>
+                </div>
                 <ProgressBar value={row.progress.percent} />
-                <small>
-                  {row.progress.completed} / {row.progress.total}
-                </small>
+                <p>
+                  {row.progress.total
+                    ? t("learningDisplay.completed", {
+                        done: row.progress.completed,
+                        total: row.progress.total,
+                      })
+                    : t("learningDisplay.noElements")}
+                </p>
+                <p className="field-hint">
+                  {t("learningDisplay.progressHint")}
+                </p>
               </>
             ) : (
               <>
-                <h3>{row.grades.score} / 100</h3>
-                {row.grades.components.map((component) => (
-                  <p key={component.kind}>
-                    {t(component.kind)} ({component.weight}%) —{" "}
-                    {component.score}
-                  </p>
-                ))}
+                <div className="result-summary">
+                  <span>{t("learningDisplay.currentScore")}</span>
+                  <strong>
+                    {row.grades.score} <small>/ 100</small>
+                  </strong>
+                </div>
+                <div className="result-components">
+                  {row.grades.components.map((component) => (
+                    <div className="result-component" key={component.kind}>
+                      <h3>{t(component.kind)}</h3>
+                      <dl>
+                        <div>
+                          <dt>{t("learningDisplay.average")}</dt>
+                          <dd>{component.score} / 100</dd>
+                        </div>
+                        <div>
+                          <dt>{t("learningDisplay.weight")}</dt>
+                          <dd>{component.weight}%</dd>
+                        </div>
+                        <div>
+                          <dt>{t("learningDisplay.contribution")}</dt>
+                          <dd>
+                            {Number(
+                              (
+                                (component.score * component.weight) /
+                                100
+                              ).toFixed(2),
+                            )}{" "}
+                            / {component.weight}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  ))}
+                </div>
+                <p className="field-hint">
+                  {t(
+                    row.grades.components.length
+                      ? "learningDisplay.gradeHint"
+                      : "learningDisplay.noGrading",
+                  )}
+                </p>
               </>
             )}
           </section>

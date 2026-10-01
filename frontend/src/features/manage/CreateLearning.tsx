@@ -45,7 +45,10 @@ export function CourseCreate({ onClose }: { onClose: () => void }) {
           }}
         />
         {user.role === "ADMIN" && (
-          <Link to="/app/disciplines?create=1">
+          <Link
+            className="button contextual-action"
+            to="/app/disciplines?create=1"
+          >
             {t("workspace.createDiscipline")}
           </Link>
         )}
@@ -106,7 +109,9 @@ export function ActivityCreate({
         value={course}
         onChange={(value) => setCourse(String(value))}
       />
-      <Link to="/app/courses?create=1">{t("createCourse")}</Link>
+      <Link className="button contextual-action" to="/app/courses?create=1">
+        {t("createCourse")}
+      </Link>
       {course && (
         <ActivityLocation
           key={course}

@@ -31,6 +31,7 @@ export function CourseSharing({
         onChange={(value) => setStudent(String(value))}
       />
       <button
+        className="primary contextual-action"
         disabled={!published || !student || action.pending}
         onClick={() =>
           void action.run(
@@ -43,6 +44,9 @@ export function CourseSharing({
       >
         {t("assign")}
       </button>
+      {published && !student && (
+        <p className="field-hint">{t("learningDisplay.chooseRecipient")}</p>
+      )}
       <h3>{t("groups")}</h3>
       <RemoteSelect
         source={`groups/?status=ACTIVE&teacher=${teacher}`}
@@ -51,6 +55,7 @@ export function CourseSharing({
         onChange={(value) => setGroup(String(value))}
       />
       <button
+        className="primary contextual-action"
         disabled={!published || !group || action.pending}
         onClick={() =>
           void action.run(
@@ -63,6 +68,9 @@ export function CourseSharing({
       >
         {t("assign")}
       </button>
+      {published && !group && (
+        <p className="field-hint">{t("learningDisplay.chooseRecipient")}</p>
+      )}
       {action.feedback}
     </section>
   );
