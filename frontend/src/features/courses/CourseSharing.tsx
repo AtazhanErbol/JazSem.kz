@@ -16,6 +16,9 @@ export function CourseSharing({
   const action = useAction();
   const [student, setStudent] = useState("");
   const [group, setGroup] = useState("");
+  const [assigned, setAssigned] = useState<Set<string>>(() => new Set());
+  const studentKey = `${id}:student:${student}`;
+  const groupKey = `${id}:group:${group}`;
   return (
     <section className="panel" id="course-sharing">
       <h2>{t("workspace.assignTitle")}</h2>
@@ -32,15 +35,19 @@ export function CourseSharing({
       />
       <button
         className="primary contextual-action"
-        disabled={!published || !student || action.pending}
-        onClick={() =>
-          void action.run(
+        disabled={
+          !published || !student || action.pending || assigned.has(studentKey)
+        }
+        onClick={async () => {
+          const result = await action.run(
             `courses/${id}/assign/`,
             { student },
             "POST",
             t("workspace.assigned"),
-          )
-        }
+          );
+          if (result.ok)
+            setAssigned((previous) => new Set(previous).add(studentKey));
+        }}
       >
         {t("assign")}
       </button>
@@ -56,15 +63,19 @@ export function CourseSharing({
       />
       <button
         className="primary contextual-action"
-        disabled={!published || !group || action.pending}
-        onClick={() =>
-          void action.run(
+        disabled={
+          !published || !group || action.pending || assigned.has(groupKey)
+        }
+        onClick={async () => {
+          const result = await action.run(
             `groups/${group}/assign/`,
             { course: id },
             "POST",
             t("workspace.groupAssigned"),
-          )
-        }
+          );
+          if (result.ok)
+            setAssigned((previous) => new Set(previous).add(groupKey));
+        }}
       >
         {t("assign")}
       </button>
