@@ -1,3 +1,4 @@
+import { TestImport } from "./TestImport";
 import { GradingWeights } from "./GradingWeights";
 import { CourseSharing } from "./CourseSharing";
 import { useState } from "react";
@@ -9,7 +10,16 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BookOpen, Check, ChevronRight, Plus, FileText } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  ChevronRight,
+  Plus,
+  FileText,
+  ClipboardList,
+  ListChecks,
+  Search,
+} from "lucide-react";
 import type { Activity, Row, Tree } from "../../entities/types";
 import { api } from "../../services/api";
 import { Badge, Empty, ErrorState, Loading, Modal } from "../../components/UI";
@@ -33,6 +43,8 @@ export function CourseBuilder() {
     version_number: number;
     version: string;
   }>();
+  const [outlineSearch, setOutlineSearch] = useState("");
+  const [outlineKind, setOutlineKind] = useState("all");
   const [weightsOpen, setWeightsOpen] = useState(false);
   const [deleteDraft, setDeleteDraft] = useState(false);
   const [deleteName, setDeleteName] = useState("");
@@ -81,16 +93,69 @@ export function CourseBuilder() {
           ...topic.tests,
         ])
     ).find((item) => item.id === selection.item.id);
-  const selected =
+  const selected: { type: string; item: Activity } | undefined =
     selection && selectedItem
       ? { type: selection.type, item: selectedItem }
-      : topics
-          .flatMap((topic) =>
-            (["materials", "assignments", "tests"] as const).flatMap((type) =>
-              topic[type].map((item) => ({ type, item })),
+      : topics.find((topic) => topic.id === params.get("activity"))
+        ? {
+            type: "topic",
+            item: topics.find((topic) => topic.id === params.get("activity"))!,
+          }
+        : topics
+            .flatMap((topic) =>
+              (["materials", "assignments", "tests"] as const).flatMap((type) =>
+                topic[type].map((item) => ({ type, item })),
+              ),
+            )
+            .find((entry) => entry.item.id === params.get("activity"));
+  const needle = outlineSearch.trim().toLocaleLowerCase();
+  const matches = (title: string) =>
+    !needle || title.toLocaleLowerCase().includes(needle);
+  const visibleWeeks = data.weeks
+    .map((week) => ({
+      ...week,
+      topics: week.topics
+        .map((topic) => {
+          const parentMatch =
+            !!needle && (matches(week.title) || matches(topic.title));
+          return {
+            ...topic,
+            ...Object.fromEntries(
+              (["materials", "assignments", "tests"] as const).map((kind) => [
+                kind,
+                topic[kind].filter(
+                  (item) =>
+                    (outlineKind === "all" || outlineKind === kind) &&
+                    (parentMatch || matches(item.title)),
+                ),
+              ]),
             ),
-          )
-          .find((entry) => entry.item.id === params.get("activity"));
+          };
+        })
+        .filter(
+          (topic) =>
+            ((!needle || matches(week.title) || matches(topic.title)) &&
+              outlineKind === "all") ||
+            topic.materials.length +
+              topic.assignments.length +
+              topic.tests.length >
+              0,
+        ),
+    }))
+    .filter((week) => week.topics.length || (!needle && outlineKind === "all"));
+  const choose = (type: string, item: Activity) => {
+    setSelected({ type, item });
+    setParams(
+      (p) => {
+        p.set("activity", item.id);
+        return p;
+      },
+      { replace: true },
+    );
+    document
+      .getElementById("course-content")
+      ?.scrollIntoView({ block: "start" });
+  };
   const editable = ["DRAFT", "REVIEW"].includes(String(data.version.status));
   const edit = (resource: string, initial: Row) =>
     setEditor({ resource, initial });
@@ -388,9 +453,36 @@ export function CourseBuilder() {
             <BookOpen size={18} />
             {t("outline")}
           </h3>
-          {data.weeks.map((week) => (
+          <div className="outline-tools">
+            <label>
+              <Search size={16} />
+              <input
+                aria-label={t("courseSearch")}
+                placeholder={t("courseSearch")}
+                value={outlineSearch}
+                onChange={(e) => setOutlineSearch(e.target.value)}
+              />
+            </label>
+            <select
+              aria-label={t("courseFilter")}
+              value={outlineKind}
+              onChange={(e) => setOutlineKind(e.target.value)}
+            >
+              {["all", "materials", "assignments", "tests"].map((kind) => (
+                <option key={kind} value={kind}>
+                  {t(kind)}
+                </option>
+              ))}
+            </select>
+            <p className="muted">{t("courseNavigationHint")}</p>
+          </div>
+          {!visibleWeeks.length && <p>{t("noSearchResults")}</p>}
+          {visibleWeeks.map((week) => (
             <section key={week.id}>
               <div className="outline-week">
+                <span className="week-marker">
+                  {t("week")} {week.number}
+                </span>
                 <strong>
                   {week.number}. {week.title}
                 </strong>
@@ -398,9 +490,7 @@ export function CourseBuilder() {
               </div>
               {week.topics.map((topic) => (
                 <div className="outline-topic" key={topic.id}>
-                  <button
-                    onClick={() => setSelected({ type: "topic", item: topic })}
-                  >
+                  <button onClick={() => choose("topic", topic)}>
                     <ChevronRight size={14} />
                     {topic.title}
                   </button>
@@ -415,9 +505,19 @@ export function CourseBuilder() {
                               ? "outline-item active"
                               : "outline-item"
                           }
-                          onClick={() => setSelected({ type, item })}
+                          onClick={() => choose(type, item)}
                         >
-                          <FileText size={14} /> {item.title}
+                          {type === "tests" ? (
+                            <ListChecks size={17} />
+                          ) : type === "assignments" ? (
+                            <ClipboardList size={17} />
+                          ) : (
+                            <FileText size={17} />
+                          )}{" "}
+                          <span>
+                            <small>{t(type)}</small>
+                            {item.title}
+                          </span>
                         </button>
                       )),
                   )}
@@ -460,6 +560,25 @@ export function CourseBuilder() {
         <section className="content-pane" id="course-content">
           {selected ? (
             <>
+              <p className="content-location">
+                {
+                  data.weeks.flatMap((w) =>
+                    w.topics
+                      .filter(
+                        (topic) =>
+                          topic.id === selected.item.id ||
+                          [
+                            ...topic.materials,
+                            ...topic.assignments,
+                            ...topic.tests,
+                          ].some((item) => item.id === selected.item.id),
+                      )
+                      .map(
+                        (topic) => `${t("week")} ${w.number} / ${topic.title}`,
+                      ),
+                  )[0]
+                }
+              </p>
               <span className="eyebrow">{t(selected.type)}</span>
               <h2>{selected.item.title}</h2>
               <div className="prose">
@@ -506,6 +625,9 @@ export function CourseBuilder() {
               {editable &&
                 selected.type !== "topic" &&
                 controls(selected.type, selected.item)}
+              {editable && selected.type === "tests" && (
+                <TestImport key={selected.item.id} id={selected.item.id} />
+              )}
               {selected.type === "tests" && (
                 <>
                   {editable && !!selected.item.questions?.length && (

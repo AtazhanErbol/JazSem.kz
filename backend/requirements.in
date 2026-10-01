@@ -21,3 +21,7 @@ gunicorn
 sentry-sdk
 python-json-logger
 cryptography
+
+# Excel template import/export (also present in the locked dependency graph)
+lxml==6.1.3
+xlsxwriter==3.2.9

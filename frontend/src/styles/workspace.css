@@ -970,3 +970,102 @@ a.contextual-action {
     transition: none;
   }
 }
+
+.outline-tools {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.outline-tools label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.outline-tools input {
+  min-width: 0;
+  width: 100%;
+}
+.outline-tools p {
+  font-size: 12px;
+  margin: 0;
+}
+.course-outline .outline-week {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.week-marker {
+  display: block;
+  width: 100%;
+  color: #b51e36;
+  font-weight: 700;
+  font-size: 13px;
+}
+.course-outline .outline-item {
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+}
+.course-outline .outline-item svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.course-outline .outline-item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.course-outline .outline-item small {
+  display: block;
+  color: #687487;
+  margin-bottom: 3px;
+}
+.content-location {
+  color: #687487;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+#course-content {
+  scroll-margin-top: 100px;
+}
+.test-import {
+  padding: 18px;
+  margin: 20px 0;
+  background: #f4f6f9;
+  border: 1px dashed #cad0da;
+  border-radius: 12px;
+}
+.import-file {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.import-file input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+}
+.import-file:focus-within {
+  outline: 2px solid #e8233d;
+  outline-offset: 3px;
+}
+.import-preview {
+  display: grid;
+  gap: 20px;
+  padding-left: 24px;
+}
+.import-preview li {
+  overflow-wrap: anywhere;
+}
+.import-preview ul {
+  margin: 10px 0;
+  padding-left: 18px;
+}
+
+.course-outline .outline-tools { position: sticky; top: 0; z-index: 2; background: #fff; padding: 8px 0 14px; border-bottom: 1px solid #e4e7ec; }
+.test-import .import-file { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; margin: 0; }
+
+.course-outline .outline-tools label { position: relative; display: block; margin: 0; }
+.course-outline .outline-tools label svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+.course-outline .outline-tools label input { padding-left: 36px; }

@@ -1,14 +1,22 @@
+from django.core import signing
+from django.db import transaction
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from apps.audit.services import record
 from apps.common.api import ReadOnlyScoped, ScopedViewSet, representation
 from apps.common.filters import TestFilter
 from apps.common.inputs import AnswerInput, EmptyInput, validated
+from apps.common.scope import editable
 from apps.common.serializers import serializer_for
-from apps.testing.models import Test, TestAttempt
+from apps.testing.models import AnswerOption, Question, Test, TestAttempt
 from apps.testing.services import finalize, save_answer, start
+
+from .imports import read_questions, template
 
 
 class TestDisplaySerializer(serializer_for(Test)):
@@ -37,6 +45,81 @@ class TestViewSet(ScopedViewSet):
     queryset = Test.objects.select_related("topic__week__course_version")
     serializer_class = TestDisplaySerializer
     filterset_class = TestFilter
+
+    @action(detail=True, methods=["get"], url_path="import-template")
+    @transaction.atomic
+    def import_template(self, request, pk=None):
+        editable(self.get_object(), request.user)
+        response = HttpResponse(
+            template(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="jazsem-test-template.xlsx"'
+        return response
+
+    @action(detail=True, methods=["post"], url_path="import-preview")
+    @transaction.atomic
+    def import_preview(self, request, pk=None):
+        test = self.get_object()
+        editable(test, request.user)
+        questions = read_questions(request.FILES.get("file"))
+        existing = sorted(str(pk) for pk in test.questions.values_list("pk", flat=True))
+        token = signing.dumps(
+            {
+                "test": str(test.pk),
+                "user": str(request.user.pk),
+                "existing": existing,
+                "questions": questions,
+            },
+            salt="test-import",
+            compress=True,
+        )
+        return Response({"questions": questions, "token": token, "existing": len(existing)})
+
+    @action(detail=True, methods=["post"], url_path="import-questions")
+    @transaction.atomic
+    def import_questions(self, request, pk=None):
+        test = self.get_object()
+        editable(test, request.user)
+        try:
+            token = request.data.get("token", "")
+            if not isinstance(token, str) or len(token) > 3000000:
+                raise ValueError()
+            data = signing.loads(token, salt="test-import", max_age=1800)
+        except (signing.BadSignature, ValueError, TypeError):
+            raise ValidationError("Предпросмотр устарел. Загрузите файл заново.") from None
+        if data["test"] != str(test.pk) or data["user"] != str(request.user.pk):
+            raise ValidationError("Предпросмотр относится к другому тесту или пользователю.")
+        existing = sorted(str(pk) for pk in test.questions.values_list("pk", flat=True))
+        if existing != data["existing"]:
+            raise ValidationError(
+                "Список вопросов изменился или файл уже импортирован. Откройте новый предпросмотр."
+            )
+        from django.db.models import Max
+
+        order = (test.questions.aggregate(value=Max("order"))["value"] or 0) + 1
+        for index, row in enumerate(data["questions"]):
+            question = Question.objects.create(
+                test=test,
+                text=row["text"],
+                type="SINGLE_CHOICE" if len(row["correct"]) == 1 else "MULTIPLE_CHOICE",
+                score=row["score"],
+                explanation=row["explanation"],
+                order=order + index,
+            )
+            AnswerOption.objects.bulk_create(
+                [
+                    AnswerOption(
+                        question=question,
+                        text=text,
+                        order=i,
+                        is_correct="ABCDE"[i] in row["correct"],
+                    )
+                    for i, text in enumerate(row["options"])
+                ]
+            )
+        record(request.user, "test.questions_imported", test, new={"count": len(data["questions"])})
+        return Response({"imported": len(data["questions"])})
 
     @action(detail=True, methods=["post"])
     def start(self, request, pk=None):
@@ -87,4 +170,6 @@ class AttemptViewSet(ReadOnlyScoped):
     @action(detail=True, methods=["post"])
     def finish(self, request, pk=None):
         validated(request, EmptyInput)
-        return Response(representation(finalize(self.get_object(), request.user, require_access=True), request))
+        return Response(
+            representation(finalize(self.get_object(), request.user, require_access=True), request)
+        )

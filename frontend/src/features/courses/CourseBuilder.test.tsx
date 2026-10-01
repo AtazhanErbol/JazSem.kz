@@ -60,7 +60,9 @@ it("requires exact draft title and version before deleting", () => {
   fireEvent.click(screen.getByRole("button", { name: "Удалить черновик" }));
   const buttons = screen.getAllByRole("button", { name: "Удалить черновик" });
   expect(buttons[1]).toBeDisabled();
-  const input = screen.getByRole("textbox");
+  const input = screen.getByLabelText(
+    "Для подтверждения введите название и номер версии, указанные выше",
+  );
   fireEvent.change(input, { target: { value: "Mathematics" } });
   expect(buttons[1]).toBeDisabled();
   fireEvent.change(input, { target: { value: "Mathematics · v1" } });
@@ -89,9 +91,14 @@ it("requires exact confirmation for published deletion", () => {
     name: "Удалить опубликованную версию",
   });
   expect(buttons[1]).toBeDisabled();
-  fireEvent.change(screen.getByRole("textbox"), {
-    target: { value: "Mathematics · v1" },
-  });
+  fireEvent.change(
+    screen.getByLabelText(
+      "Для подтверждения введите название и номер версии, указанные выше",
+    ),
+    {
+      target: { value: "Mathematics · v1" },
+    },
+  );
   expect(buttons[1]).toBeEnabled();
   fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
   expect(state.run).not.toHaveBeenCalled();
