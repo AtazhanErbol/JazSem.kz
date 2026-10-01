@@ -11,6 +11,11 @@ class SourceInput(Input):
 
 
 class GenerationInput(Input):
+    instruction = Text(max_length=2000, allow_blank=True, default="")
+    page_from = serializers.IntegerField(min_value=1, required=False)
+    page_to = serializers.IntegerField(min_value=1, required=False)
+    mode = serializers.ChoiceField(choices=["NEW", "APPEND"], default="NEW")
+    base_version = serializers.UUIDField(required=False)
     course = serializers.UUIDField()
     sources = serializers.ListField(child=serializers.UUIDField(), min_length=1, max_length=30)
     weeks = serializers.IntegerField(min_value=1, max_value=16)
@@ -22,6 +27,28 @@ class GenerationInput(Input):
     tests = serializers.BooleanField(default=True)
 
     def validate(self, data):
+        if not data["instruction"]:
+            data["instruction"] = (
+                "Выдели ключевые темы и распределяй их последовательно по запрошенным новым неделям. "
+                "Для каждой недели подготовь понятное объяснение с учебной целью. "
+                "Если задания включены, предложи одно практическое задание с понятными требованиями к ответу. "
+                "Если тесты включены, составь 5 вопросов с 5 вариантами, одним верным ответом и пояснением. "
+                "Если исходного материала недостаточно, сделай меньше вопросов и укажи пробелы в source_gaps. "
+                "Для изображений используй только распознанное содержимое, не угадывай нечитаемый текст. "
+                "Все утверждения должны опираться на выбранные источники."
+            )
+        if ("page_from" in data) != ("page_to" in data):
+            raise serializers.ValidationError("Укажите начало и конец диапазона страниц.")
+        if data.get("page_from", 0) > data.get("page_to", 0):
+            raise serializers.ValidationError("Начальная страница не может быть больше конечной.")
+        if "page_from" in data and len(data["sources"]) != 1:
+            raise serializers.ValidationError("Для диапазона страниц выберите ровно один PDF-файл.")
+        if data["mode"] == "APPEND" and not data.get("base_version"):
+            raise serializers.ValidationError(
+                {"base_version": "Выберите версию курса для дополнения."}
+            )
+        if data["mode"] == "NEW":
+            data.pop("base_version", None)
         if not data["assignments"] and not data["tests"]:
             raise serializers.ValidationError(
                 {"assignments": "Для публикации курса добавьте задания или тесты."}

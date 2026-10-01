@@ -8,6 +8,14 @@ export interface SourceDocument {
   excluded: boolean;
 }
 export interface AIJob {
+  parameters?: {
+    mode?: "NEW" | "APPEND";
+    append_context?: {
+      version_number: number;
+      start_week: number;
+      base_status: string;
+    };
+  };
   id: string;
   course: string;
   status: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";

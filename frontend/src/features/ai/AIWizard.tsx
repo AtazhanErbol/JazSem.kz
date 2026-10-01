@@ -42,7 +42,28 @@ function AIWorkspace({ course }: { course: string }) {
     updateParam("jobPage", String(change(jobPage)));
   const [file, setFile] = useState<File>();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [weeks, setWeeks] = useState(4);
+  const [weeks, setWeeks] = useState(1);
+  const [mode, setMode] = useState("APPEND");
+  const [baseVersion, setBaseVersion] = useState("");
+  const [instruction, setInstruction] = useState("");
+  const [pageFrom, setPageFrom] = useState("");
+  const [pageTo, setPageTo] = useState("");
+  const versions = useQuery({
+    queryKey: ["versions", course],
+    queryFn: () =>
+      api<{ id: string; version_number: number; status: string }[]>(
+        `courses/${course}/versions/`,
+      ),
+    enabled: !!course,
+  });
+  const appendInfo = useQuery({
+    queryKey: ["ai-append-context", course, baseVersion],
+    queryFn: () =>
+      api<{ version_number: number; start_week: number; base_status: string }>(
+        `ai-jobs/append-context/?course=${course}&version=${baseVersion}`,
+      ),
+    enabled: !!course && mode === "APPEND" && !!baseVersion,
+  });
   const [language, setLanguage] = useState(i18n.language);
   const [complexity, setComplexity] = useState("intermediate");
   const [assignments, setAssignments] = useState(true);
@@ -50,7 +71,9 @@ function AIWorkspace({ course }: { course: string }) {
   const job = params.get("job") || "";
   const setJob = (value: string) => updateParam("job", value);
   const [draftText, setDraftText] = useState("");
-  const allowNavigation = useUnsavedChanges(!!draftText || !!file);
+  const allowNavigation = useUnsavedChanges(
+    !!draftText || !!file || !!instruction,
+  );
   const [confirm, setConfirm] = useState(false);
   const [imported, setImported] = useState("");
   const availability = useQuery({
@@ -324,7 +347,53 @@ function AIWorkspace({ course }: { course: string }) {
         <section className="panel">
           <h2>03 / {t("generationSettings")}</h2>
           <label>
-            {t("weeks")}
+            {t("aiAppend.mode")}
+            <select value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="APPEND">{t("aiAppend.append")}</option>
+              <option value="NEW">{t("aiAppend.new")}</option>
+            </select>
+          </label>
+          {mode === "APPEND" && (
+            <>
+              <label>
+                {t("aiAppend.version")}
+                <select
+                  value={baseVersion}
+                  onChange={(e) => setBaseVersion(e.target.value)}
+                >
+                  <option value="">{t("aiAppend.choose")}</option>
+                  {versions.data
+                    ?.filter((v) =>
+                      ["DRAFT", "REVIEW", "PUBLISHED"].includes(v.status),
+                    )
+                    .map((v) => (
+                      <option key={v.id} value={v.id}>
+                        v{v.version_number} · {t(v.status)}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              {versions.isError && <ErrorState error={versions.error} />}
+              {appendInfo.isError && <ErrorState error={appendInfo.error} />}
+              {appendInfo.data && (
+                <p className="muted">
+                  {t("aiAppend.target", {
+                    version: appendInfo.data.version_number,
+                    start: appendInfo.data.start_week,
+                    end: appendInfo.data.start_week + weeks - 1,
+                  })}{" "}
+                  {t(
+                    appendInfo.data.base_status === "PUBLISHED"
+                      ? "aiAppend.copy"
+                      : "aiAppend.draft",
+                  )}
+                </p>
+              )}
+            </>
+          )}
+          {mode === "NEW" && <p className="muted">{t("aiAppend.newHint")}</p>}
+          <label>
+            {t(mode === "APPEND" ? "aiAppend.count" : "weeks")}
             <input
               type="number"
               min="1"
@@ -333,6 +402,38 @@ function AIWorkspace({ course }: { course: string }) {
               onChange={(e) => setWeeks(Number(e.target.value))}
             />
           </label>
+          <label>
+            {t("aiAppend.instruction")}
+            <textarea
+              rows={4}
+              maxLength={2000}
+              value={instruction}
+              onChange={(e) => setInstruction(e.target.value)}
+              placeholder={t("aiAppend.example")}
+            />
+          </label>
+          <p className="muted">{t("aiAppend.instructionHint")}</p>
+          <p className="muted">{t("aiAppend.pagesHint")}</p>
+          <div className="ai-page-range">
+            <label>
+              {t("aiAppend.from")}
+              <input
+                type="number"
+                min="1"
+                value={pageFrom}
+                onChange={(e) => setPageFrom(e.target.value)}
+              />
+            </label>
+            <label>
+              {t("aiAppend.to")}
+              <input
+                type="number"
+                min="1"
+                value={pageTo}
+                onChange={(e) => setPageTo(e.target.value)}
+              />
+            </label>
+          </div>
           <label>
             {t("language")}
             <select
@@ -377,6 +478,22 @@ function AIWorkspace({ course }: { course: string }) {
             disabled={
               !canGenerate ||
               !course ||
+              (mode === "APPEND" &&
+                (!baseVersion ||
+                  !appendInfo.data ||
+                  appendInfo.isError ||
+                  appendInfo.isFetching)) ||
+              !Number.isInteger(weeks) ||
+              weeks < 1 ||
+              weeks > 16 ||
+              ((!!pageFrom || !!pageTo) &&
+                (!pageFrom ||
+                  !pageTo ||
+                  !Number.isInteger(Number(pageFrom)) ||
+                  !Number.isInteger(Number(pageTo)) ||
+                  Number(pageFrom) < 1 ||
+                  Number(pageTo) < Number(pageFrom) ||
+                  selectedSources.length !== 1)) ||
               action.pending ||
               !selectedSources.length ||
               (!assignments && !tests) ||
@@ -387,6 +504,12 @@ function AIWorkspace({ course }: { course: string }) {
             onClick={async () => {
               const result = await action.run<Row>("ai-jobs/", {
                 course,
+                mode,
+                ...(mode === "APPEND" ? { base_version: baseVersion } : {}),
+                instruction,
+                ...(pageFrom && pageTo
+                  ? { page_from: Number(pageFrom), page_to: Number(pageTo) }
+                  : {}),
                 sources: selectedSources,
                 weeks,
                 language,
@@ -504,6 +627,8 @@ function AIWorkspace({ course }: { course: string }) {
         <section className="panel">
           <h2>05 / {t("draft")}</h2>
           <DraftEditor
+            preserveCourse={active.data?.parameters?.mode === "APPEND"}
+            startWeek={active.data?.parameters?.append_context?.start_week || 1}
             disabled={action.pending || Boolean(draft.data.imported_version)}
             data={
               (draftText ? JSON.parse(draftText) : draft.data.data) as DraftData
@@ -559,7 +684,10 @@ function AIWorkspace({ course }: { course: string }) {
               {t("importDraft")}
             </button>
             {Boolean(imported || draft.data.imported_version) && (
-              <Link className="button" to={"/app/courses/" + course}>
+              <Link
+                className="button"
+                to={`/app/courses/${course}?version=${imported || draft.data.imported_version}`}
+              >
                 {t("builder")} → {t("publish")}
               </Link>
             )}
@@ -568,7 +696,22 @@ function AIWorkspace({ course }: { course: string }) {
       )}
       {confirm && draft.data && (
         <Modal title={t("confirm")} onClose={() => setConfirm(false)}>
-          <p>{t("confirmImport")}</p>
+          <p>
+            {active.data?.parameters?.mode === "APPEND"
+              ? t("aiAppend.confirm", {
+                  version:
+                    active.data.parameters.append_context?.version_number,
+                  start: active.data.parameters.append_context?.start_week,
+                  count: draft.data.data.weeks.length,
+                })
+              : t("confirmImport")}
+          </p>
+          {active.data?.parameters?.mode === "APPEND" && (
+            <p className="muted">{t("aiAppend.after")}</p>
+          )}
+          {action.error != null && (
+            <ErrorState error={action.error} title={t("actionFailed")} />
+          )}
           <button
             className="primary"
             disabled={action.pending}

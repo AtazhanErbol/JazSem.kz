@@ -17,19 +17,26 @@ class ActiveGeneration(APIException):
     default_code = "generation_active"
 
 
-def snapshot(course, source_ids):
+def snapshot(course, source_ids, page_from=None, page_to=None):
     selected = set(source_ids)
     sources = SourceDocument.objects.filter(
         course=course, pk__in=selected, excluded=False, processing_status="COMPLETED"
     )
     if sources.count() != len(selected):
         raise ValidationError({"sources": "Выберите обработанные источники этого курса."})
+    chunks = DocumentChunk.objects.filter(document__in=sources)
+    if page_from is not None:
+        if sources.count() != 1 or not sources.first().filename.lower().endswith(".pdf"):
+            raise ValidationError(
+                "Диапазон страниц поддерживается для одного PDF-файла. Для Word или текста укажите раздел в инструкции."
+            )
+        chunks = chunks.filter(page_number__gte=page_from, page_number__lte=page_to)
+        if not chunks.exists():
+            raise ValidationError(
+                "На выбранных страницах нет распознанного текста. Проверьте номера страниц PDF и обработку файла."
+            )
     result, chars = [], 0
-    for chunk in (
-        DocumentChunk.objects.filter(document__in=sources)
-        .order_by("document_id", "chunk_index")
-        .iterator()
-    ):
+    for chunk in chunks.order_by("document_id", "chunk_index").iterator():
         chars += len(chunk.content)
         if chars > settings.AI_MAX_SOURCE_CHARS:
             raise ValidationError(
@@ -62,7 +69,11 @@ def create_job(
         >= settings.AI_MAX_DAILY_JOBS
     ):
         raise Throttled(detail="Дневной лимит генерации исчерпан.")
-    chunks = source_snapshot if source_snapshot is not None else snapshot(course, sources)
+    chunks = (
+        source_snapshot
+        if source_snapshot is not None
+        else snapshot(course, sources, params.get("page_from"), params.get("page_to"))
+    )
     if not chunks:
         raise ValidationError(
             "Для этого черновика нет снимка источников. Создайте новую генерацию."

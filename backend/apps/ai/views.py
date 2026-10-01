@@ -28,7 +28,7 @@ from .contracts import (
 )
 from .jobs import create_job
 from .models import AICourseDraft, AIJob, AIUsageLog, DocumentChunk, SourceDocument, TaskDelivery
-from .services import import_draft, validated_draft
+from .services import append_context, import_draft, validated_draft
 
 
 def require_generation():
@@ -161,6 +161,17 @@ class JobViewSet(ReadOnlyScoped):
     throttle_scope = "ai"
     filterset_fields = ["course", "status"]
 
+    @action(detail=False, methods=["get"], url_path="append-context")
+    def append_info(self, request):
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        from rest_framework.serializers import UUIDField
+
+        course_id = UUIDField().run_validation(request.query_params.get("course"))
+        version_id = UUIDField().run_validation(request.query_params.get("version"))
+        course = lookup(Course, course_id, request.user)
+        return Response(append_context(course, version_id, request.user))
+
     def get_throttles(self):
         return super().get_throttles() if self.action == "create" else []
 
@@ -171,6 +182,10 @@ class JobViewSet(ReadOnlyScoped):
         require_generation()
         params = validated(request, GenerationInput)
         course = lookup(Course, params.pop("course"), request.user)
+        if params.get("mode") == "APPEND":
+            Course.objects.select_for_update().get(pk=course.pk)
+            params["base_version"] = str(params["base_version"])
+            params["append_context"] = append_context(course, params["base_version"], request.user)
         sources = params.pop("sources")
         job = create_job(request.user, course, params, request.request_id, sources=sources)
         return Response(self.get_serializer(job).data, status=202)
@@ -231,6 +246,9 @@ class DraftViewSet(ReadOnlyScoped):
                 "tests": True,
             }
         )
+        for key in ["mode", "base_version", "append_context"]:
+            if key in draft.job.parameters:
+                params[key] = draft.job.parameters[key]
         job = create_job(
             request.user,
             draft.job.course,

@@ -40,11 +40,15 @@ export function DraftEditor({
   onChange,
   onRegenerate,
   disabled,
+  startWeek = 1,
+  preserveCourse = false,
 }: {
   data: DraftData;
   onChange: (data: DraftData) => void;
   onRegenerate: (week: number, topic: number, instruction: string) => void;
   disabled: boolean;
+  startWeek?: number;
+  preserveCourse?: boolean;
 }) {
   const { t } = useTranslation();
   const [instruction, setInstruction] = useState("");
@@ -70,28 +74,34 @@ export function DraftEditor({
   };
   return (
     <fieldset disabled={disabled} className="draft-editor">
-      <label>
-        {t("title")}
-        <input
-          value={data.title}
-          onChange={(e) =>
-            update((d) => {
-              d.title = e.target.value;
-            })
-          }
-        />
-      </label>
-      <label>
-        {t("description")}
-        <textarea
-          value={data.description}
-          onChange={(e) =>
-            update((d) => {
-              d.description = e.target.value;
-            })
-          }
-        />
-      </label>
+      {preserveCourse ? (
+        <p className="muted">{t("aiAppend.preserve")}</p>
+      ) : (
+        <>
+          <label>
+            {t("title")}
+            <input
+              value={data.title}
+              onChange={(e) =>
+                update((d) => {
+                  d.title = e.target.value;
+                })
+              }
+            />
+          </label>
+          <label>
+            {t("description")}
+            <textarea
+              value={data.description}
+              onChange={(e) =>
+                update((d) => {
+                  d.description = e.target.value;
+                })
+              }
+            />
+          </label>
+        </>
+      )}
       {data.source_gaps.map((gap, i) => (
         <p className="notice" key={i}>
           {gap}
@@ -100,7 +110,7 @@ export function DraftEditor({
       {data.weeks.map((week, wi) => (
         <section className="draft-week" key={wi}>
           <label>
-            {t("week")} {wi + 1}
+            {t("week")} {wi + startWeek}
             <input
               value={week.title}
               onChange={(e) =>

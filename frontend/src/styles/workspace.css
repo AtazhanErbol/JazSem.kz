@@ -1187,3 +1187,6 @@ a.contextual-action {
     grid-template-columns: 1fr;
   }
 }
+
+.ai-page-range { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 24px; }
+.ai-page-range > label { flex: 1 1 160px; min-width: 0; }
