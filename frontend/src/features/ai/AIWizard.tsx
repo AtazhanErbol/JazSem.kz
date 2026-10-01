@@ -1,7 +1,7 @@
 import { RemoteSelect } from "../../components/RemoteSelect";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { DraftEditor, type DraftData } from "./DraftEditor";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
@@ -41,6 +41,7 @@ function AIWorkspace({ course }: { course: string }) {
   const setJobPage = (change: (page: number) => number) =>
     updateParam("jobPage", String(change(jobPage)));
   const [file, setFile] = useState<File>();
+  const fileInput = useRef<HTMLInputElement>(null);
   const [weeks, setWeeks] = useState(4);
   const [language, setLanguage] = useState(i18n.language);
   const [complexity, setComplexity] = useState("intermediate");
@@ -213,6 +214,7 @@ function AIWorkspace({ course }: { course: string }) {
             <strong>{t("upload")}</strong>
             <span>{t("sourceHint")}</span>
             <input
+              ref={fileInput}
               type="file"
               accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
               onChange={(e) => setFile(e.target.files?.[0])}
@@ -230,7 +232,10 @@ function AIWorkspace({ course }: { course: string }) {
               body.append("course", course);
               body.append("file", file!);
               const uploaded = await action.run("sources/", body);
-              if (uploaded.ok) setFile(undefined);
+              if (uploaded.ok) {
+                setFile(undefined);
+                if (fileInput.current) fileInput.current.value = "";
+              }
             }}
           >
             {t("upload")}
