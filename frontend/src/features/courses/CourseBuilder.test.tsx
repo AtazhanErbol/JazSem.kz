@@ -1,5 +1,12 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import i18n from "../../i18n";
 import { CourseBuilder } from "./CourseBuilder";
@@ -88,4 +95,30 @@ it("requires exact confirmation for published deletion", () => {
   expect(buttons[1]).toBeEnabled();
   fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
   expect(state.run).not.toHaveBeenCalled();
+});
+
+it("previews the student update and applies only after confirmation", async () => {
+  state.status = "PUBLISHED";
+  state.run
+    .mockResolvedValueOnce({
+      ok: true,
+      data: { students: 2, groups: 1, version_number: 2 },
+    })
+    .mockResolvedValueOnce({ ok: true });
+  show();
+  fireEvent.click(screen.getByRole("button", { name: "Обновить у студентов" }));
+  await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+  expect(state.run).toHaveBeenCalledTimes(1);
+  expect(state.run.mock.calls[0][0]).toBe(
+    "courses/c1/update-students-preview/",
+  );
+  expect(screen.getByText(/студентов — 2, групп — 1/)).toBeInTheDocument();
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Подтвердить",
+    }),
+  );
+  await waitFor(() =>
+    expect(state.run.mock.calls[1][0]).toBe("courses/c1/update-students/"),
+  );
 });

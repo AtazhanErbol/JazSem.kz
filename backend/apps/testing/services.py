@@ -3,6 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
@@ -18,8 +19,10 @@ def start(test, student):
     require_visible(test, student)
     if student.role != "STUDENT":
         raise PermissionDenied()
-    enrollment = Enrollment.objects.select_for_update().get(
-        student=student, course_version=test.topic.week.course_version
+    enrollment = get_object_or_404(
+        Enrollment.objects.select_for_update(),
+        student=student,
+        course_version=test.topic.week.course_version,
     )
     if enrollment.access_revoked:
         raise PermissionDenied("Доступ к курсу закрыт.")
@@ -63,8 +66,10 @@ def start(test, student):
 
 @transaction.atomic
 def save_answer(attempt, student, question_id, selected):
-    enrollment = Enrollment.objects.select_for_update().get(
-        student=student, course_version=attempt.test.topic.week.course_version
+    enrollment = get_object_or_404(
+        Enrollment.objects.select_for_update(),
+        student=student,
+        course_version=attempt.test.topic.week.course_version,
     )
     if enrollment.access_revoked:
         raise PermissionDenied("Доступ к курсу закрыт.")
@@ -99,8 +104,10 @@ def finalize(attempt, student, *, require_access=False):
         raise PermissionDenied()
     # start() and completion/beat must acquire the same locks in this order.
     # Progress persists Enrollment; taking Attempt first can deadlock a start.
-    enrollment = Enrollment.objects.select_for_update().get(
-        student=student, course_version=attempt.test.topic.week.course_version
+    enrollment = get_object_or_404(
+        Enrollment.objects.select_for_update(),
+        student=student,
+        course_version=attempt.test.topic.week.course_version,
     )
     if require_access and enrollment.access_revoked:
         raise PermissionDenied("Доступ к курсу закрыт.")

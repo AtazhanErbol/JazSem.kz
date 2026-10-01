@@ -26,6 +26,12 @@ export function CourseBuilder() {
   const { t } = useTranslation();
   const action = useAction();
   const navigate = useNavigate();
+  const [upgrade, setUpgrade] = useState<{
+    students: number;
+    groups: number;
+    version_number: number;
+    version: string;
+  }>();
   const [deleteDraft, setDeleteDraft] = useState(false);
   const [deleteName, setDeleteName] = useState("");
   const [params, setParams] = useSearchParams();
@@ -203,6 +209,75 @@ export function CourseBuilder() {
             {t(published ? "deletePublished" : "deleteDraft")}
           </button>
         </div>
+      )}
+      {published && (
+        <section className="panel">
+          <h2>{t("upgradeStudentsTitle")}</h2>
+          <p className="muted">{t("upgradeStudentsHint")}</p>
+          <button
+            className="primary"
+            disabled={action.pending}
+            onClick={async () => {
+              const result = await action.run<{
+                students: number;
+                groups: number;
+                version_number: number;
+              }>(
+                `courses/${id}/update-students-preview/`,
+                { version: data.version.id },
+                "POST",
+                t("upgradeChecked"),
+              );
+              if (result.ok)
+                setUpgrade({ ...result.data, version: data.version.id });
+            }}
+          >
+            {t("upgradeStudents")}
+          </button>
+        </section>
+      )}
+      {upgrade && (
+        <Modal
+          title={t("upgradeStudents")}
+          onClose={() => {
+            if (!action.pending) setUpgrade(undefined);
+          }}
+        >
+          <p>
+            {t("upgradeSummary", {
+              students: upgrade.students,
+              groups: upgrade.groups,
+              version: upgrade.version_number,
+            })}
+          </p>
+          <p>{t("upgradeResultsHint")}</p>
+          {action.error != null && <ErrorState error={action.error} />}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setUpgrade(undefined)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className="primary"
+              disabled={
+                action.pending || (!upgrade.students && !upgrade.groups)
+              }
+              onClick={async () => {
+                const result = await action.run(
+                  `courses/${id}/update-students/`,
+                  { version: upgrade.version },
+                  "POST",
+                  t("upgradeDone"),
+                );
+                if (result.ok) setUpgrade(undefined);
+              }}
+            >
+              {t("confirm")}
+            </button>
+          </div>
+        </Modal>
       )}
       {deleteDraft && (
         <Modal

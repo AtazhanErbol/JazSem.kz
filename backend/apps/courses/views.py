@@ -69,6 +69,24 @@ class CourseViewSet(ScopedViewSet):
             )
         return Response(representation(obj, request))
 
+    @extend_schema(request=VersionInput)
+    @action(detail=True, methods=["post"], url_path="update-students-preview")
+    def update_students_preview(self, request, pk=None):
+        from .upgrades import upgrade_students
+
+        data = validated(request, VersionInput)
+        return Response(upgrade_students(request.user, self.get_object(), data["version"]))
+
+    @extend_schema(request=VersionInput)
+    @action(detail=True, methods=["post"], url_path="update-students")
+    def update_students(self, request, pk=None):
+        from .upgrades import upgrade_students
+
+        data = validated(request, VersionInput)
+        return Response(
+            upgrade_students(request.user, self.get_object(), data["version"], apply=True)
+        )
+
     @action(detail=True, methods=["post"], url_path="edit-draft")
     @transaction.atomic
     def edit_draft(self, request, pk=None):

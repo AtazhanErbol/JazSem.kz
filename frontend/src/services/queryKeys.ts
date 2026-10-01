@@ -51,6 +51,11 @@ export function affectedQueries(path: string): string[] {
       "dashboard",
     ],
     courses: [
+      "grades",
+      "progress",
+      "submissions",
+      "attempts",
+      "attempt",
       "course-recipients",
       "courses",
       "tree",

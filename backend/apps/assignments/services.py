@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
@@ -17,8 +18,10 @@ def submit(assignment, student, text, files):
     require_visible(assignment, student)
     if student.role != "STUDENT":
         raise PermissionDenied()
-    enrollment = Enrollment.objects.select_for_update().get(
-        student=student, course_version=assignment.topic.week.course_version
+    enrollment = get_object_or_404(
+        Enrollment.objects.select_for_update(),
+        student=student,
+        course_version=assignment.topic.week.course_version,
     )
     if (
         enrollment.access_revoked
