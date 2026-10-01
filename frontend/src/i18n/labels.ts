@@ -33,6 +33,7 @@ export const ruLabels = {
   GENERATING_DRAFT: "Создание черновика",
   DRAFT_READY: "Черновик готов",
   RETRYING: "Повторная попытка",
+  RECOVERING: "Восстановление обработки",
   ru: "Русский",
   kk: "Қазақша",
 };
@@ -71,6 +72,7 @@ export const kkLabels = {
   GENERATING_DRAFT: "Жобаны жасау",
   DRAFT_READY: "Жоба дайын",
   RETRYING: "Қайта әрекет",
+  RECOVERING: "Өңдеуді қалпына келтіру",
   ru: "Русский",
   kk: "Қазақша",
 };

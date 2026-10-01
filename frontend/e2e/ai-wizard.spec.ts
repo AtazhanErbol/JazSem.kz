@@ -46,7 +46,7 @@ test("AI source/history pagination restores URL state and keeps RU/KK controls l
               id: `j${(number - 1) * 25 + n}`,
               course: "course",
               created_at: "2026-10-01T00:00:00Z",
-              status: "FAILED",
+              status: number === 1 && n === 0 ? "QUEUED" : "FAILED",
             },
       );
       data = {
@@ -59,14 +59,17 @@ test("AI source/history pagination restores URL state and keeps RU/KK controls l
       data = {
         id: path.split("/").at(-2),
         course: "course",
-        status: "FAILED",
-        current_step: "FAILED",
+        status: path.endsWith("/j0/") ? "QUEUED" : "FAILED",
+        current_step: path.endsWith("/j0/") ? "RECOVERING" : "FAILED",
         progress: 0,
       };
     await route.fulfill({ status: 200, json: data });
   });
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/app/ai?course=course");
+  await expect(
+    page.getByText("Восстановление обработки", { exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("checkbox", { name: "source 0.txt", exact: true })
     .check();

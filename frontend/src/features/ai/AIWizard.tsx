@@ -418,7 +418,11 @@ function AIWorkspace({ course }: { course: string }) {
           {active.data && (
             <div className="job-progress">
               <Badge>{String(active.data.status)}</Badge>
-              <p>{t(String(active.data.current_step))}</p>
+              <p>
+                {t(String(active.data.current_step), {
+                  defaultValue: t(String(active.data.status)),
+                })}
+              </p>
               <ProgressBar value={Number(active.data.progress)} />
               {Boolean(active.data.error) && (
                 <ErrorState
