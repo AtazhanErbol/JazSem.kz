@@ -1,3 +1,4 @@
+import { GradingWeights } from "./GradingWeights";
 import { CourseSharing } from "./CourseSharing";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -32,6 +33,7 @@ export function CourseBuilder() {
     version_number: number;
     version: string;
   }>();
+  const [weightsOpen, setWeightsOpen] = useState(false);
   const [deleteDraft, setDeleteDraft] = useState(false);
   const [deleteName, setDeleteName] = useState("");
   const [params, setParams] = useSearchParams();
@@ -610,10 +612,11 @@ export function CourseBuilder() {
           <h2>{t("grading")}</h2>
           <p
             className={
-              weightTotal === 100 ? "grading-total complete" : "grading-total"
+              weightTotal === 100 ? "grading-total complete" : "notice"
             }
           >
             {t("workspace.gradingTotal", { total: weightTotal })}
+            {weightTotal !== 100 && <> · {t("weightsNeed100")}</>}
           </p>
           {editable && !data.components.length && (
             <div className="grading-helper">
@@ -647,23 +650,24 @@ export function CourseBuilder() {
                     {t("learningDisplay.weight")}: {String(c.weight)}%
                   </small>
                 </span>
-                {editable && controls("grading-components", c)}
               </div>
             ))}
           </div>
           {editable && (
             <button
               className="contextual-action"
-              onClick={() =>
-                data.scheme
-                  ? add("grading-components", { scheme: data.scheme.id })
-                  : add("grading-schemes", {
-                      course_version: data.version.id,
-                    })
-              }
+              onClick={() => setWeightsOpen(true)}
             >
-              + {t(data.scheme ? "addComponent" : "grading")}
+              {t("configureWeights")}
             </button>
+          )}
+          {weightsOpen && (
+            <GradingWeights
+              course={id!}
+              version={data.version.id}
+              components={data.components}
+              onClose={() => setWeightsOpen(false)}
+            />
           )}
         </section>
         <CourseSharing

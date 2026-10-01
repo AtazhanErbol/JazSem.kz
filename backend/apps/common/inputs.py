@@ -64,3 +64,14 @@ def validated(request, serializer):
 
 class DeleteDraftInput(VersionInput):
     confirmation = Text(max_length=300, trim_whitespace=False)
+
+
+class GradingWeightsInput(VersionInput):
+    weights = serializers.DictField(child=serializers.IntegerField(min_value=0, max_value=100))
+
+    def validate_weights(self, value):
+        if not value or set(value) - {"ASSIGNMENTS", "TESTS", "FINAL"}:
+            raise serializers.ValidationError("Выберите допустимые виды работ.")
+        if sum(value.values()) != 100:
+            raise serializers.ValidationError("Сумма весов должна равняться 100%.")
+        return value

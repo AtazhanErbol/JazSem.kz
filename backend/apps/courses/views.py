@@ -10,7 +10,14 @@ from apps.accounts.models import User
 from apps.audit.services import record, selected_fields
 from apps.common.api import ScopedViewSet, lookup, representation
 from apps.common.filters import CourseFilter
-from apps.common.inputs import DeleteDraftInput, EmptyInput, StudentInput, VersionInput, validated
+from apps.common.inputs import (
+    DeleteDraftInput,
+    EmptyInput,
+    GradingWeightsInput,
+    StudentInput,
+    VersionInput,
+    validated,
+)
 from apps.common.permissions import is_admin, is_teacher
 from apps.common.read_contracts import AuthorWeekOutput, StudentWeekOutput
 from apps.common.scope import editable, visible
@@ -291,6 +298,25 @@ class CourseViewSet(ScopedViewSet):
         course = self.get_object()
         version = get_object_or_404(course.versions, pk=data["version"])
         return Response(representation(publish(version, request.user), request))
+
+    @extend_schema(request=GradingWeightsInput)
+    @action(detail=True, methods=["post"], url_path="grading-weights")
+    @transaction.atomic
+    def grading_weights(self, request, pk=None):
+        data = validated(request, GradingWeightsInput)
+        course = Course.objects.select_for_update().get(pk=self.get_object().pk)
+        version = get_object_or_404(course.versions.select_for_update(), pk=data["version"])
+        editable(version, request.user)
+        scheme, _ = GradingScheme.objects.get_or_create(course_version=version)
+        old = dict(scheme.components.values_list("kind", "weight"))
+        weights = {kind: weight for kind, weight in data["weights"].items() if weight}
+        scheme.components.exclude(kind__in=weights).delete()
+        for kind, weight in weights.items():
+            GradingComponent.objects.update_or_create(
+                scheme=scheme, kind=kind, defaults={"weight": weight}
+            )
+        record(request.user, "course.grading_updated", scheme, old=old, new=weights)
+        return Response([representation(c, request) for c in scheme.components.all()])
 
     @action(detail=True, methods=["post"], url_path="grading-preset")
     @transaction.atomic
