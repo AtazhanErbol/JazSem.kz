@@ -34,6 +34,11 @@ const Dashboard = React.lazy(() =>
     default: module.Dashboard,
   })),
 );
+const LandingEditor = React.lazy(() =>
+  import("./features/landing/LandingEditor").then((module) => ({
+    default: module.LandingEditor,
+  })),
+);
 const ResourcePage = React.lazy(() =>
   import("./features/manage/ResourcePage").then((module) => ({
     default: module.ResourcePage,
@@ -161,7 +166,11 @@ const router = createBrowserRouter(
                       : ["ADMIN", "TEACHER", "STUDENT"]
                 }
               >
-                <ResourcePage key={resource} resource={resource} />
+                {resource === "content" ? (
+                  <LandingEditor />
+                ) : (
+                  <ResourcePage key={resource} resource={resource} />
+                )}
               </RoleGate>
             }
           />

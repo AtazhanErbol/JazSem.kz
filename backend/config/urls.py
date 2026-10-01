@@ -30,6 +30,7 @@ from apps.ai.views import (
 from apps.assignments.models import Submission
 from apps.assignments.views import AssignmentViewSet, SubmissionFileViewSet, SubmissionViewSet
 from apps.audit.views import AuditViewSet
+from apps.cms.landing import LandingView
 from apps.cms.views import ContentViewSet, PublicContentViewSet
 from apps.common.api import content_view
 from apps.common.observability import OperationsView, storage_ready, worker_freshness
@@ -144,6 +145,7 @@ def ready(request):
 
 
 urlpatterns = [
+    path("api/v1/landing/", LandingView.as_view()),
     path("health/", health),
     path("ready/", ready),
     path("api/v1/", include(router.urls)),

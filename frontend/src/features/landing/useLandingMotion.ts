@@ -9,9 +9,9 @@ export function useLandingMotion() {
     window.addEventListener("scroll", scroll, { passive: true });
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const elements = Array.from(
-      root.current!.querySelectorAll<HTMLElement>(
+      root.current?.querySelectorAll<HTMLElement>(
         ".about-strip, .landing-section > .section-heading, .feature-card, .how-section > h2, .steps-grid article, .audience-grid article, .faq-section, .final-cta",
-      ),
+      ) ?? [],
     );
     let observer: IntersectionObserver | undefined;
     const setup = () => {

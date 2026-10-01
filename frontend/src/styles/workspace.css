@@ -647,11 +647,199 @@ a.contextual-action {
   font-weight: 650;
 }
 
-.contextual-action + h2 { margin-top: 28px; }
+.contextual-action + h2 {
+  margin-top: 28px;
+}
 
 .dashboard-groups {
   margin-top: 28px;
 }
 .dashboard-groups .learning-row:last-child {
   margin-bottom: 0;
+}
+
+.landing-editor-tabs,
+.landing-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.landing-editor-tabs [aria-pressed="true"],
+.landing-editor-layout nav [aria-pressed="true"] {
+  background: #fff0f2;
+  color: #bd1431;
+  border-color: #f5c5ce;
+}
+.landing-language {
+  max-width: 320px;
+}
+.landing-editor-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.landing-editor-layout nav {
+  display: grid;
+  gap: 8px;
+}
+.landing-editor-layout nav button {
+  text-align: left;
+}
+.landing-editor-layout h2 {
+  margin-top: 0;
+}
+.landing-editor-layout fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.landing-editor-layout textarea {
+  resize: vertical;
+}
+@media (max-width: 900px) {
+  .landing-editor-layout {
+    grid-template-columns: 1fr;
+  }
+  .landing-editor-layout nav {
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  }
+}
+
+/* Shared refinement: preserve JazSem's established layout and typography. */
+.app-main .page > h1 {
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+  margin-bottom: 20px;
+}
+.app-main .page > .muted {
+  max-width: 76ch;
+  line-height: 1.8;
+}
+.app-main .panel {
+  border-color: #e3e6ec;
+}
+.app-main .panel > h2:first-child {
+  margin-top: 0;
+}
+.app-main .section-heading {
+  gap: 16px;
+}
+.app-main .section-heading > a {
+  flex-shrink: 0;
+  color: #596273;
+}
+.app-main .section-heading > a:hover {
+  color: var(--red);
+}
+.app-main .record-row,
+.app-main .learning-row,
+.app-main .deadline-row {
+  transition:
+    border-color 160ms,
+    background-color 160ms;
+}
+.app-main a.learning-row:hover,
+.app-main a.deadline-row:hover {
+  border-color: #dca4ad;
+  background: #fffafb;
+}
+.app-main .record-body h3 {
+  line-height: 1.55;
+}
+.app-main .record-body small {
+  line-height: 1.6;
+}
+.app-main .state {
+  padding: 36px 24px;
+}
+.app-main .state p {
+  max-width: 52ch;
+  margin-inline: auto;
+  line-height: 1.7;
+}
+.app-main input:not([type="checkbox"]):not([type="radio"]),
+.app-main select,
+.app-main textarea {
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
+}
+.app-main input:hover,
+.app-main select:hover,
+.app-main textarea:hover {
+  border-color: #aeb6c4;
+}
+.app-main input:focus,
+.app-main select:focus,
+.app-main textarea:focus {
+  border-color: #bd3448;
+}
+.app-main button:disabled {
+  opacity: 1;
+  color: #767d89;
+  background: #f0f2f5;
+  border-color: #e4e7ed;
+}
+.app-main button:not(:disabled):active,
+.app-main a.button:active {
+  transform: translateY(1px);
+}
+.app-main .pagination > span {
+  font-variant-numeric: tabular-nums;
+  color: #596273;
+}
+.app-main .notice,
+.app-main .error {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.app-main .panel h2 {
+  line-height: 1.4;
+}
+.sidebar nav a,
+.sidebar-bottom a {
+  transition:
+    background-color 160ms,
+    color 160ms;
+}
+.landing-editor-actions {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.landing-editor-actions > .muted {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+.landing-editor-layout nav button {
+  min-height: 44px;
+  border-color: transparent;
+  background: transparent;
+  justify-content: flex-start;
+}
+.landing-editor-layout nav button:hover {
+  background: #eceff4;
+}
+.landing-editor-layout nav [aria-pressed="true"] {
+  border-left: 3px solid #d52a40;
+}
+@media (max-width: 600px) {
+  .app-main .panel {
+    padding: 20px;
+  }
+  .landing-editor-actions > button,
+  .landing-editor-actions > a {
+    flex: 1 1 145px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-main *,
+  .sidebar * {
+    transition: none !important;
+  }
 }
