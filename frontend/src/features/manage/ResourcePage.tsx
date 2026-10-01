@@ -8,6 +8,7 @@ import { api } from "../../services/api";
 import { Badge, Empty, ErrorState, Loading, Modal } from "../../components/UI";
 import { useUser } from "../../app/Auth";
 import { useAction } from "../../hooks/useAction";
+import { UserImport } from "./UserImport";
 import { RecordForm } from "./RecordForm";
 import { fields } from "./fields";
 import { RecordDetails } from "./RecordDetails";
@@ -137,6 +138,7 @@ export function ResourcePage({ resource }: { resource: string }) {
           </button>
         )}
       </div>
+      {resource === "users" && canCreate && <UserImport />}
       {user.role !== "STUDENT" &&
         ["assignments", "tests"].includes(resource) && (
           <section className="help-card">

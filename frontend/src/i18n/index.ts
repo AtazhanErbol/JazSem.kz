@@ -1,3 +1,4 @@
+import { ruUserImport, kkUserImport } from "./userImport";
 import { ruLearningDisplay, kkLearningDisplay } from "./learningDisplay";
 import { ruRelease, kkRelease } from "./release";
 import { ruLabels, kkLabels } from "./labels";
@@ -11,6 +12,7 @@ const ru = {
   ux: ruRelease,
   aiRecovery: ruAIRecovery,
   mail: ruMail,
+  userImport: ruUserImport,
   owner_teacher: "Ответственный преподаватель",
   workspace: ruWorkspace,
   ...ruUX,
@@ -310,6 +312,7 @@ const kk: typeof ru = {
   learningDisplay: kkLearningDisplay,
   ux: kkRelease,
   mail: kkMail,
+  userImport: kkUserImport,
   aiRecovery: kkAIRecovery,
   owner_teacher: "Жауапты оқытушы",
   workspace: kkWorkspace,

@@ -5,8 +5,10 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
+from django.core import signing
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
@@ -183,6 +185,78 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ["email", "first_name", "last_name", "username"]
     filterset_class = UserFilter
     ordering_fields = ["created_at", "last_name", "email"]
+
+    def check_import_permission(self):
+        if not is_teacher(self.request.user):
+            raise PermissionDenied()
+
+    @action(detail=False, methods=["get"], url_path="import-template")
+    def import_template(self, request):
+        from .imports import template
+
+        self.check_import_permission()
+        response = HttpResponse(
+            template(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="jazsem-users-template.xlsx"'
+        return response
+
+    @action(detail=False, methods=["post"], url_path="import-preview")
+    def import_preview(self, request):
+        from .imports import read_users
+
+        self.check_import_permission()
+        users = read_users(request.FILES.get("file"), request)
+        token = signing.dumps(
+            {"actor": str(request.user.pk), "users": users}, salt="user-import", compress=True
+        )
+        teachers = {
+            str(user.pk): user.email
+            for user in User.objects.filter(
+                pk__in=[row["owner_teacher"] for row in users if row["owner_teacher"]]
+            )
+        }
+        return Response(
+            {
+                "users": [
+                    dict(row, owner_teacher_email=teachers.get(row["owner_teacher"], ""))
+                    for row in users
+                ],
+                "token": token,
+            }
+        )
+
+    @action(detail=False, methods=["post"], url_path="import-users")
+    def import_users(self, request):
+        self.check_import_permission()
+        try:
+            data = signing.loads(request.data.get("token", ""), salt="user-import", max_age=1800)
+        except (signing.BadSignature, TypeError, ValueError):
+            raise ValidationError("Предпросмотр устарел. Загрузите файл повторно.") from None
+        if data.get("actor") != str(request.user.pk):
+            raise PermissionDenied()
+        try:
+            with transaction.atomic():
+                # Revalidate every row before any account or invitation is created.
+                serializers = []
+                for row in data["users"]:
+                    if row["role"] not in ("STUDENT", "TEACHER"):
+                        raise PermissionDenied()
+                    if User.objects.filter(email__iexact=row["email"]).exists():
+                        raise ValidationError(
+                            "Один из адресов уже добавлен. Обновите файл и предпросмотр."
+                        )
+                    serializer = self.get_serializer(data=row)
+                    serializer.is_valid(raise_exception=True)
+                    serializers.append(serializer)
+                for serializer in serializers:
+                    self.perform_create(serializer)
+        except IntegrityError:
+            raise ValidationError(
+                "Адрес уже добавлен другим запросом. Обновите предпросмотр."
+            ) from None
+        return Response({"created": len(serializers)}, status=201)
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
