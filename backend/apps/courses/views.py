@@ -16,7 +16,7 @@ from apps.common.scope import editable, visible
 from apps.common.serializers import serializer_for
 from apps.courses.models import Course, Topic
 from apps.courses.services import duplicate, new_version, publish
-from apps.enrollments.models import Enrollment
+from apps.enrollments.models import Enrollment, GroupCourseAssignment
 from apps.enrollments.services import enroll
 from apps.grading.models import GradingComponent, GradingScheme
 from apps.progress.models import TopicProgress
@@ -128,6 +128,53 @@ class CourseViewSet(ScopedViewSet):
                 "next_version": str(remaining.pk) if remaining else None,
             }
         )
+
+    @action(detail=True, methods=["get"])
+    def recipients(self, request, pk=None):
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        course = self.get_object()
+        kind = request.query_params.get("kind", "students")
+        if kind == "students":
+            rows = (
+                Enrollment.objects.filter(course=course)
+                .select_related("student", "course_version")
+                .order_by("assigned_at", "pk")
+            )
+            field = "student_id"
+        elif kind == "groups":
+            rows = (
+                GroupCourseAssignment.objects.filter(course=course, status="ACTIVE")
+                .select_related("group", "course_version")
+                .order_by("assigned_at", "pk")
+            )
+            field = "group_id"
+        else:
+            raise ValidationError({"kind": "Use students or groups."})
+        selected = request.query_params.get("selected")
+        if selected:
+            from rest_framework import serializers
+
+            selected = serializers.UUIDField().run_validation(selected)
+        assigned = rows.filter(**{field: selected}).exists() if selected else False
+        page = self.paginate_queryset(rows)
+        result = []
+        for row in page:
+            recipient = row.student if kind == "students" else row.group
+            result.append(
+                {
+                    "id": str(row.pk),
+                    "recipient_id": str(recipient.pk),
+                    "name": (recipient.get_full_name() or recipient.email)
+                    if kind == "students"
+                    else recipient.name,
+                    "status": row.status,
+                    "version_number": row.course_version.version_number,
+                }
+            )
+        response = self.get_paginated_response(result)
+        response.data["selected_assigned"] = assigned
+        return response
 
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):

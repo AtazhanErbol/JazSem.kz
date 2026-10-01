@@ -38,6 +38,7 @@ def annotate_actions():
 
     for method in ["publish", "duplicate", "edit_draft"]:
         mark(CourseViewSet, method, inp.VersionInput, serializer_for(CourseVersion))
+    mark(CourseViewSet, "recipients", None, OpenApiTypes.OBJECT)
     mark(CourseViewSet, "delete_draft", inp.DeleteDraftInput, OpenApiTypes.OBJECT)
     mark(
         CourseViewSet,

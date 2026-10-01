@@ -1,8 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../services/api";
+import { ErrorState, Loading } from "../../components/UI";
+import { Pagination } from "../../components/Pagination";
+import type { Page } from "../../entities/types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RemoteSelect } from "../../components/RemoteSelect";
 import { useAction } from "../../hooks/useAction";
 
+interface Recipient {
+  id: string;
+  recipient_id: string;
+  name: string;
+  status: string;
+  version_number: number;
+}
+type Recipients = Page<Recipient> & { selected_assigned: boolean };
 export function CourseSharing({
   id,
   teacher,
@@ -17,6 +30,28 @@ export function CourseSharing({
   const [student, setStudent] = useState("");
   const [group, setGroup] = useState("");
   const [assigned, setAssigned] = useState<Set<string>>(() => new Set());
+  const [studentPage, setStudentPage] = useState(1);
+  const [groupPage, setGroupPage] = useState(1);
+  const students = useQuery({
+    queryKey: ["course-recipients", id, "students", studentPage, student],
+    queryFn: ({ signal }) =>
+      api<Recipients>(
+        `courses/${id}/recipients/?kind=students&page=${studentPage}&selected=${student}`,
+        "GET",
+        undefined,
+        signal,
+      ),
+  });
+  const groups = useQuery({
+    queryKey: ["course-recipients", id, "groups", groupPage, group],
+    queryFn: ({ signal }) =>
+      api<Recipients>(
+        `courses/${id}/recipients/?kind=groups&page=${groupPage}&selected=${group}`,
+        "GET",
+        undefined,
+        signal,
+      ),
+  });
   const studentKey = `${id}:student:${student}`;
   const groupKey = `${id}:group:${group}`;
   return (
@@ -36,7 +71,13 @@ export function CourseSharing({
       <button
         className="primary contextual-action"
         disabled={
-          !published || !student || action.pending || assigned.has(studentKey)
+          !published ||
+          !student ||
+          action.pending ||
+          assigned.has(studentKey) ||
+          students.isPending ||
+          !!students.error ||
+          students.data?.selected_assigned
         }
         onClick={async () => {
           const result = await action.run(
@@ -64,7 +105,13 @@ export function CourseSharing({
       <button
         className="primary contextual-action"
         disabled={
-          !published || !group || action.pending || assigned.has(groupKey)
+          !published ||
+          !group ||
+          action.pending ||
+          assigned.has(groupKey) ||
+          groups.isPending ||
+          !!groups.error ||
+          groups.data?.selected_assigned
         }
         onClick={async () => {
           const result = await action.run(
@@ -83,6 +130,64 @@ export function CourseSharing({
         <p className="field-hint">{t("learningDisplay.chooseRecipient")}</p>
       )}
       {action.feedback}
+      <div className="assigned-recipients">
+        <h3>{t("assignedStudents")}</h3>
+        {students.isPending ? (
+          <Loading />
+        ) : students.error ? (
+          <ErrorState
+            error={students.error}
+            retry={() => void students.refetch()}
+          />
+        ) : (
+          <>
+            {!students.data?.count && (
+              <p className="muted">{t("noAssignedStudents")}</p>
+            )}
+            {students.data?.results.map((row) => (
+              <div className="record-row" key={row.id}>
+                <strong>{row.name}</strong>
+                <small>
+                  {t(row.status)} · v{row.version_number}
+                </small>
+              </div>
+            ))}
+            <Pagination
+              page={studentPage}
+              count={students.data?.count || 0}
+              onChange={setStudentPage}
+            />
+          </>
+        )}
+        <h3>{t("assignedGroups")}</h3>
+        {groups.isPending ? (
+          <Loading />
+        ) : groups.error ? (
+          <ErrorState
+            error={groups.error}
+            retry={() => void groups.refetch()}
+          />
+        ) : (
+          <>
+            {!groups.data?.count && (
+              <p className="muted">{t("noAssignedGroups")}</p>
+            )}
+            {groups.data?.results.map((row) => (
+              <div className="record-row" key={row.id}>
+                <strong>{row.name}</strong>
+                <small>
+                  {t(row.status)} · v{row.version_number}
+                </small>
+              </div>
+            ))}
+            <Pagination
+              page={groupPage}
+              count={groups.data?.count || 0}
+              onChange={setGroupPage}
+            />
+          </>
+        )}
+      </div>
     </section>
   );
 }
