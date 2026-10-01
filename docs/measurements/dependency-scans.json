@@ -1,0 +1,22 @@
+{
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "date": "2026-10-01",
+  "python": {
+    "runtime": {
+      "packages": 70,
+      "findings": 0
+    },
+    "development": {
+      "packages": 104,
+      "findings": 0
+    }
+  },
+  "npm": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  }
+}

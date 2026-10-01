@@ -1,5 +1,5 @@
 {
-  "source_ref": "working tree",
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
   "checks": [
     {
       "non_root_read_only_tmp_runtime_dependencies": "passed"
@@ -9,7 +9,7 @@
       "liveness": 200,
       "readiness": 503,
       "status": "storage_unavailable",
-      "detected_seconds": 21.63
+      "detected_seconds": 20.19
     },
     {
       "recovered": "minio",
@@ -20,7 +20,7 @@
       "liveness": 200,
       "readiness": 503,
       "status": "unavailable",
-      "detected_seconds": 2.23
+      "detected_seconds": 2.74
     },
     {
       "recovered": "redis",
@@ -31,7 +31,7 @@
       "liveness": 200,
       "readiness": 503,
       "status": "worker_unavailable",
-      "detected_seconds": 62.52
+      "detected_seconds": 63.83
     },
     {
       "recovered": "heavy",
@@ -42,7 +42,7 @@
       "liveness": 200,
       "readiness": 503,
       "status": "worker_unavailable",
-      "detected_seconds": 64.34
+      "detected_seconds": 64.33
     },
     {
       "recovered": "short",
@@ -51,35 +51,35 @@
   ],
   "containers": {
     "backend": {
-      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "image_id": "sha256:e7245ba0bff2fcf99c8b7a3e48c345274b1acd03c9c9abcbc655c1e554928d99",
       "uid": 10001,
       "read_only": true,
       "memory_bytes": 1073741824,
       "nano_cpus": 2000000000
     },
     "short": {
-      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "image_id": "sha256:e7245ba0bff2fcf99c8b7a3e48c345274b1acd03c9c9abcbc655c1e554928d99",
       "uid": 10001,
       "read_only": true,
-      "memory_bytes": 1073741824,
-      "nano_cpus": 2000000000
+      "memory_bytes": 805306368,
+      "nano_cpus": 1000000000
     },
     "heavy": {
-      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "image_id": "sha256:e7245ba0bff2fcf99c8b7a3e48c345274b1acd03c9c9abcbc655c1e554928d99",
       "uid": 10001,
       "read_only": true,
       "memory_bytes": 1610612736,
       "nano_cpus": 1000000000
     },
     "beat": {
-      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "image_id": "sha256:e7245ba0bff2fcf99c8b7a3e48c345274b1acd03c9c9abcbc655c1e554928d99",
       "uid": 10001,
       "read_only": true,
       "memory_bytes": 1073741824,
       "nano_cpus": 2000000000
     },
     "web": {
-      "image_id": "sha256:2ceaf95a6b950bcf4c06705cfaf5665843b7a21051614625b7d5792f222d3175",
+      "image_id": "sha256:6fe9d964d3eeee2473a788260ac75f2a438ff73f30fdb8df487e0367314e0f36",
       "uid": 101,
       "read_only": true,
       "memory_bytes": 0,

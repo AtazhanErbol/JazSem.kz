@@ -1,27 +1,28 @@
 {
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
   "checks": [
     {
       "fixture_ready": true,
-      "objects": 7,
-      "models": 39
+      "objects": 9,
+      "models": 43
     },
     {
-      "restored_objects": 7
+      "restored_objects": 9
     },
     {
       "restore_verified": true,
-      "model_fingerprints": 39,
-      "objects": 7,
+      "model_fingerprints": 43,
+      "objects": 9,
       "ownership_versions_history_grades_progress_citations": true,
       "mail_decryption": true,
       "authenticated_scoped_download": "Django session HTTP client",
       "outgoing_mail_and_ai": false
     }
   ],
-  "dump_sha256": "a5b830b06dba88418e4d3fa46563f39805f8e3ad2bc042d8e0ed283506cc2ef1",
-  "dump_bytes": 160892,
-  "backup_seconds": 5.92,
-  "restore_and_verify_seconds": 4.91,
+  "dump_sha256": "c79825ff6ac76170a93ed297a5f54d2a9a5f943a9506095a50d955cd78d2174a",
+  "dump_bytes": 161572,
+  "backup_seconds": 5.79,
+  "restore_and_verify_seconds": 5.12,
   "rpo": "quiesced synthetic DB and matching objects; no writes during snapshot",
   "rto": "measured local restore/verification only; not a production SLA",
   "keys": "same isolated synthetic key restored through environment; no secret output"

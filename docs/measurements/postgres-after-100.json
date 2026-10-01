@@ -1,7 +1,7 @@
 {
   "database": "postgresql",
   "database_version": 160015,
-  "source_ref": "working tree",
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
   "python": "3.12.14",
   "platform": "Windows-11-10.0.26100-SP0",
   "percentile_method": "nearest-rank p95 = max of seven warm samples; descriptive lab result only",
@@ -18,249 +18,250 @@
   },
   "samples": 7,
   "results_summary_25_rows": {
-    "p50_ms": 58.75,
-    "p95_ms": 76.37,
+    "p50_ms": 51.54,
+    "p95_ms": 54.3,
     "observations": [
       {
-        "ms": 76.37,
+        "ms": 51.69,
         "queries": 11,
         "bytes": 20755
       },
       {
-        "ms": 58.75,
+        "ms": 51.91,
         "queries": 11,
         "bytes": 20755
       },
       {
-        "ms": 56.31,
+        "ms": 50.24,
         "queries": 11,
         "bytes": 20755
       },
       {
-        "ms": 72.81,
+        "ms": 51.54,
         "queries": 11,
         "bytes": 20755
       },
       {
-        "ms": 56.31,
+        "ms": 50.85,
         "queries": 11,
         "bytes": 20755
       },
       {
-        "ms": 70.71,
+        "ms": 51.48,
         "queries": 11,
         "bytes": 20755
       },
       {
-        "ms": 57.9,
+        "ms": 54.3,
         "queries": 11,
         "bytes": 20755
       }
     ]
   },
   "student_tree": {
-    "p50_ms": 35.71,
-    "p95_ms": 90.39,
+    "p50_ms": 39.45,
+    "p95_ms": 97.56,
     "observations": [
       {
-        "ms": 47.05,
+        "ms": 49.05,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 50.06,
+        "ms": 46.16,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 90.39,
+        "ms": 97.56,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 32.79,
+        "ms": 33.3,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 35.71,
+        "ms": 39.45,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 31.51,
+        "ms": 36.95,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 33.35,
+        "ms": 38.36,
         "queries": 10,
         "bytes": 121233
       }
     ]
   },
   "editor_tree": {
-    "p50_ms": 162.63,
-    "p95_ms": 193.63,
+    "p50_ms": 121.49,
+    "p95_ms": 180.82,
     "observations": [
       {
-        "ms": 162.63,
+        "ms": 111.56,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 167.49,
+        "ms": 111.41,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 156.68,
+        "ms": 164.56,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 185.78,
+        "ms": 111.95,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 107.85,
+        "ms": 121.49,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 105.47,
+        "ms": 122.95,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 193.63,
+        "ms": 180.82,
         "queries": 11,
         "bytes": 431899
       }
     ]
   },
   "publish": {
-    "p50_ms": 59.87,
-    "p95_ms": 131.86,
+    "p50_ms": 73.07,
+    "p95_ms": 126.53,
     "observations": [
       {
-        "ms": 60.02,
+        "ms": 70.42,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 59.87,
+        "ms": 73.07,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 59.08,
+        "ms": 77.15,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 59.68,
+        "ms": 75.48,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 131.86,
+        "ms": 126.53,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 75.42,
+        "ms": 67.65,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 58.89,
+        "ms": 69.78,
         "queries": 27,
         "bytes": 0
       }
     ]
   },
   "duplicate": {
-    "p50_ms": 481.87,
-    "p95_ms": 505.57,
+    "p50_ms": 449.78,
+    "p95_ms": 500.37,
     "observations": [
       {
-        "ms": 503.51,
+        "ms": 499.58,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 442.11,
+        "ms": 444.13,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 448.03,
+        "ms": 462.61,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 481.87,
+        "ms": 449.78,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 505.57,
+        "ms": 500.37,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 486.2,
+        "ms": 440.47,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 456.54,
+        "ms": 445.93,
         "queries": 391,
         "bytes": 0
       }
     ]
   },
   "results_25_rows": {
-    "p50_ms": 1094.9,
-    "p95_ms": 1237.44,
+    "p50_ms": 1127.16,
+    "p95_ms": 1158.42,
     "observations": [
       {
-        "ms": 1237.44,
+        "ms": 1127.16,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1094.9,
+        "ms": 1158.42,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1087.43,
+        "ms": 1120.1,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1113.6,
+        "ms": 1116.33,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1065.23,
+        "ms": 1134.87,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1004.48,
+        "ms": 1141.59,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1235.08,
+        "ms": 1126.93,
         "queries": 400,
         "bytes": 5950
       }
     ]
-  }
+  },
+  "measurement_conditions": "Sequential same-host PostgreSQL 16.15, same Python/dependencies, same dataset and seven warm samples, no concurrent build/OCR/benchmark"
 }

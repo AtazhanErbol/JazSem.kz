@@ -1,0 +1,145 @@
+{
+  "baseline_ref": "a712f644bcd7185bd9d99943ce499d0cb6943654",
+  "verified_code_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "date": "2026-10-01",
+  "engineering_gate": "passed within recorded lab scope",
+  "production_release": "not approved",
+  "remote_ci": "not run on current code; separate push permission required",
+  "artifact_digest": "SHA-256 of UTF-8 bytes normalized CRLF to LF; matches Git LF checkout",
+  "files": [
+    {
+      "path": "docs/measurements/test-summary.json",
+      "sha256": "187a6f5107977f75305274e4c5cdb278232f08b891aa5f1d8c72390a8d33980f"
+    },
+    {
+      "path": "docs/measurements/browser-suite.json",
+      "sha256": "e4fdaf8b62ba2b060675d7a96cbdfbcff91f73125a0ac3474fad90f65aa2d05c"
+    },
+    {
+      "path": "docs/measurements/postgres-before.json",
+      "sha256": "3eaf19ebc6af2a4d3787063a614f3498e249877d64d846e250545972b353e794"
+    },
+    {
+      "path": "docs/measurements/postgres-after.json",
+      "sha256": "ad5a8bbb122e78c9a7c42745361fadd7c5fa565bd30b47a950f500236f4b27ba"
+    },
+    {
+      "path": "docs/measurements/postgres-before-100.json",
+      "sha256": "7abb195a1324bc4a2a779861d2b4b7a955ca9e0e68d6f42c8aca654f11287d46"
+    },
+    {
+      "path": "docs/measurements/postgres-after-100.json",
+      "sha256": "2d5f9050aef881f2e7a6534970376983a17d972f5631aac159c83182111d58b1"
+    },
+    {
+      "path": "docs/measurements/browser-before-comparable.json",
+      "sha256": "875b4fc95da356a3ba5155276a5eae32f30a2f27ab1507955a66258fdaedcfa3"
+    },
+    {
+      "path": "docs/measurements/browser-after.json",
+      "sha256": "a09e6dc91808ed798d31c575faa8a21856e58e55f8ff9d2a0755985529d6e03c"
+    },
+    {
+      "path": "docs/measurements/runtime-init.json",
+      "sha256": "491df36aecaef3dc7e7e88435d7e04bb234a9b7b780010534324d7a3d7e146b0"
+    },
+    {
+      "path": "docs/measurements/runtime-tls.json",
+      "sha256": "02637704933e19332306db988467cc755bafc9f53afa59a9fffe6d6e5292e80b"
+    },
+    {
+      "path": "docs/measurements/runtime-http.json",
+      "sha256": "8e679afafb0c58eb7b117749c9244d250b2465d6299ffac8909d674bcf7b0b5e"
+    },
+    {
+      "path": "docs/measurements/runtime-infrastructure.json",
+      "sha256": "e1d2a4e7410ee164463fcd0b075fe4b941ef718bfa7a94f05c3cc9dcc8dc5f2a"
+    },
+    {
+      "path": "docs/measurements/runtime-faults.json",
+      "sha256": "4574e050f5525b4d2f64c198a931018fd3bcc35bac52eba32ecab2e5cd9b8bb2"
+    },
+    {
+      "path": "docs/measurements/runtime-extras.json",
+      "sha256": "dd7a8d8c2bd2f83564c716e4fc30c824fe6721265df38f890829dbe1035e7143"
+    },
+    {
+      "path": "docs/measurements/proxy-clients.json",
+      "sha256": "cad2767b89e15d810aa64c2369585b022714356b9c80b8ff9e85024eacff07d5"
+    },
+    {
+      "path": "docs/measurements/restore.json",
+      "sha256": "0c3fc4ade0556b9bc895a16a308357ad4d5b94d1a6c27f333f336dd658d0ecd6"
+    },
+    {
+      "path": "docs/measurements/dependency-scans.json",
+      "sha256": "2e3c27d92a8867eb453d742742fdb4d2d01c9cac49a03a709f48abdf043a65b1"
+    },
+    {
+      "path": "docs/measurements/pip-runtime-audit.json",
+      "sha256": "1f33f88dc010a227880862a694d82c93e8c93b19a8c0fcead47e74f0c8494dfd"
+    },
+    {
+      "path": "docs/measurements/pip-development-audit.json",
+      "sha256": "4084aeffd556b314f447446ca5d4f0dbcd4e615903328fbd2392e917f5067a45"
+    },
+    {
+      "path": "docs/measurements/npm-audit.json",
+      "sha256": "366c9bd464fc88ce446fdc95eb9cb3d18981779cdc978f5c4e7ba612e3a1c2d0"
+    },
+    {
+      "path": "docs/measurements/image-scans.json",
+      "sha256": "ca145019ab492f686683a76294ba4ec346b925e7d8fee6f230ae6190d60102d6"
+    },
+    {
+      "path": "docs/measurements/native-image-review.json",
+      "sha256": "1ae7a5cc7d59c6e6fa1724e9f8f2600446f66eef25559f262d8dfb8f4bc7a816"
+    },
+    {
+      "path": "docs/measurements/secret-scans.json",
+      "sha256": "b2eb7ba063b4805611bb91e4f2b481629659f8ef4279fdcc10410efd0eaef064"
+    },
+    {
+      "path": "docs/openapi.yml",
+      "sha256": "47d743cdcacda7fd7ecb10febadcca43a9ed2b1b0789d85510b0828620c5736b"
+    }
+  ],
+  "production_lab": {
+    "root": "/tmp/jazsem-rc-complete-ac8ad86",
+    "source_archive": "git archive of verified_code_ref; no .env",
+    "all_stages_exit_code": 0,
+    "real_services": [
+      "PostgreSQL",
+      "Redis TLS",
+      "Celery short/heavy/beat",
+      "private S3",
+      "local STARTTLS SMTP",
+      "trusted HTTPS edge"
+    ],
+    "fake_boundary": "OpenAI SDK response only; no paid network call"
+  },
+  "browser_run": ".runtime/browser-b22fd8f4/safe-artifacts",
+  "junit": ".runtime/final/backend-ac8.xml",
+  "raw_container_reports": ".runtime/final/production-ac8/trivy-*.json",
+  "scope_limits": [
+    "seven-sample lab percentiles are descriptive",
+    "SMTP acceptance is not Gmail inbox delivery",
+    "restore uses synthetic DB/objects and same synthetic encryption key",
+    "restored private download uses session APIClient; live HTTPS is independently tested",
+    "OCR controlled timeout/isolation is not recognition quality",
+    "S3 cleanup command clock deliberately advanced 96h",
+    "SIGKILL lease deadline deliberately expired",
+    "native vulnerabilities reviewed exactly, not ignored or claimed absent",
+    "text zoom/reflow and keyboard checks are not a complete WCAG audit"
+  ],
+  "external_gates": [
+    "target infrastructure/DNS/TLS/IAM",
+    "residual native CVE decision",
+    "Gmail inbox",
+    "authorized paid AI quality",
+    "real OCR/language/subject review",
+    "real contact/legal content",
+    "monitoring and backup policy",
+    "push/new remote CI/release approval"
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "database": "postgresql",
   "database_version": 160015,
-  "source_ref": "working tree from a712f64",
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
   "python": "3.12.14",
   "platform": "Windows-11-10.0.26100-SP0",
   "percentile_method": "nearest-rank p95 = max of seven warm samples; descriptive lab result only",
@@ -13,253 +13,255 @@
     "topics": 33,
     "questions": 257,
     "options": 1026,
-    "enrollments": 25
+    "enrollments": 25,
+    "visible_rows": 25
   },
   "samples": 7,
   "results_summary_25_rows": {
-    "p50_ms": 49.13,
-    "p95_ms": 51.83,
+    "p50_ms": 51.31,
+    "p95_ms": 57.51,
     "observations": [
       {
-        "ms": 51.83,
+        "ms": 51.31,
         "queries": 11,
         "bytes": 20689
       },
       {
-        "ms": 49.13,
+        "ms": 49.53,
         "queries": 11,
         "bytes": 20689
       },
       {
-        "ms": 48.79,
+        "ms": 50.79,
         "queries": 11,
         "bytes": 20689
       },
       {
-        "ms": 48.24,
+        "ms": 56.96,
         "queries": 11,
         "bytes": 20689
       },
       {
-        "ms": 50.82,
+        "ms": 57.51,
         "queries": 11,
         "bytes": 20689
       },
       {
-        "ms": 49.01,
+        "ms": 55.25,
         "queries": 11,
         "bytes": 20689
       },
       {
-        "ms": 50.27,
+        "ms": 50.1,
         "queries": 11,
         "bytes": 20689
       }
     ]
   },
   "student_tree": {
-    "p50_ms": 30.6,
-    "p95_ms": 75.76,
+    "p50_ms": 33.03,
+    "p95_ms": 77.43,
     "observations": [
       {
-        "ms": 34.96,
+        "ms": 32.94,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 31.79,
+        "ms": 33.63,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 75.76,
+        "ms": 77.43,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 29.73,
+        "ms": 32.65,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 30.6,
+        "ms": 33.15,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 29.42,
+        "ms": 31.64,
         "queries": 10,
         "bytes": 121233
       },
       {
-        "ms": 29.24,
+        "ms": 33.03,
         "queries": 10,
         "bytes": 121233
       }
     ]
   },
   "editor_tree": {
-    "p50_ms": 103.17,
-    "p95_ms": 172.06,
+    "p50_ms": 105.29,
+    "p95_ms": 157.78,
     "observations": [
       {
-        "ms": 104.55,
+        "ms": 106.07,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 103.03,
+        "ms": 103.99,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 172.06,
+        "ms": 157.78,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 107.25,
+        "ms": 104.28,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 101.61,
+        "ms": 104.8,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 100.22,
+        "ms": 105.29,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 103.17,
+        "ms": 107.9,
         "queries": 11,
         "bytes": 431899
       }
     ]
   },
   "publish": {
-    "p50_ms": 59.88,
-    "p95_ms": 116.73,
+    "p50_ms": 62.75,
+    "p95_ms": 119.71,
     "observations": [
       {
-        "ms": 61.65,
+        "ms": 63.4,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 61.04,
+        "ms": 61.53,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 58.49,
+        "ms": 62.81,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 59.09,
+        "ms": 62.53,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 116.73,
+        "ms": 119.71,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 59.88,
+        "ms": 62.75,
         "queries": 27,
         "bytes": 0
       },
       {
-        "ms": 58.72,
+        "ms": 62.46,
         "queries": 27,
         "bytes": 0
       }
     ]
   },
   "duplicate": {
-    "p50_ms": 465.99,
-    "p95_ms": 492.38,
+    "p50_ms": 455.92,
+    "p95_ms": 494.77,
     "observations": [
       {
-        "ms": 483.26,
+        "ms": 494.77,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 492.38,
+        "ms": 444.29,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 453.97,
+        "ms": 455.92,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 434.59,
+        "ms": 438.77,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 486.41,
+        "ms": 491.67,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 450.78,
+        "ms": 435.07,
         "queries": 391,
         "bytes": 0
       },
       {
-        "ms": 465.99,
+        "ms": 482.0,
         "queries": 391,
         "bytes": 0
       }
     ]
   },
   "results_25_rows": {
-    "p50_ms": 1097.82,
-    "p95_ms": 1119.41,
+    "p50_ms": 1156.68,
+    "p95_ms": 1208.47,
     "observations": [
       {
-        "ms": 1072.8,
+        "ms": 1140.75,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1104.87,
+        "ms": 1156.68,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1119.41,
+        "ms": 1193.74,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1100.75,
+        "ms": 1125.91,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1097.82,
+        "ms": 1208.47,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1087.73,
+        "ms": 1202.96,
         "queries": 400,
         "bytes": 5950
       },
       {
-        "ms": 1068.34,
+        "ms": 1123.2,
         "queries": 400,
         "bytes": 5950
       }
     ]
-  }
+  },
+  "measurement_conditions": "Sequential same-host PostgreSQL 16.15, same Python/dependencies, same dataset and seven warm samples, no concurrent build/OCR/benchmark"
 }

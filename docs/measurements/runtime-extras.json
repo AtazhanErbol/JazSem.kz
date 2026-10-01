@@ -1,0 +1,19 @@
+{
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "checks": [
+    {
+      "actual_ocr_pixels": 14400000,
+      "short_mail_and_expiry_while_heavy_processing": true,
+      "short_seconds": 0.59,
+      "heavy_terminal": "FAILED",
+      "heavy_bounded_seconds": 60.8
+    },
+    {
+      "s3_orphan_plan_and_apply": "passed",
+      "deleted_synthetic_orphans": 1,
+      "reference_recheck_shared_files_and_sentinel_preserved": true,
+      "grace_clock_advance_hours": 96,
+      "writers_stopped": true
+    }
+  ]
+}

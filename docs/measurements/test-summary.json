@@ -1,0 +1,771 @@
+{
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "date": "2026-10-01",
+  "backend": {
+    "passed": 145,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 37.416,
+    "postgresql_concurrency_passed": 8,
+    "tests": [
+      {
+        "module": "tests.test_admin_workspace",
+        "name": "test_grading_preset_uses_existing_activities_and_keeps_manual_weights",
+        "seconds": 2.6
+      },
+      {
+        "module": "tests.test_admin_workspace",
+        "name": "test_grading_preset_requires_access_editable_version_and_activities",
+        "seconds": 0.272
+      },
+      {
+        "module": "tests.test_admin_workspace",
+        "name": "test_activity_editor_links_identify_correct_course_version",
+        "seconds": 0.124
+      },
+      {
+        "module": "tests.test_ai_budget",
+        "name": "test_disabled_ai_never_calls_provider",
+        "seconds": 0.01
+      },
+      {
+        "module": "tests.test_ai_budget",
+        "name": "test_global_budget_reserves_and_stops_calls",
+        "seconds": 0.023
+      },
+      {
+        "module": "tests.test_ai_budget",
+        "name": "test_unknown_prices_fail_closed",
+        "seconds": 0.007
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_failed_source_does_not_block_explicit_completed_selection",
+        "seconds": 0.137
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_source_can_be_excluded_without_deleting_citations",
+        "seconds": 0.126
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_dispatch_failure_is_durable_and_retry_keeps_identity",
+        "seconds": 0.196
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_paid_call_crash_is_not_replayed_and_reservation_is_retained",
+        "seconds": 0.182
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_cancellation_wins_over_late_provider_and_cost_is_recorded",
+        "seconds": 0.142
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_snapshot_is_used_and_duplicate_delivery_does_not_generate_twice",
+        "seconds": 0.157
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_text_limit_stops_consuming_extraction_stream",
+        "seconds": 0.115
+      },
+      {
+        "module": "tests.test_api_lifecycle",
+        "name": "test_admin_teacher_student_lifecycle_through_api",
+        "seconds": 0.521
+      },
+      {
+        "module": "tests.test_api_lifecycle",
+        "name": "test_deadline_enforced_and_empty_publish_rejected",
+        "seconds": 0.139
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_csrf_refresh_does_not_consume_login_quota",
+        "seconds": 0.188
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_polling_and_reading_do_not_consume_generation_or_upload_quotas",
+        "seconds": 0.579
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_csrf_login_and_temporary_password_gate",
+        "seconds": 0.14
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_create_account_encrypts_password_and_reset_is_single_use",
+        "seconds": 0.089
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_ai_private_draft_import_does_not_publish",
+        "seconds": 0.214
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_ai_rejects_invented_citations",
+        "seconds": 0.126
+      },
+      {
+        "module": "tests.test_auth_ai",
+        "name": "test_upload_rejects_spoofed_type",
+        "seconds": 0.09
+      },
+      {
+        "module": "tests.test_contracts",
+        "name": "test_profile_rejects_wrong_types_and_unknown_fields[payload0]",
+        "seconds": 0.102
+      },
+      {
+        "module": "tests.test_contracts",
+        "name": "test_profile_rejects_wrong_types_and_unknown_fields[payload1]",
+        "seconds": 0.079
+      },
+      {
+        "module": "tests.test_contracts",
+        "name": "test_profile_rejects_wrong_types_and_unknown_fields[payload2]",
+        "seconds": 0.084
+      },
+      {
+        "module": "tests.test_contracts",
+        "name": "test_profile_rejects_wrong_types_and_unknown_fields[payload3]",
+        "seconds": 0.084
+      },
+      {
+        "module": "tests.test_contracts",
+        "name": "test_attempt_and_tree_expose_only_role_contract",
+        "seconds": 0.174
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_group_and_individual_enrollment_deduplicate_and_inherit",
+        "seconds": 0.156
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_revision_history_and_normalized_grade",
+        "seconds": 0.171
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_teacher_cannot_grade_foreign_student",
+        "seconds": 0.159
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_timer_shuffle_autosave_and_exact_score",
+        "seconds": 0.249
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_progress_independent_of_grade",
+        "seconds": 0.248
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_publication_pins_old_enrollment",
+        "seconds": 0.231
+      },
+      {
+        "module": "tests.test_flows",
+        "name": "test_multiple_choice_rejects_partial_and_foreign_options",
+        "seconds": 0.2
+      },
+      {
+        "module": "tests.test_mail_background",
+        "name": "test_invalid_and_expired_reset_links_do_not_change_password",
+        "seconds": 0.159
+      },
+      {
+        "module": "tests.test_mail_background",
+        "name": "test_password_reset_email_and_change_confirmation[student-ru]",
+        "seconds": 0.157
+      },
+      {
+        "module": "tests.test_mail_background",
+        "name": "test_password_reset_email_and_change_confirmation[teacher-kk]",
+        "seconds": 0.131
+      },
+      {
+        "module": "tests.test_mail_background",
+        "name": "test_password_reset_email_and_change_confirmation[admin-ru]",
+        "seconds": 0.179
+      },
+      {
+        "module": "tests.test_mail_background",
+        "name": "test_submission_notifies_teacher_once_and_smtp_failure_retries",
+        "seconds": 0.127
+      },
+      {
+        "module": "tests.test_mail_background",
+        "name": "test_ai_disabled_and_worker_down_fail_without_orphan_records",
+        "seconds": 0.114
+      },
+      {
+        "module": "tests.test_mail_recovery",
+        "name": "test_smtp_failure_is_visible_and_retry_is_scheduled",
+        "seconds": 0.118
+      },
+      {
+        "module": "tests.test_mail_recovery",
+        "name": "test_admin_can_see_failed_delivery_and_retry_without_exposing_body",
+        "seconds": 0.136
+      },
+      {
+        "module": "tests.test_mail_recovery",
+        "name": "test_lease_recovers_crashed_sender_and_completed_mail_is_not_sent_twice",
+        "seconds": 0.121
+      },
+      {
+        "module": "tests.test_mail_recovery",
+        "name": "test_rotation_keeps_queued_mail_readable_and_reports_missing_key",
+        "seconds": 0.126
+      },
+      {
+        "module": "tests.test_operations",
+        "name": "test_operations_are_private_aggregates",
+        "seconds": 0.091
+      },
+      {
+        "module": "tests.test_operations",
+        "name": "test_readiness_separates_worker_and_storage_failures",
+        "seconds": 0.107
+      },
+      {
+        "module": "tests.test_operations",
+        "name": "test_metrics_cache_failure_does_not_break_http",
+        "seconds": 0.094
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_teacher_cannot_read_or_write_foreign_objects[courses-course]",
+        "seconds": 0.1
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_teacher_cannot_read_or_write_foreign_objects[materials-material]",
+        "seconds": 0.1
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_teacher_cannot_read_or_write_foreign_objects[assignments-assignment]",
+        "seconds": 0.106
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_teacher_cannot_read_or_write_foreign_objects[tests-test]",
+        "seconds": 0.101
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_teacher_cannot_read_or_write_foreign_objects[groups-group]",
+        "seconds": 0.091
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_student_isolation",
+        "seconds": 0.11
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_student_never_sees_answer_keys",
+        "seconds": 0.131
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_private_download_scope",
+        "seconds": 0.17
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_draft_hidden_and_published_version_frozen",
+        "seconds": 0.197
+      },
+      {
+        "module": "tests.test_permissions",
+        "name": "test_foreign_parent_injection",
+        "seconds": 0.095
+      },
+      {
+        "module": "tests.test_proxy_security",
+        "name": "test_forged_forwarded_address_cannot_bypass_login_limit",
+        "seconds": 0.146
+      },
+      {
+        "module": "tests.test_proxy_security",
+        "name": "test_trusted_proxy_clients_do_not_share_one_login_limit",
+        "seconds": 0.161
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_admin_created_student_can_join_owner_group_and_course",
+        "seconds": 0.17
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_student_cannot_read_authoring_questions_before_start[questions-question]",
+        "seconds": 0.134
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_student_cannot_read_authoring_questions_before_start[options-correct]",
+        "seconds": 0.12
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_patch_cannot_bypass_self_deactivation_policy",
+        "seconds": 0.117
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_malformed_submission_is_a_field_error_not_server_error[None]",
+        "seconds": 0.097
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_malformed_submission_is_a_field_error_not_server_error[answer1]",
+        "seconds": 0.1
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_malformed_submission_is_a_field_error_not_server_error[answer2]",
+        "seconds": 0.103
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_malformed_submission_is_a_field_error_not_server_error[7]",
+        "seconds": 0.1
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_malformed_submission_is_a_field_error_not_server_error[True]",
+        "seconds": 0.106
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_owner_cannot_be_injected_or_changed_after_learning_started",
+        "seconds": 0.148
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_unassigned_student_is_explicit_and_can_be_assigned_without_history",
+        "seconds": 0.138
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_invalid_action_uuid_is_field_error[courses-publish-version]",
+        "seconds": 0.107
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_invalid_action_uuid_is_field_error[courses-assign-student]",
+        "seconds": 0.091
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_invalid_action_uuid_is_field_error[groups-members-student]",
+        "seconds": 0.098
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_invalid_action_uuid_is_field_error[groups-remove-member-student]",
+        "seconds": 0.124
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_invalid_action_uuid_is_field_error[groups-assign-course]",
+        "seconds": 0.115
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_all_read_endpoints_return_structured_responses[admin]",
+        "seconds": 0.181
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_all_read_endpoints_return_structured_responses[teacher]",
+        "seconds": 0.17
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_all_read_endpoints_return_structured_responses[student]",
+        "seconds": 0.202
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_result_pagination_and_display_names",
+        "seconds": 0.328
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_assignment_deadline_ordering",
+        "seconds": 0.106
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_grading_query_count_does_not_grow_per_assignment",
+        "seconds": 0.189
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_attempt_filter_does_not_mix_tests_or_students",
+        "seconds": 0.141
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_submission_exposes_grading_scale_without_answer_keys",
+        "seconds": 0.167
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_ai_import_keeps_reviewed_title_description",
+        "seconds": 0.15
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_blocked_user_loses_existing_session",
+        "seconds": 0.144
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_private_source_and_chunk_unavailable_to_student",
+        "seconds": 0.111
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_duplicate_does_not_mutate_original_or_copy_student_answers",
+        "seconds": 0.141
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_preflight_accepts_existing_learning_history",
+        "seconds": 0.281
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_preflight_reports_conflict_counts_without_repair",
+        "seconds": 0.266
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_unknown_states_are_rejected_without_losing_history[course]",
+        "seconds": 0.09
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_unknown_states_are_rejected_without_losing_history[version]",
+        "seconds": 0.099
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_unknown_states_are_rejected_without_losing_history[enrollment]",
+        "seconds": 0.104
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_content_audit_excludes_document_text_and_secrets",
+        "seconds": 0.154
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_course_and_material_overrides_preserve_content_audit",
+        "seconds": 0.211
+      },
+      {
+        "module": "tests.test_storage_lifecycle",
+        "name": "test_replacing_draft_material_updates_download_name",
+        "seconds": 0.132
+      },
+      {
+        "module": "tests.test_storage_lifecycle",
+        "name": "test_orphan_cleanup_preserves_shared_references_and_grace_period",
+        "seconds": 0.148
+      },
+      {
+        "module": "tests.test_summary_reads",
+        "name": "test_summary_page_matches_learning_rules_and_scope",
+        "seconds": 0.234
+      },
+      {
+        "module": "tests.test_summary_reads",
+        "name": "test_student_tree_does_not_query_question_tables",
+        "seconds": 0.132
+      },
+      {
+        "module": "tests.test_summary_reads",
+        "name": "test_summary_query_budget_is_bounded_at_25_and_100_students",
+        "seconds": 0.491
+      },
+      {
+        "module": "tests.test_summary_reads",
+        "name": "test_clone_option_query_budget_uses_bulk_insert",
+        "seconds": 0.213
+      },
+      {
+        "module": "tests.test_summary_reads",
+        "name": "test_copy_preserves_parent_links_files_and_enrollment_version",
+        "seconds": 0.16
+      },
+      {
+        "module": "tests.test_summary_reads",
+        "name": "test_failed_clone_never_leaves_a_partial_version",
+        "seconds": 0.14
+      },
+      {
+        "module": "tests.test_workspace_filters",
+        "name": "test_workspace_filters_narrow_results_without_expanding_scope",
+        "seconds": 0.193
+      },
+      {
+        "module": "tests.test_workspace_filters",
+        "name": "test_deadline_and_review_queue_are_real_filters",
+        "seconds": 0.154
+      },
+      {
+        "module": "tests.test_workspace_filters",
+        "name": "test_ai_history_and_sources_paginate_with_scope_and_no_snapshot_text",
+        "seconds": 0.204
+      },
+      {
+        "module": "tests.test_ai_recovery",
+        "name": "test_broker_loss_after_commit_does_not_turn_accepted_job_into_500",
+        "seconds": 0.72
+      },
+      {
+        "module": "tests.test_mail_recovery",
+        "name": "test_smtp_runs_without_database_transaction",
+        "seconds": 0.839
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_concurrent_admin_deactivation_leaves_active_administrator",
+        "seconds": 0.868
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_concurrent_enrollment_is_idempotent",
+        "seconds": 0.815
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_concurrent_admin_teacher_generation_has_one_winner",
+        "seconds": 0.787
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_concurrent_mail_claim_has_one_owner",
+        "seconds": 0.723
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_concurrent_budget_reservation_never_exceeds_cap",
+        "seconds": 0.723
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_start_and_expire_follow_one_lock_order",
+        "seconds": 0.796
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_group_assignment_and_join_inherit_once",
+        "seconds": 0.814
+      },
+      {
+        "module": "tests.test_postgres_concurrency",
+        "name": "test_publish_and_edit_are_serialized",
+        "seconds": 0.871
+      },
+      {
+        "module": "tests.test_release_access",
+        "name": "test_ownership_data_migration_preserves_creator_and_unassigned_records",
+        "seconds": 0.985
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_preflight_empty_database_fails_with_schema_metadata_not_sql_exception",
+        "seconds": 5.696
+      },
+      {
+        "module": "tests.test_state_invariants",
+        "name": "test_preflight_runs_on_legacy_schema_and_requires_full_check_after_additive_migrations",
+        "seconds": 1.984
+      },
+      {
+        "module": "tests.test_contracts",
+        "name": "test_schema_has_runtime_constraints_and_nested_role_outputs",
+        "seconds": 0.23
+      },
+      {
+        "module": "tests.test_error_correlation",
+        "name": "test_unexpected_error_has_correlation_and_safe_stack_without_payload",
+        "seconds": 0.003
+      },
+      {
+        "module": "tests.test_extraction_limits",
+        "name": "test_invalid_empty_oversized_pdf_is_rejected_before_ocr[malformed]",
+        "seconds": 0.01
+      },
+      {
+        "module": "tests.test_extraction_limits",
+        "name": "test_invalid_empty_oversized_pdf_is_rejected_before_ocr[empty]",
+        "seconds": 0.002
+      },
+      {
+        "module": "tests.test_extraction_limits",
+        "name": "test_invalid_empty_oversized_pdf_is_rejected_before_ocr[too-many-pages]",
+        "seconds": 0.024
+      },
+      {
+        "module": "tests.test_extraction_limits",
+        "name": "test_pdf_ocr_opens_document_once_and_preserves_languages",
+        "seconds": 0.125
+      },
+      {
+        "module": "tests.test_extraction_limits",
+        "name": "test_docx_pptx_and_utf8_preserve_kazakh_text",
+        "seconds": 0.209
+      },
+      {
+        "module": "tests.test_extraction_limits",
+        "name": "test_image_pixel_limit_precedes_ocr",
+        "seconds": 0.024
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_production_requires_explicit_complete_configuration",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[FRONTEND_URL-http://rc.example.test]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[DJANGO_ALLOWED_HOSTS-*]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[DATABASE_URL-sqlite:///database]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[REDIS_URL-redis://:SECRET@cache/0]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[CSRF_TRUSTED_ORIGINS-https://*.example.test]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[EMAIL_USE_TLS-false]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[MAIL_ENCRYPTION_KEY-SECRET-invalid-key]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_invalid_production_settings_do_not_echo_values[TRUSTED_PROXY_CIDRS-0.0.0.0/0]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_production_config",
+        "name": "test_liveness_accepts_explicit_domain_without_loopback_in_allowed_hosts",
+        "seconds": 0.006
+      },
+      {
+        "module": "tests.test_proxy_security",
+        "name": "test_untrusted_peer_cannot_forge_https_or_verified_client",
+        "seconds": 0.002
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_throttle_dependency_outage_is_structured_and_fails_closed",
+        "seconds": 0.01
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_smtp_response_classification[error0-SMTP_UNAVAILABLE]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_smtp_response_classification[error1-SMTP_PERMANENT_FAILURE]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_smtp_response_classification[error2-SMTP_UNAVAILABLE]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_smtp_response_classification[error3-RECIPIENT_REJECTED]",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_redis_tls_is_verified_and_url_cannot_override_policy",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_runtime_security",
+        "name": "test_error_telemetry_drops_request_secrets_and_student_content",
+        "seconds": 0.001
+      },
+      {
+        "module": "tests.test_spec_audit",
+        "name": "test_docx_pptx_txt_extraction",
+        "seconds": 0.145
+      }
+    ]
+  },
+  "frontend": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "files_passed": 4,
+    "seconds": 2.21,
+    "lint": "passed",
+    "typecheck": "passed",
+    "production_build": "passed"
+  },
+  "checks": {
+    "ruff": "passed",
+    "ruff_format_files": 179,
+    "migration_drift": "none",
+    "system_check": "passed",
+    "pip_check": "passed",
+    "openapi_postgresql_validated_and_matches": "passed"
+  },
+  "environment": {
+    "python": "3.12.14",
+    "node": "24.21.0",
+    "postgresql": "16.15",
+    "redis": "7.4.11",
+    "os": "Windows 11, WSL Ubuntu 26.04 Docker 29.1.3, Compose 2.40.3",
+    "browser": "Chromium 153.0.8010.12",
+    "remote_ci_node": "22 (new remote CI not run)"
+  },
+  "harness_notes": [
+    "First local OpenAPI comparison used Windows default encoding; corrected command to UTF-8 without source changes.",
+    "First pytest run could not access shared Windows Temp: 33 passed, 112 fixture errors; final full run uses a fresh project-local --basetemp.",
+    "Final full run has one non-failing pytest cache permission warning; no failed or skipped tests."
+  ]
+}

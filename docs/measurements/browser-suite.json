@@ -1,10 +1,10 @@
 {
-  "source_sha": "a712f644bcd7185bd9d99943ce499d0cb6943654",
-  "dirty_tree": true,
+  "source_sha": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "dirty_tree": false,
   "stats": {
-    "startTime": "2026-10-01T08:16:56.162Z",
-    "duration": 236973.491,
-    "expected": 19,
+    "startTime": "2026-10-01T09:40:58.848Z",
+    "duration": 238469.514,
+    "expected": 21,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
@@ -18,7 +18,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 17373
+          "duration_ms": 17604
         }
       ]
     },
@@ -30,19 +30,31 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 24660
+          "duration_ms": 24326
         }
       ]
     },
     {
       "file": "ai-wizard.spec.ts",
       "line": 3,
+      "title": "AI source/history pagination restores URL state and keeps RU/KK controls localized",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 2772
+        }
+      ]
+    },
+    {
+      "file": "ai-wizard.spec.ts",
+      "line": 120,
       "title": "AI wizard reviews and imports a draft without a real provider call",
       "status": "expected",
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 1321
+          "duration_ms": 1594
         }
       ]
     },
@@ -54,7 +66,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 36720
+          "duration_ms": 35964
         }
       ]
     },
@@ -66,7 +78,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 30010
+          "duration_ms": 29331
         }
       ]
     },
@@ -78,7 +90,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 20967
+          "duration_ms": 20480
         }
       ]
     },
@@ -90,7 +102,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 6054
+          "duration_ms": 5956
         }
       ]
     },
@@ -102,7 +114,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 3894
+          "duration_ms": 3584
         }
       ]
     },
@@ -114,7 +126,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 2675
+          "duration_ms": 2682
         }
       ]
     },
@@ -126,7 +138,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 9261
+          "duration_ms": 7572
         }
       ]
     },
@@ -138,7 +150,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 3396
+          "duration_ms": 1706
         }
       ]
     },
@@ -150,7 +162,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 934
+          "duration_ms": 751
         }
       ]
     },
@@ -162,7 +174,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 2111
+          "duration_ms": 1323
         }
       ]
     },
@@ -174,7 +186,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 4155
+          "duration_ms": 3655
         }
       ]
     },
@@ -186,7 +198,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 11246
+          "duration_ms": 11091
         }
       ]
     },
@@ -198,7 +210,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 2408
+          "duration_ms": 1292
         }
       ]
     },
@@ -210,7 +222,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 49180
+          "duration_ms": 48092
         }
       ]
     },
@@ -222,7 +234,7 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 3807
+          "duration_ms": 3500
         }
       ]
     },
@@ -234,7 +246,19 @@
       "runs": [
         {
           "status": "passed",
-          "duration_ms": 3640
+          "duration_ms": 3662
+        }
+      ]
+    },
+    {
+      "file": "url-state.spec.ts",
+      "line": 3,
+      "title": "real server pagination/search, Back/Forward, remote options and keyboard mobile navigation",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 8181
         }
       ]
     }

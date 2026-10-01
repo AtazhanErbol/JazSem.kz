@@ -21,7 +21,7 @@
       "status": "FAILED",
       "executions": 1,
       "drafts": 0,
-      "usage_rows": 0,
+      "usage_rows": 1,
       "lease_expiration_injected": true
     },
     {
@@ -68,6 +68,20 @@
       "lease_expiration_injected": false
     },
     {
+      "accepted_source_before_storage_loss": 201,
+      "transient_admission_retries": 3
+    },
+    {
+      "storage_outage_extraction": "FAILED",
+      "partial_chunks": 0
+    },
+    {
+      "storage_restored_retry": "COMPLETED",
+      "completed_chunk_ids_immutable": true,
+      "corrupt_pdf": "FAILED",
+      "oversized_upload_http": 400
+    },
+    {
       "smtp": [
         {
           "fault": "temporary",
@@ -91,5 +105,6 @@
       "transport": "real STARTTLS local sink"
     }
   ],
-  "synthetic": true
+  "synthetic": true,
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c"
 }

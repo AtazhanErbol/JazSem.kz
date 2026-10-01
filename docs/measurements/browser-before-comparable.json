@@ -1,0 +1,1305 @@
+{
+  "browser": "153.0.8010.12",
+  "viewport": "1440x900",
+  "cpuSlowdown": 4,
+  "network": "40ms, 5 Mbit/s down, 1 Mbit/s up",
+  "samples": 7,
+  "routes": {
+    "/": {
+      "p50_lcp_ms": 1356,
+      "p95_lcp_ms": 1888,
+      "cls_max": 2.1254551263503087e-05,
+      "samples": [
+        {
+          "lcp": 1888,
+          "cls": 0,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 516.8999999761581,
+              "duration": 112
+            },
+            {
+              "start": 629.8999999761581,
+              "duration": 87
+            },
+            {
+              "start": 752.3999999761581,
+              "duration": 340
+            },
+            {
+              "start": 1150.5,
+              "duration": 174
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 168,
+                "start": 2915.5,
+                "interaction": 9836
+              },
+              {
+                "name": "pointerup",
+                "duration": 168,
+                "start": 2915.5,
+                "interaction": 9836
+              },
+              {
+                "name": "click",
+                "duration": 168,
+                "start": 2915.5,
+                "interaction": 9836
+              },
+              {
+                "name": "pointerdown",
+                "duration": 96,
+                "start": 3371.899999976158,
+                "interaction": 9843
+              },
+              {
+                "name": "pointerup",
+                "duration": 96,
+                "start": 3372,
+                "interaction": 9843
+              },
+              {
+                "name": "click",
+                "duration": 96,
+                "start": 3372,
+                "interaction": 9843
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 516.8999999761581,
+                "duration": 112
+              },
+              {
+                "start": 629.8999999761581,
+                "duration": 87
+              },
+              {
+                "start": 752.3999999761581,
+                "duration": 340
+              },
+              {
+                "start": 1150.5,
+                "duration": 174
+              },
+              {
+                "start": 2920.2000000476837,
+                "duration": 124
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 1360,
+          "cls": 2.1254551263503087e-05,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 526.8999999761581,
+              "duration": 96
+            },
+            {
+              "start": 625.8999999761581,
+              "duration": 101
+            },
+            {
+              "start": 1147.3999999761581,
+              "duration": 182
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 192,
+                "start": 2955.600000023842,
+                "interaction": 1495
+              },
+              {
+                "name": "pointerup",
+                "duration": 192,
+                "start": 2955.6999999284744,
+                "interaction": 1495
+              },
+              {
+                "name": "click",
+                "duration": 192,
+                "start": 2955.6999999284744,
+                "interaction": 1495
+              },
+              {
+                "name": "pointerdown",
+                "duration": 88,
+                "start": 3436.5,
+                "interaction": 1502
+              },
+              {
+                "name": "pointerup",
+                "duration": 88,
+                "start": 3436.5,
+                "interaction": 1502
+              },
+              {
+                "name": "click",
+                "duration": 88,
+                "start": 3436.5,
+                "interaction": 1502
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 526.8999999761581,
+                "duration": 96
+              },
+              {
+                "start": 625.8999999761581,
+                "duration": 101
+              },
+              {
+                "start": 1147.3999999761581,
+                "duration": 182
+              },
+              {
+                "start": 2955.7999999523163,
+                "duration": 142
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 1356,
+          "cls": 2.1254551263503087e-05,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 519,
+              "duration": 95
+            },
+            {
+              "start": 616.7000000476837,
+              "duration": 81
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 192,
+                "start": 2893.8000000715256,
+                "interaction": 2654
+              },
+              {
+                "name": "pointerup",
+                "duration": 192,
+                "start": 2893.8000000715256,
+                "interaction": 2654
+              },
+              {
+                "name": "click",
+                "duration": 192,
+                "start": 2893.8000000715256,
+                "interaction": 2654
+              },
+              {
+                "name": "pointerdown",
+                "duration": 80,
+                "start": 3350.600000023842,
+                "interaction": 2661
+              },
+              {
+                "name": "pointerup",
+                "duration": 80,
+                "start": 3350.600000023842,
+                "interaction": 2661
+              },
+              {
+                "name": "click",
+                "duration": 80,
+                "start": 3350.600000023842,
+                "interaction": 2661
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 519,
+                "duration": 95
+              },
+              {
+                "start": 616.7000000476837,
+                "duration": 81
+              },
+              {
+                "start": 2898,
+                "duration": 136
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 1352,
+          "cls": 2.1254551263503087e-05,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 527.3999999761581,
+              "duration": 99
+            },
+            {
+              "start": 629.1000000238419,
+              "duration": 79
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 176,
+                "start": 2892.100000023842,
+                "interaction": 2943
+              },
+              {
+                "name": "pointerup",
+                "duration": 176,
+                "start": 2892.100000023842,
+                "interaction": 2943
+              },
+              {
+                "name": "click",
+                "duration": 176,
+                "start": 2892.100000023842,
+                "interaction": 2943
+              },
+              {
+                "name": "pointerdown",
+                "duration": 88,
+                "start": 3090.600000023842,
+                "interaction": 2950
+              },
+              {
+                "name": "pointerup",
+                "duration": 88,
+                "start": 3090.600000023842,
+                "interaction": 2950
+              },
+              {
+                "name": "click",
+                "duration": 88,
+                "start": 3090.600000023842,
+                "interaction": 2950
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 527.3999999761581,
+                "duration": 99
+              },
+              {
+                "start": 629.1000000238419,
+                "duration": 79
+              },
+              {
+                "start": 2892.1999999284744,
+                "duration": 128
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 1440,
+          "cls": 2.1254551263503087e-05,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 526.2999999523163,
+              "duration": 92
+            },
+            {
+              "start": 621.1000000238419,
+              "duration": 77
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 224,
+                "start": 3014.1999999284744,
+                "interaction": 465
+              },
+              {
+                "name": "pointerup",
+                "duration": 224,
+                "start": 3014.1999999284744,
+                "interaction": 465
+              },
+              {
+                "name": "click",
+                "duration": 224,
+                "start": 3014.1999999284744,
+                "interaction": 465
+              },
+              {
+                "name": "pointerdown",
+                "duration": 104,
+                "start": 3562.1999999284744,
+                "interaction": 472
+              },
+              {
+                "name": "pointerup",
+                "duration": 104,
+                "start": 3562.1999999284744,
+                "interaction": 472
+              },
+              {
+                "name": "click",
+                "duration": 104,
+                "start": 3562.1999999284744,
+                "interaction": 472
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 526.2999999523163,
+                "duration": 92
+              },
+              {
+                "start": 621.1000000238419,
+                "duration": 77
+              },
+              {
+                "start": 3014.2999999523163,
+                "duration": 169
+              },
+              {
+                "start": 3562.6999999284744,
+                "duration": 55
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 1344,
+          "cls": 2.1254551263503087e-05,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 516.3999999761581,
+              "duration": 102
+            },
+            {
+              "start": 621,
+              "duration": 78
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 168,
+                "start": 2903.7000000476837,
+                "interaction": 5722
+              },
+              {
+                "name": "pointerup",
+                "duration": 168,
+                "start": 2903.7000000476837,
+                "interaction": 5722
+              },
+              {
+                "name": "click",
+                "duration": 168,
+                "start": 2903.7000000476837,
+                "interaction": 5722
+              },
+              {
+                "name": "pointerdown",
+                "duration": 88,
+                "start": 3368.3000000715256,
+                "interaction": 5729
+              },
+              {
+                "name": "pointerup",
+                "duration": 88,
+                "start": 3368.3000000715256,
+                "interaction": 5729
+              },
+              {
+                "name": "click",
+                "duration": 88,
+                "start": 3368.3000000715256,
+                "interaction": 5729
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 516.3999999761581,
+                "duration": 102
+              },
+              {
+                "start": 621,
+                "duration": 78
+              },
+              {
+                "start": 2903.899999976158,
+                "duration": 131
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 1340,
+          "cls": 2.1254551263503087e-05,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 514.6000000238419,
+              "duration": 93
+            },
+            {
+              "start": 611.5,
+              "duration": 77
+            }
+          ],
+          "transfer_bytes": 854701,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 176,
+                "start": 2896.100000023842,
+                "interaction": 4315
+              },
+              {
+                "name": "pointerup",
+                "duration": 176,
+                "start": 2896.100000023842,
+                "interaction": 4315
+              },
+              {
+                "name": "click",
+                "duration": 176,
+                "start": 2896.100000023842,
+                "interaction": 4315
+              },
+              {
+                "name": "pointerdown",
+                "duration": 88,
+                "start": 3362,
+                "interaction": 4322
+              },
+              {
+                "name": "pointerup",
+                "duration": 88,
+                "start": 3362.100000023842,
+                "interaction": 4322
+              },
+              {
+                "name": "click",
+                "duration": 88,
+                "start": 3362.100000023842,
+                "interaction": 4322
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 514.6000000238419,
+                "duration": 93
+              },
+              {
+                "start": 611.5,
+                "duration": 77
+              },
+              {
+                "start": 2896.1999999284744,
+                "duration": 130
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 14,
+          "request_paths": [
+            "/",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/api/v1/public-content/?language=ru",
+            "/api/v1/public-content/?language=kk",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        }
+      ]
+    },
+    "/login": {
+      "p50_lcp_ms": 848,
+      "p95_lcp_ms": 860,
+      "cls_max": 0.006598582259585009,
+      "samples": [
+        {
+          "lcp": 840,
+          "cls": 0.006598582259585009,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 507.89999997615814,
+              "duration": 98
+            },
+            {
+              "start": 609.3000000715256,
+              "duration": 93
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 56,
+                "start": 2534.3000000715256,
+                "interaction": 492
+              },
+              {
+                "name": "pointerup",
+                "duration": 56,
+                "start": 2534.3000000715256,
+                "interaction": 492
+              },
+              {
+                "name": "click",
+                "duration": 56,
+                "start": 2534.3000000715256,
+                "interaction": 492
+              },
+              {
+                "name": "pointerdown",
+                "duration": 32,
+                "start": 2630.2000000476837,
+                "interaction": 499
+              },
+              {
+                "name": "pointerup",
+                "duration": 24,
+                "start": 2630.2000000476837,
+                "interaction": 499
+              },
+              {
+                "name": "click",
+                "duration": 24,
+                "start": 2630.2000000476837,
+                "interaction": 499
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 507.89999997615814,
+                "duration": 98
+              },
+              {
+                "start": 609.3000000715256,
+                "duration": 93
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 860,
+          "cls": 0.006576023177453028,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 507.2999999523163,
+              "duration": 130
+            },
+            {
+              "start": 641.8999999761581,
+              "duration": 101
+            },
+            {
+              "start": 933.8999999761581,
+              "duration": 51
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 48,
+                "start": 2541.6999999284744,
+                "interaction": 5845
+              },
+              {
+                "name": "pointerup",
+                "duration": 48,
+                "start": 2541.6999999284744,
+                "interaction": 5845
+              },
+              {
+                "name": "click",
+                "duration": 48,
+                "start": 2541.6999999284744,
+                "interaction": 5845
+              },
+              {
+                "name": "pointerdown",
+                "duration": 32,
+                "start": 2625.100000023842,
+                "interaction": 5852
+              },
+              {
+                "name": "pointerup",
+                "duration": 32,
+                "start": 2625.100000023842,
+                "interaction": 5852
+              },
+              {
+                "name": "click",
+                "duration": 32,
+                "start": 2625.100000023842,
+                "interaction": 5852
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 507.2999999523163,
+                "duration": 130
+              },
+              {
+                "start": 641.8999999761581,
+                "duration": 101
+              },
+              {
+                "start": 933.8999999761581,
+                "duration": 51
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 852,
+          "cls": 0.006576023177453028,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 525.6000000238419,
+              "duration": 112
+            },
+            {
+              "start": 640.8999999761581,
+              "duration": 99
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 48,
+                "start": 2537.3000000715256,
+                "interaction": 7999
+              },
+              {
+                "name": "pointerup",
+                "duration": 48,
+                "start": 2537.399999976158,
+                "interaction": 7999
+              },
+              {
+                "name": "click",
+                "duration": 48,
+                "start": 2537.399999976158,
+                "interaction": 7999
+              },
+              {
+                "name": "pointerdown",
+                "duration": 32,
+                "start": 2619.3000000715256,
+                "interaction": 8006
+              },
+              {
+                "name": "pointerup",
+                "duration": 32,
+                "start": 2619.399999976158,
+                "interaction": 8006
+              },
+              {
+                "name": "click",
+                "duration": 32,
+                "start": 2619.399999976158,
+                "interaction": 8006
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 525.6000000238419,
+                "duration": 112
+              },
+              {
+                "start": 640.8999999761581,
+                "duration": 99
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 856,
+          "cls": 0.006598582259585009,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 513.5,
+              "duration": 100
+            },
+            {
+              "start": 615.8999999761581,
+              "duration": 96
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 48,
+                "start": 2545.7000000476837,
+                "interaction": 6910
+              },
+              {
+                "name": "pointerup",
+                "duration": 48,
+                "start": 2545.7000000476837,
+                "interaction": 6910
+              },
+              {
+                "name": "click",
+                "duration": 48,
+                "start": 2545.7000000476837,
+                "interaction": 6910
+              },
+              {
+                "name": "pointerdown",
+                "duration": 32,
+                "start": 2626.5,
+                "interaction": 6917
+              },
+              {
+                "name": "pointerup",
+                "duration": 32,
+                "start": 2626.600000023842,
+                "interaction": 6917
+              },
+              {
+                "name": "click",
+                "duration": 32,
+                "start": 2626.600000023842,
+                "interaction": 6917
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 513.5,
+                "duration": 100
+              },
+              {
+                "start": 615.8999999761581,
+                "duration": 96
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 844,
+          "cls": 0.006576023177453028,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 515.8999999761581,
+              "duration": 112
+            },
+            {
+              "start": 631.5,
+              "duration": 101
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 48,
+                "start": 2528.5999999046326,
+                "interaction": 3068
+              },
+              {
+                "name": "pointerup",
+                "duration": 48,
+                "start": 2528.5999999046326,
+                "interaction": 3068
+              },
+              {
+                "name": "click",
+                "duration": 48,
+                "start": 2528.5999999046326,
+                "interaction": 3068
+              },
+              {
+                "name": "pointerdown",
+                "duration": 24,
+                "start": 2611.6999999284744,
+                "interaction": 3075
+              },
+              {
+                "name": "pointerup",
+                "duration": 24,
+                "start": 2611.6999999284744,
+                "interaction": 3075
+              },
+              {
+                "name": "click",
+                "duration": 24,
+                "start": 2611.6999999284744,
+                "interaction": 3075
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 515.8999999761581,
+                "duration": 112
+              },
+              {
+                "start": 631.5,
+                "duration": 101
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 848,
+          "cls": 0.006598582259585009,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 497.5,
+              "duration": 98
+            },
+            {
+              "start": 628.7000000476837,
+              "duration": 108
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 48,
+                "start": 2521.7999999523163,
+                "interaction": 1271
+              },
+              {
+                "name": "pointerup",
+                "duration": 48,
+                "start": 2521.899999976158,
+                "interaction": 1271
+              },
+              {
+                "name": "click",
+                "duration": 48,
+                "start": 2521.899999976158,
+                "interaction": 1271
+              },
+              {
+                "name": "pointerdown",
+                "duration": 24,
+                "start": 2622.899999976158,
+                "interaction": 1278
+              },
+              {
+                "name": "pointerup",
+                "duration": 24,
+                "start": 2623,
+                "interaction": 1278
+              },
+              {
+                "name": "click",
+                "duration": 24,
+                "start": 2623,
+                "interaction": 1278
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 497.5,
+                "duration": 98
+              },
+              {
+                "start": 628.7000000476837,
+                "duration": 108
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        },
+        {
+          "lcp": 836,
+          "cls": 0.006598582259585009,
+          "interactions": [],
+          "long_tasks": [
+            {
+              "start": 511.3000000715256,
+              "duration": 105
+            },
+            {
+              "start": 618.5,
+              "duration": 105
+            }
+          ],
+          "transfer_bytes": 854349,
+          "interaction": {
+            "events": [
+              {
+                "name": "pointerdown",
+                "duration": 48,
+                "start": 2504.899999976158,
+                "interaction": 5366
+              },
+              {
+                "name": "pointerup",
+                "duration": 48,
+                "start": 2505,
+                "interaction": 5366
+              },
+              {
+                "name": "click",
+                "duration": 48,
+                "start": 2505,
+                "interaction": 5366
+              },
+              {
+                "name": "pointerdown",
+                "duration": 32,
+                "start": 2586.899999976158,
+                "interaction": 5373
+              },
+              {
+                "name": "pointerup",
+                "duration": 32,
+                "start": 2587,
+                "interaction": 5373
+              },
+              {
+                "name": "click",
+                "duration": 32,
+                "start": 2587,
+                "interaction": 5373
+              }
+            ],
+            "long_tasks": [
+              {
+                "start": 511.3000000715256,
+                "duration": 105
+              },
+              {
+                "start": 618.5,
+                "duration": 105
+              }
+            ]
+          },
+          "script_raw": 619512,
+          "script_gzip": 188667,
+          "requests": 12,
+          "request_paths": [
+            "/login",
+            "/assets/index-CNF0ZwVI.css",
+            "/assets/i18n-BNPbF4Za.js",
+            "/assets/react-AShQ0-6k.js",
+            "/assets/forms-0E201pVz.js",
+            "/assets/index-BivwlIEn.js",
+            "/brand/jazsem-mark.png",
+            "/assets/geologica-cyrillic-wght-normal-DbeVG3Ps.woff2",
+            "/assets/geologica-latin-wght-normal-BBL8hQxZ.woff2",
+            "/assets/noto-sans-cyrillic-wght-normal-B2hlT84T.woff2",
+            "/assets/noto-sans-latin-wght-normal-BYSzYMf3.woff2",
+            "/assets/noto-sans-cyrillic-ext-wght-normal-DSNfmdVt.woff2"
+          ]
+        }
+      ]
+    }
+  },
+  "build": {
+    "total_js_raw": 619512,
+    "total_js_gzip": 188667,
+    "chunks": [
+      {
+        "name": "forms-0E201pVz.js",
+        "raw": 117049,
+        "gzip": 35867
+      },
+      {
+        "name": "i18n-BNPbF4Za.js",
+        "raw": 49388,
+        "gzip": 16255
+      },
+      {
+        "name": "index-BivwlIEn.js",
+        "raw": 401860,
+        "gzip": 118437
+      },
+      {
+        "name": "react-AShQ0-6k.js",
+        "raw": 51215,
+        "gzip": 18108
+      }
+    ]
+  },
+  "method": "Seven cold navigations. Event Timing from two real language-toggle clicks per sample; long tasks include navigation. This is lab interaction evidence, not field INP.",
+  "budgets": {
+    "routes": {
+      "/": {
+        "raw": 525000,
+        "gzip": 170000
+      },
+      "/login": {
+        "raw": 650000,
+        "gzip": 210000
+      }
+    },
+    "total_js_raw": 800000
+  },
+  "source_ref": "a712f644bcd7185bd9d99943ce499d0cb6943654",
+  "measurement_conditions": "Sequential isolated before/after, identical production preview, API dataset, browser/hardware/network/CPU settings; no concurrent builds or benchmarks"
+}

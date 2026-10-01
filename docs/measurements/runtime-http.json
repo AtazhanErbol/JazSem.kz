@@ -1,0 +1,6 @@
+{
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "checks": {
+    "production_https_csrf_cookies_private_storage_smtp": "passed"
+  }
+}

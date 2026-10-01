@@ -1,0 +1,8 @@
+{
+  "source_ref": "ac8ad868cdc6c2bf0067f7e731b5d5f581d2f96c",
+  "checks": {
+    "redis_tls_verified_clients": 3,
+    "untrusted_ca_rejections": 2,
+    "hostname_mismatch_rejected": true
+  }
+}

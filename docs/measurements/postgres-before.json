@@ -16,208 +16,211 @@
   },
   "samples": 7,
   "student_tree": {
-    "p50_ms": 152.78,
-    "p95_ms": 231.67,
+    "p50_ms": 96.89,
+    "p95_ms": 178.83,
     "observations": [
       {
-        "ms": 113.35,
+        "ms": 91.57,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 177.95,
+        "ms": 145.09,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 152.78,
+        "ms": 96.89,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 159.59,
+        "ms": 144.29,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 119.93,
+        "ms": 93.57,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 130.77,
+        "ms": 96.15,
         "queries": 12,
         "bytes": 121233
       },
       {
-        "ms": 231.67,
+        "ms": 178.83,
         "queries": 12,
         "bytes": 121233
       }
     ]
   },
   "editor_tree": {
-    "p50_ms": 512.74,
-    "p95_ms": 544.88,
+    "p50_ms": 425.99,
+    "p95_ms": 473.83,
     "observations": [
       {
-        "ms": 463.29,
+        "ms": 425.99,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 452.61,
+        "ms": 412.87,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 512.74,
+        "ms": 467.97,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 519.65,
+        "ms": 417.09,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 522.67,
+        "ms": 421.8,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 544.88,
+        "ms": 473.83,
         "queries": 11,
         "bytes": 431899
       },
       {
-        "ms": 489.31,
+        "ms": 432.29,
         "queries": 11,
         "bytes": 431899
       }
     ]
   },
   "publish": {
-    "p50_ms": 105.82,
-    "p95_ms": 175.69,
+    "p50_ms": 88.5,
+    "p95_ms": 157.72,
     "observations": [
       {
-        "ms": 96.35,
+        "ms": 115.6,
         "queries": 59,
         "bytes": 0
       },
       {
-        "ms": 107.1,
+        "ms": 90.49,
         "queries": 59,
         "bytes": 0
       },
       {
-        "ms": 97.17,
+        "ms": 88.5,
         "queries": 59,
         "bytes": 0
       },
       {
-        "ms": 175.69,
+        "ms": 157.72,
         "queries": 59,
         "bytes": 0
       },
       {
-        "ms": 105.82,
+        "ms": 87.38,
         "queries": 59,
         "bytes": 0
       },
       {
-        "ms": 151.17,
+        "ms": 86.86,
         "queries": 59,
         "bytes": 0
       },
       {
-        "ms": 99.18,
+        "ms": 86.73,
         "queries": 59,
         "bytes": 0
       }
     ]
   },
   "duplicate": {
-    "p50_ms": 1489.68,
-    "p95_ms": 1744.72,
+    "p50_ms": 1410.23,
+    "p95_ms": 1427.12,
     "observations": [
       {
-        "ms": 1437.45,
+        "ms": 1401.76,
         "queries": 1803,
         "bytes": 0
       },
       {
-        "ms": 1490.9,
+        "ms": 1410.48,
         "queries": 1803,
         "bytes": 0
       },
       {
-        "ms": 1443.81,
+        "ms": 1427.12,
         "queries": 1803,
         "bytes": 0
       },
       {
-        "ms": 1744.72,
+        "ms": 1420.15,
         "queries": 1803,
         "bytes": 0
       },
       {
-        "ms": 1484.27,
+        "ms": 1397.18,
         "queries": 1803,
         "bytes": 0
       },
       {
-        "ms": 1489.68,
+        "ms": 1410.23,
         "queries": 1803,
         "bytes": 0
       },
       {
-        "ms": 1512.5,
+        "ms": 1409.88,
         "queries": 1803,
         "bytes": 0
       }
     ]
   },
   "results_25_rows": {
-    "p50_ms": 805.15,
-    "p95_ms": 1057.17,
+    "p50_ms": 807.04,
+    "p95_ms": 876.32,
     "observations": [
       {
-        "ms": 1057.17,
+        "ms": 812.53,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 764.19,
+        "ms": 876.32,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 908.32,
+        "ms": 797.14,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 805.15,
+        "ms": 807.04,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 931.03,
+        "ms": 876.26,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 792.29,
+        "ms": 802.24,
         "queries": 375,
         "bytes": 5950
       },
       {
-        "ms": 778.58,
+        "ms": 784.83,
         "queries": 375,
         "bytes": 5950
       }
     ]
-  }
+  },
+  "measurement_conditions": "Sequential same-host PostgreSQL 16.15, same Python/dependencies, same dataset and seven warm samples, no concurrent build/OCR/benchmark",
+  "baseline_application_files_verified": 174,
+  "benchmark_harness_only": "Enrollment-count parameter; application files unchanged from source_ref"
 }
