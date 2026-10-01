@@ -17,6 +17,7 @@ from apps.materials.validation import validate_upload
 
 from .contracts import (
     ChunkOutput,
+    DeleteSourceInput,
     DraftInput,
     DraftOutput,
     GenerationInput,
@@ -147,6 +148,34 @@ class SourceViewSet(ReadOnlyScoped):
     def download(self, request, pk=None):
         source = self.get_object()
         return private_response(source.file, source.filename)
+
+    @action(detail=True, methods=["post"], url_path="delete-file")
+    @transaction.atomic
+    def delete_file(self, request, pk=None):
+        from .source_files import delete_source
+
+        data = validated(request, DeleteSourceInput)
+        delete_source(self.get_object(), request.user, data["filename"])
+        return Response(status=204)
+
+    @action(detail=True, methods=["get"])
+    def preview(self, request, pk=None):
+        from pathlib import Path
+
+        from django.http import FileResponse
+
+        source = self.get_object()
+        content_type = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(
+            Path(source.filename).suffix.lower()
+        )
+        if not content_type:
+            raise ValidationError(
+                "Для документа доступен просмотр распознанного текста и скачивание оригинала."
+            )
+        response = FileResponse(source.file.open("rb"), content_type=content_type)
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Cache-Control"] = "private, no-store"
+        return response
 
     @action(detail=True, methods=["get"])
     def chunks(self, request, pk=None):

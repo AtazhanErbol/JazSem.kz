@@ -5,7 +5,8 @@ import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
-import { Upload, Sparkles } from "lucide-react";
+import { Upload, Sparkles, Eye, Trash2 } from "lucide-react";
+import { SourcePreview } from "./SourcePreview";
 import { api } from "../../services/api";
 import type { Page, Row } from "../../entities/types";
 import type { SourceDocument, AIJob, AIDraft } from "../../entities/ai";
@@ -41,6 +42,9 @@ function AIWorkspace({ course }: { course: string }) {
   const setJobPage = (change: (page: number) => number) =>
     updateParam("jobPage", String(change(jobPage)));
   const [file, setFile] = useState<File>();
+  const [previewSource, setPreviewSource] = useState<SourceDocument>();
+  const [deleteSource, setDeleteSource] = useState<SourceDocument>();
+  const [deleteFilename, setDeleteFilename] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   const [weeks, setWeeks] = useState(1);
   const [mode, setMode] = useState("APPEND");
@@ -293,6 +297,29 @@ function AIWorkspace({ course }: { course: string }) {
                 {String(s.filename)}
               </label>
               <Badge>{String(s.processing_status)}</Badge>
+              <button
+                type="button"
+                disabled={
+                  action.pending ||
+                  ["QUEUED", "PROCESSING"].includes(s.processing_status)
+                }
+                onClick={() => {
+                  setDeleteSource(s);
+                  setDeleteFilename("");
+                }}
+                aria-label={`${t("delete")}: ${s.filename}`}
+              >
+                <Trash2 size={16} />
+                {t("delete")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewSource(s)}
+                aria-label={`${t("sourcePreview.open")}: ${s.filename}`}
+              >
+                <Eye size={16} />
+                {t("sourcePreview.open")}
+              </button>
               {Boolean(s.error) && (
                 <small>
                   {t(`aiRecovery.errors.${s.error}`, {
@@ -693,6 +720,66 @@ function AIWorkspace({ course }: { course: string }) {
             )}
           </div>
         </section>
+      )}
+      {previewSource && (
+        <SourcePreview
+          key={previewSource.id}
+          source={previewSource}
+          onClose={() => setPreviewSource(undefined)}
+        />
+      )}
+      {deleteSource && (
+        <Modal
+          title={t("sourcePreview.deleteTitle")}
+          onClose={() => {
+            if (!action.pending) setDeleteSource(undefined);
+          }}
+        >
+          <p>{t("sourcePreview.deleteHint")}</p>
+          <p>
+            <strong>{deleteSource.filename}</strong>
+          </p>
+          <label>
+            {t("sourcePreview.confirmName")}
+            <input
+              value={deleteFilename}
+              disabled={action.pending}
+              onChange={(e) => setDeleteFilename(e.target.value)}
+            />
+          </label>
+          {action.error != null && (
+            <ErrorState title={t("actionFailed")} error={action.error} />
+          )}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setDeleteSource(undefined)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className="danger"
+              disabled={
+                action.pending || deleteFilename !== deleteSource.filename
+              }
+              onClick={async () => {
+                const result = await action.run(
+                  `sources/${deleteSource.id}/delete-file/`,
+                  { filename: deleteFilename },
+                );
+                if (result.ok) {
+                  setSelectedSources((ids) =>
+                    ids.filter((id) => id !== deleteSource.id),
+                  );
+                  setDeleteSource(undefined);
+                  setSourcePage(() => 1);
+                }
+              }}
+            >
+              {t("delete")}
+            </button>
+          </div>
+        </Modal>
       )}
       {confirm && draft.data && (
         <Modal title={t("confirm")} onClose={() => setConfirm(false)}>

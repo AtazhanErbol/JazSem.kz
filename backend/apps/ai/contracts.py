@@ -10,6 +10,10 @@ class SourceInput(Input):
     file = serializers.FileField()
 
 
+class DeleteSourceInput(Input):
+    filename = Text(max_length=255, trim_whitespace=False)
+
+
 class GenerationInput(Input):
     instruction = Text(max_length=2000, allow_blank=True, default="")
     page_from = serializers.IntegerField(min_value=1, required=False)
