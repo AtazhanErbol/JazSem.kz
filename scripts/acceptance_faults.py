@@ -15,6 +15,7 @@ compose = [
     str(root / "infra/compose.acceptance-ai.yml"),
 ]
 checks = []
+heavy_paused = False
 
 
 def command(args, timeout=180):
@@ -56,15 +57,21 @@ try:
     phase("broker-down")
     command(["start", "redis", "short", "beat"])
     phase("finish-broker")
-    command(["stop", "-t", "2", "short", "beat"])
+    # Keep the short consumer available for HTTP admission's real worker ping.
+    # Freeze only heavy execution so storage can fail after a durable upload.
+    command(["pause", "heavy"])
+    heavy_paused = True
     phase("prepare-extraction")
     command(["stop", "-t", "2", "minio"])
-    command(["start", "short", "beat"])
+    command(["unpause", "heavy"])
+    heavy_paused = False
     phase("failed-extraction")
     command(["start", "minio"])
     phase("finish-extraction")
     phase("smtp")
 finally:
+    if heavy_paused:
+        command(["unpause", "heavy"])
     command(["start", "redis", "minio", "short", "heavy", "beat"])
     output = root / ".runtime/acceptance/safe-artifacts/runtime-faults.json"
     output.parent.mkdir(parents=True, exist_ok=True)

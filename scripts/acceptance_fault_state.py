@@ -377,18 +377,29 @@ def heavy_isolation():
 def extraction(stage):
     if stage == "prepare-extraction":
         course = Course.objects.get(pk=state["broker"]["course"])
-        response = client().post(
-            base + "/api/v1/sources/",
-            data={"course": str(course.pk)},
-            files={
-                "file": (
-                    "storage-outage.txt",
-                    b"Synthetic source survives storage outage.",
-                    "text/plain",
-                )
-            },
-            timeout=15,
-        )
+        session = client()
+        # A just-reconnected control channel can report temporary unavailability.
+        # Retry only the explicit pre-admission worker failure: no business row
+        # exists yet. Do not retry ambiguous HTTP failures or a paid operation.
+        for retry in range(4):
+            response = session.post(
+                base + "/api/v1/sources/",
+                data={"course": str(course.pk)},
+                files={
+                    "file": (
+                        "storage-outage.txt",
+                        b"Synthetic source survives storage outage.",
+                        "text/plain",
+                    )
+                },
+                timeout=15,
+            )
+            if (
+                response.status_code != 503
+                or response.json().get("code") != "background_unavailable"
+            ):
+                break
+            time.sleep(1)
         assert response.status_code == 201
         state["extraction"] = {
             "source": response.json()["id"],
@@ -400,7 +411,10 @@ def extraction(stage):
             ).processing_status
             == "QUEUED"
         )
-        return {"accepted_source_before_storage_loss": 201}
+        return {
+            "accepted_source_before_storage_loss": 201,
+            "transient_admission_retries": retry,
+        }
     row = state["extraction"]
     if stage == "failed-extraction":
         wait(
