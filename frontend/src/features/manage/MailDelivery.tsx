@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ErrorState, Loading } from "../../components/UI";
+import { Pagination } from "../../components/Pagination";
 import type { Page } from "../../entities/types";
 import { api } from "../../services/api";
 import { useAction } from "../../hooks/useAction";
@@ -54,7 +55,7 @@ export function MailDelivery() {
           })}
         </p>
       )}
-      <div className="toolbar">
+      <div className="filter-toolbar">
         <label>
           {t("status")}
           <select
@@ -120,21 +121,11 @@ export function MailDelivery() {
               )}
             </article>
           ))}
-          <div className="toolbar">
-            <button
-              disabled={!query.data.previous}
-              onClick={() => setParams({ status, page: String(page - 1) })}
-            >
-              {t("previous")}
-            </button>
-            <span>{page}</span>
-            <button
-              disabled={!query.data.next}
-              onClick={() => setParams({ status, page: String(page + 1) })}
-            >
-              {t("next")}
-            </button>
-          </div>
+          <Pagination
+            page={page}
+            count={query.data.count}
+            onChange={(nextPage) => setParams({ status, page: String(nextPage) })}
+          />
         </>
       )}
     </>

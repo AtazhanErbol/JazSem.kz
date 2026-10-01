@@ -154,7 +154,7 @@ export function ResourcePage({ resource }: { resource: string }) {
         </section>
       )}
       {supported?.search && (
-        <div className="toolbar">
+        <div className="search-toolbar">
           <Search size={18} />
           <input
             aria-label={t("search")}

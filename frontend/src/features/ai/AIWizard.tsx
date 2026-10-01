@@ -297,7 +297,7 @@ function AIWorkspace({ course }: { course: string }) {
             </div>
           ))}
           {sources.data && (
-            <nav className="toolbar" aria-label={t("sources")}>
+            <nav className="pagination" aria-label={t("sources")}>
               <button
                 disabled={!sources.data.previous}
                 onClick={() => setSourcePage((p) => p - 1)}
@@ -475,7 +475,7 @@ function AIWorkspace({ course }: { course: string }) {
             <p>{t("aiRecovery.noJobs")}</p>
           )}
           {jobs.data && (
-            <nav className="toolbar" aria-label={t("aiRecovery.history")}>
+            <nav className="pagination" aria-label={t("aiRecovery.history")}>
               <button
                 disabled={!jobs.data.previous}
                 onClick={() => setJobPage((p) => p - 1)}
