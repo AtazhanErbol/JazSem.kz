@@ -1,7 +1,12 @@
 import { CourseSharing } from "./CourseSharing";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import {
+  useParams,
+  Link,
+  useSearchParams,
+  useNavigate,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Check, ChevronRight, Plus, FileText } from "lucide-react";
 import type { Activity, Row, Tree } from "../../entities/types";
@@ -20,6 +25,9 @@ export function CourseBuilder() {
   const { id } = useParams();
   const { t } = useTranslation();
   const action = useAction();
+  const navigate = useNavigate();
+  const [deleteDraft, setDeleteDraft] = useState(false);
+  const [deleteName, setDeleteName] = useState("");
   const [params, setParams] = useSearchParams();
   const version = params.get("version") || "";
   const setVersion = (value: string) => {
@@ -103,6 +111,7 @@ export function CourseBuilder() {
   );
   const weightTotal = data.components.reduce((n, c) => n + Number(c.weight), 0);
   const published = data.version.status === "PUBLISHED";
+  const draftName = `${data.course.title} · v${data.version.version_number}`;
   const controls = (resource: string, row: Row) => (
     <div className="mini-actions">
       <button onClick={() => edit(resource, row)}>{t("edit")}</button>
@@ -143,13 +152,16 @@ export function CourseBuilder() {
             <button
               disabled={action.pending}
               onClick={async () => {
-                const v = await action.run<Row>(`courses/${id}/duplicate/`, {
-                  version: data.version.id,
-                });
+                const v = await action.run<Row>(
+                  `courses/${id}/${published ? "edit-draft" : "duplicate"}/`,
+                  {
+                    version: data.version.id,
+                  },
+                );
                 if (v.ok) setVersion(v.data.id);
               }}
             >
-              {t("newVersion")}
+              {t(published ? "editPublished" : "newVersion")}
             </button>
             {editable && (
               <button className="primary" onClick={() => setConfirm("publish")}>
@@ -167,7 +179,72 @@ export function CourseBuilder() {
         />
       )}
       {action.feedback}
-      {!editable && <p className="notice">{t("immutable")}</p>}
+      {!editable && <p className="notice">{t("editPublishedHint")}</p>}
+      {editable && (
+        <div className="row-actions">
+          <button
+            className="danger-text"
+            disabled={action.pending}
+            onClick={() => {
+              setDeleteName("");
+              setDeleteDraft(true);
+            }}
+          >
+            {t("deleteDraft")}
+          </button>
+        </div>
+      )}
+      {deleteDraft && (
+        <Modal
+          title={t("deleteDraft")}
+          onClose={() => {
+            if (!action.pending) setDeleteDraft(false);
+          }}
+        >
+          <p>{t("deleteDraftHint")}</p>
+          <p>
+            <strong>{draftName}</strong>
+          </p>
+          <label>
+            {t("deleteDraftConfirm")}
+            <input
+              value={deleteName}
+              disabled={action.pending}
+              onChange={(e) => setDeleteName(e.target.value)}
+              autoComplete="off"
+            />
+          </label>
+          {action.error != null && <ErrorState error={action.error} />}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setDeleteDraft(false)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className="danger"
+              disabled={action.pending || deleteName !== draftName}
+              onClick={async () => {
+                const result = await action.run<{
+                  course_deleted: boolean;
+                  next_version: string;
+                }>(`courses/${id}/delete-draft/`, {
+                  version: data.version.id,
+                  confirmation: deleteName,
+                });
+                if (result.ok) {
+                  setDeleteDraft(false);
+                  if (result.data.course_deleted) navigate("/app/courses");
+                  else setVersion(result.data.next_version);
+                }
+              }}
+            >
+              {t("deleteDraft")}
+            </button>
+          </div>
+        </Modal>
+      )}
       {editable && (
         <section
           className="builder-checklist"

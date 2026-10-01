@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -8,7 +9,7 @@ from apps.accounts.models import User
 from apps.audit.services import record, selected_fields
 from apps.common.api import ScopedViewSet, lookup, representation
 from apps.common.filters import CourseFilter
-from apps.common.inputs import EmptyInput, StudentInput, VersionInput, validated
+from apps.common.inputs import DeleteDraftInput, EmptyInput, StudentInput, VersionInput, validated
 from apps.common.permissions import is_admin, is_teacher
 from apps.common.read_contracts import AuthorWeekOutput, StudentWeekOutput
 from apps.common.scope import editable, visible
@@ -66,6 +67,67 @@ class CourseViewSet(ScopedViewSet):
                 new={"status": obj.status},
             )
         return Response(representation(obj, request))
+
+    @action(detail=True, methods=["post"], url_path="edit-draft")
+    @transaction.atomic
+    def edit_draft(self, request, pk=None):
+        data = validated(request, VersionInput)
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        course = Course.objects.select_for_update().get(pk=self.get_object().pk)
+        if course.status == "ARCHIVED":
+            raise ValidationError("Сначала восстановите курс из архива.")
+        source = get_object_or_404(course.versions, pk=data["version"], status="PUBLISHED")
+        draft = (
+            course.versions.filter(status__in=["DRAFT", "REVIEW"])
+            .order_by("-version_number")
+            .first()
+        )
+        if draft is None:
+            draft = duplicate(source, request.user)
+        return Response(representation(draft, request))
+
+    @action(detail=True, methods=["post"], url_path="delete-draft")
+    @transaction.atomic
+    def delete_draft(self, request, pk=None):
+        data = validated(request, DeleteDraftInput)
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        course = Course.objects.select_for_update().get(pk=self.get_object().pk)
+        version = get_object_or_404(course.versions.select_for_update(), pk=data["version"])
+        if version.status not in ["DRAFT", "REVIEW"] or course.current_version_id == version.pk:
+            raise ValidationError("Опубликованную версию удалять нельзя.")
+        expected = f"{course.title} · v{version.version_number}"
+        if data["confirmation"] != expected:
+            raise ValidationError({"confirmation": "Введите точное название и номер версии."})
+        remaining = course.versions.exclude(pk=version.pk).order_by("-version_number").first()
+        if remaining is None and course.status != "DRAFT":
+            raise ValidationError("Последнюю версию этого курса удалять нельзя.")
+        record(
+            request.user,
+            "course.draft_deleted",
+            version,
+            old={
+                "course": str(course.pk),
+                "version_number": version.version_number,
+                "title": course.title,
+            },
+        )
+        try:
+            with transaction.atomic():
+                version.delete()
+                if remaining is None:
+                    course.delete()
+        except ProtectedError:
+            raise ValidationError(
+                "Черновик связан с назначениями, работами или AI-историей. Удаление запрещено; используйте архив курса."
+            ) from None
+        return Response(
+            {
+                "course_deleted": remaining is None,
+                "next_version": str(remaining.pk) if remaining else None,
+            }
+        )
 
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):

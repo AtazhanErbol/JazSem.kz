@@ -60,3 +60,7 @@ def validated(request, serializer):
     data = serializer(data=request.data)
     data.is_valid(raise_exception=True)
     return data.validated_data
+
+
+class DeleteDraftInput(VersionInput):
+    confirmation = Text(max_length=300, trim_whitespace=False)

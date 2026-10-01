@@ -36,8 +36,9 @@ def annotate_actions():
             extend_schema(request=request, responses=response, **kwargs)(getattr(view, method)),
         )
 
-    for method in ["publish", "duplicate"]:
+    for method in ["publish", "duplicate", "edit_draft"]:
         mark(CourseViewSet, method, inp.VersionInput, serializer_for(CourseVersion))
+    mark(CourseViewSet, "delete_draft", inp.DeleteDraftInput, OpenApiTypes.OBJECT)
     mark(
         CourseViewSet,
         "grading_preset",
