@@ -20,13 +20,15 @@ interface Delivery {
 export function MailDelivery() {
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
-  const status = params.get("status") || "FAILED";
+  const status = params.get("status") || "";
   const page = Math.max(1, Number(params.get("page")) || 1);
   const action = useAction();
   const query = useQuery({
     queryKey: ["mail-outbox", status, page],
     queryFn: () =>
-      api<Page<Delivery>>(`mail-outbox/?status=${status}&page=${page}`),
+      api<Page<Delivery>>(
+        `mail-outbox/?page=${page}${status ? `&status=${encodeURIComponent(status)}` : ""}`,
+      ),
   });
   const metrics = useQuery({
     queryKey: ["mail-metrics"],
@@ -61,9 +63,14 @@ export function MailDelivery() {
           <select
             value={status}
             onChange={(event) =>
-              setParams({ status: event.target.value, page: "1" })
+              setParams(
+                event.target.value
+                  ? { status: event.target.value, page: "1" }
+                  : { page: "1" },
+              )
             }
           >
+            <option value="">{t("all")}</option>
             {["FAILED", "RETRY", "PENDING", "SENDING", "SENT"].map((value) => (
               <option key={value} value={value}>
                 {t(`mail.${value}`)}
@@ -88,7 +95,9 @@ export function MailDelivery() {
       ) : (
         <>
           {!query.data.results.length && (
-            <p className="panel">{t("mail.empty")}</p>
+            <p className="panel">
+              {t(status ? "mail.empty" : "mail.emptyAll")}
+            </p>
           )}
           {query.data.results.map((delivery) => (
             <article className="panel" key={delivery.id}>
@@ -124,7 +133,13 @@ export function MailDelivery() {
           <Pagination
             page={page}
             count={query.data.count}
-            onChange={(nextPage) => setParams({ status, page: String(nextPage) })}
+            onChange={(nextPage) =>
+              setParams(
+                status
+                  ? { status, page: String(nextPage) }
+                  : { page: String(nextPage) },
+              )
+            }
           />
         </>
       )}
