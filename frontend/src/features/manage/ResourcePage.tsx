@@ -47,7 +47,11 @@ export function ResourcePage({ resource }: { resource: string }) {
   ])
     if (params.has(key)) apiParams.set(key, params.get(key)!);
   const [edit, setEdit] = useState<Row | null | undefined>();
-  const [confirm, setConfirm] = useState<{ path: string; body?: unknown }>();
+  const [confirm, setConfirm] = useState<{
+    path: string;
+    body?: unknown;
+    restore?: boolean;
+  }>();
   const [detail, setDetail] = useState<Row>();
   const query = useQuery({
     queryKey: queryKeys.list(resource, apiParams.toString()),
@@ -280,6 +284,21 @@ export function ResourcePage({ resource }: { resource: string }) {
                       <button onClick={() => setEdit(row)}>{t("edit")}</button>
                     )}
                   {["courses", "groups", "disciplines"].includes(resource) &&
+                    row.status === "ARCHIVED" &&
+                    user.role !== "STUDENT" &&
+                    (resource !== "disciplines" || user.role === "ADMIN") && (
+                      <button
+                        onClick={() =>
+                          setConfirm({
+                            path: `${resource}/${row.id}/restore/`,
+                            restore: true,
+                          })
+                        }
+                      >
+                        {t("restoreArchive")}
+                      </button>
+                    )}
+                  {["courses", "groups", "disciplines"].includes(resource) &&
                     row.status !== "ARCHIVED" &&
                     user.role !== "STUDENT" &&
                     (resource !== "disciplines" || user.role === "ADMIN") && (
@@ -373,9 +392,19 @@ export function ResourcePage({ resource }: { resource: string }) {
       )}
       {confirm && (
         <Modal title={t("confirm")} onClose={() => setConfirm(undefined)}>
-          <p>{t("confirmText")}</p>
+          <p>
+            {t(
+              confirm.restore
+                ? resource === "groups"
+                  ? "restoreGroupHint"
+                  : resource === "courses"
+                    ? "restoreCourseHint"
+                    : "restoreArchiveHint"
+                : "confirmText",
+            )}
+          </p>
           <button
-            className="danger"
+            className={confirm.restore ? "primary" : "danger"}
             disabled={action.pending}
             onClick={async () => {
               const result = await action.run(confirm.path, confirm.body);

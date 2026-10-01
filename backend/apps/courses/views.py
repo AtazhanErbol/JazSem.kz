@@ -44,6 +44,29 @@ class CourseViewSet(ScopedViewSet):
         new_version(course, self.request.user)
         record(self.request.user, "content.created", course, new=selected_fields(course))
 
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def restore(self, request, pk=None):
+        validated(request, EmptyInput)
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        obj = Course.objects.select_for_update().get(pk=self.get_object().pk)
+        if obj.status == "ARCHIVED":
+            if obj.discipline.status != "ACTIVE":
+                raise ValidationError("Сначала восстановите дисциплину курса.")
+            if obj.current_version_id and obj.current_version.status != "PUBLISHED":
+                raise ValidationError("Проверьте опубликованную версию курса.")
+            obj.status = "PUBLISHED" if obj.current_version_id else "DRAFT"
+            obj.save(update_fields=["status", "updated_at"])
+            record(
+                request.user,
+                "course.restored",
+                obj,
+                old={"status": "ARCHIVED"},
+                new={"status": obj.status},
+            )
+        return Response(representation(obj, request))
+
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
         course = self.get_object()
