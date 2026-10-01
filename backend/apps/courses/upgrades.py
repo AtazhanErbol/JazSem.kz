@@ -30,7 +30,7 @@ def match_rows(old_rows, new_rows, mapping, label, exact=False):
     old_rows, new_rows = list(old_rows), list(new_rows)
     if exact and len(old_rows) != len(new_rows):
         raise ValidationError(
-            f"Изменён {label}. Автоматическое обновление поддерживает добавление новых материалов без изменения старых."
+            f"Изменился состав элементов: {label}. Сохраните прежние вопросы и ответы, чтобы перенести результаты студентов."
         )
     candidates = defaultdict(list)
     for row in new_rows:
@@ -51,16 +51,6 @@ def match_rows(old_rows, new_rows, mapping, label, exact=False):
 
 def content_mapping(source, target):
     mapping = {}
-    # Use model queries: the scheme reverse accessor is not a public API.
-    from apps.grading.models import GradingComponent
-
-    match_rows(
-        GradingComponent.objects.filter(scheme__course_version=source),
-        GradingComponent.objects.filter(scheme__course_version=target),
-        {},
-        "схема оценивания",
-        exact=True,
-    )
     for old_week, new_week in match_rows(source.weeks.all(), target.weeks.all(), mapping, "неделя"):
         for old_topic, new_topic in match_rows(
             old_week.topics.all(), new_week.topics.all(), mapping, "тема"
@@ -88,7 +78,7 @@ def content_mapping(source, target):
 
 
 @transaction.atomic
-def upgrade_students(actor, course, target_id, apply=False):
+def upgrade_students(actor, course, target_id, apply=False, confirm_grading_change=False):
     if not is_teacher(actor):
         raise PermissionDenied()
     require_visible(course, actor)
@@ -110,6 +100,25 @@ def upgrade_students(actor, course, target_id, apply=False):
         )
     )
     versions = {row.course_version_id: row.course_version for row in [*rows, *groups]}
+    from apps.grading.models import GradingComponent
+
+    def weights(version):
+        return dict(
+            GradingComponent.objects.filter(scheme__course_version=version)
+            .order_by("kind")
+            .values_list("kind", "weight")
+        )
+
+    target_weights = weights(target)
+    grading_changes = [
+        {"from_version": source.version_number, "before": weights(source), "after": target_weights}
+        for source in versions.values()
+        if weights(source) != target_weights
+    ]
+    if apply and grading_changes and not confirm_grading_change:
+        raise ValidationError(
+            "Изменились веса оценивания. Проверьте новую схему и подтвердите пересчёт итоговых оценок."
+        )
     mappings = {}
     for pk, source in versions.items():
         if source.version_number >= target.version_number:
@@ -128,6 +137,7 @@ def upgrade_students(actor, course, target_id, apply=False):
         "groups": len(groups),
         "version_number": target.version_number,
         "applied": apply,
+        "grading_changes": grading_changes,
     }
     if not apply:
         return result

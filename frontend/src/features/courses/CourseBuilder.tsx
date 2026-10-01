@@ -26,6 +26,12 @@ import { Badge, Empty, ErrorState, Loading, Modal } from "../../components/UI";
 import { useAction } from "../../hooks/useAction";
 import { RecordForm } from "../manage/RecordForm";
 
+type GradingChange = {
+  from_version: number;
+  before: Record<string, number>;
+  after: Record<string, number>;
+};
+
 interface Editor {
   resource: string;
   initial?: Row;
@@ -37,11 +43,13 @@ export function CourseBuilder() {
   const { t } = useTranslation();
   const action = useAction();
   const navigate = useNavigate();
+  const [confirmGrading, setConfirmGrading] = useState(false);
   const [upgrade, setUpgrade] = useState<{
     students: number;
     groups: number;
     version_number: number;
     version: string;
+    grading_changes?: GradingChange[];
   }>();
   const [outlineSearch, setOutlineSearch] = useState("");
   const [outlineKind, setOutlineKind] = useState("all");
@@ -289,14 +297,17 @@ export function CourseBuilder() {
                 students: number;
                 groups: number;
                 version_number: number;
+                grading_changes?: GradingChange[];
               }>(
                 `courses/${id}/update-students-preview/`,
                 { version: data.version.id },
                 "POST",
                 t("upgradeChecked"),
               );
-              if (result.ok)
+              if (result.ok) {
+                setConfirmGrading(false);
                 setUpgrade({ ...result.data, version: data.version.id });
+              }
             }}
           >
             {t("upgradeStudents")}
@@ -318,7 +329,43 @@ export function CourseBuilder() {
             })}
           </p>
           <p>{t("upgradeResultsHint")}</p>
-          {action.error != null && <ErrorState error={action.error} />}
+          {!!upgrade.grading_changes?.length && (
+            <section className="grading-change-notice">
+              <h3>{t("gradingWillChange")}</h3>
+              <p>{t("gradingChangeExplanation")}</p>
+              {upgrade.grading_changes.map((change) => (
+                <div className="grading-change-row" key={change.from_version}>
+                  <strong>
+                    v{change.from_version} → v{upgrade.version_number}
+                  </strong>
+                  <p>
+                    {t("gradingBefore")}:{" "}
+                    {Object.entries(change.before)
+                      .map(([kind, weight]) => `${t(kind)} ${weight}%`)
+                      .join(", ")}
+                  </p>
+                  <p>
+                    {t("gradingAfter")}:{" "}
+                    {Object.entries(change.after)
+                      .map(([kind, weight]) => `${t(kind)} ${weight}%`)
+                      .join(", ")}
+                  </p>
+                </div>
+              ))}
+              <label className="grading-consent">
+                <input
+                  type="checkbox"
+                  checked={confirmGrading}
+                  disabled={action.pending}
+                  onChange={(e) => setConfirmGrading(e.target.checked)}
+                />
+                <span>{t("confirmGradingChange")}</span>
+              </label>
+            </section>
+          )}
+          {action.error != null && (
+            <ErrorState error={action.error} title={t("actionFailed")} />
+          )}
           <div className="form-actions">
             <button
               disabled={action.pending}
@@ -329,12 +376,17 @@ export function CourseBuilder() {
             <button
               className="primary"
               disabled={
-                action.pending || (!upgrade.students && !upgrade.groups)
+                action.pending ||
+                (!upgrade.students && !upgrade.groups) ||
+                (!!upgrade.grading_changes?.length && !confirmGrading)
               }
               onClick={async () => {
                 const result = await action.run(
                   `courses/${id}/update-students/`,
-                  { version: upgrade.version },
+                  {
+                    version: upgrade.version,
+                    confirm_grading_change: confirmGrading,
+                  },
                   "POST",
                   t("upgradeDone"),
                 );
@@ -366,7 +418,9 @@ export function CourseBuilder() {
               autoComplete="off"
             />
           </label>
-          {action.error != null && <ErrorState error={action.error} />}
+          {action.error != null && (
+            <ErrorState error={action.error} title={t("actionFailed")} />
+          )}
           <div className="form-actions">
             <button
               disabled={action.pending}

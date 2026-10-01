@@ -62,7 +62,9 @@ export function useAction() {
     error,
     feedback: (
       <>
-        {error !== undefined && <ErrorState error={error} />}
+        {error !== undefined && (
+          <ErrorState error={error} title={t("actionFailed")} />
+        )}
         <div className="feedback" role="status">
           {success}
         </div>

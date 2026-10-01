@@ -15,6 +15,7 @@ from apps.common.inputs import (
     EmptyInput,
     GradingWeightsInput,
     StudentInput,
+    UpgradeStudentsInput,
     VersionInput,
     validated,
 )
@@ -84,14 +85,20 @@ class CourseViewSet(ScopedViewSet):
         data = validated(request, VersionInput)
         return Response(upgrade_students(request.user, self.get_object(), data["version"]))
 
-    @extend_schema(request=VersionInput)
+    @extend_schema(request=UpgradeStudentsInput)
     @action(detail=True, methods=["post"], url_path="update-students")
     def update_students(self, request, pk=None):
         from .upgrades import upgrade_students
 
-        data = validated(request, VersionInput)
+        data = validated(request, UpgradeStudentsInput)
         return Response(
-            upgrade_students(request.user, self.get_object(), data["version"], apply=True)
+            upgrade_students(
+                request.user,
+                self.get_object(),
+                data["version"],
+                apply=True,
+                confirm_grading_change=data["confirm_grading_change"],
+            )
         )
 
     @action(detail=True, methods=["post"], url_path="edit-draft")

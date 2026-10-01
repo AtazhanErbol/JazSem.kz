@@ -105,3 +105,28 @@ def test_old_target_rejected(world):
     next_version(world)
     with pytest.raises(ValidationError):
         upgrade_students(world["teacher"], world["course"], world["version"].pk, apply=True)
+
+
+def test_changed_weights_require_explicit_confirmation(world, client_for):
+    w = world
+    submission = submit(w["assignment"], w["student"], "Preserve", [])
+    review(submission, w["teacher"], "grade", score=80)
+    target = duplicate(w["version"], w["teacher"])
+    target.grading_scheme.components.filter(kind="ASSIGNMENTS").update(weight=60)
+    target.grading_scheme.components.filter(kind="TESTS").update(weight=40)
+    publish(target, w["teacher"])
+    api = client_for(w["teacher"])
+    base = f"/api/v1/courses/{w['course'].pk}/"
+    body = {"version": str(target.pk)}
+    preview = api.post(base + "update-students-preview/", body, format="json")
+    assert preview.status_code == 200
+    assert preview.data["grading_changes"][0]["before"]["ASSIGNMENTS"] == 50
+    assert preview.data["grading_changes"][0]["after"]["ASSIGNMENTS"] == 60
+    assert api.post(base + "update-students/", body, format="json").status_code == 400
+    w["enrollment"].refresh_from_db()
+    assert w["enrollment"].course_version_id == w["version"].pk
+    body["confirm_grading_change"] = True
+    assert api.post(base + "update-students/", body, format="json").status_code == 200
+    submission.refresh_from_db()
+    assert submission.score == 80 and submission.text_answer == "Preserve"
+    assert w["version"].grading_scheme.components.get(kind="ASSIGNMENTS").weight == 50

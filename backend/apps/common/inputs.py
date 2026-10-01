@@ -75,3 +75,7 @@ class GradingWeightsInput(VersionInput):
         if sum(value.values()) != 100:
             raise serializers.ValidationError("Сумма весов должна равняться 100%.")
         return value
+
+
+class UpgradeStudentsInput(VersionInput):
+    confirm_grading_change = serializers.BooleanField(default=False)

@@ -129,3 +129,44 @@ it("previews the student update and applies only after confirmation", async () =
     expect(state.run.mock.calls[1][0]).toBe("courses/c1/update-students/"),
   );
 });
+
+it("requires consent when grading weights change", async () => {
+  state.status = "PUBLISHED";
+  state.run
+    .mockResolvedValueOnce({
+      ok: true,
+      data: {
+        students: 1,
+        groups: 0,
+        version_number: 2,
+        grading_changes: [
+          {
+            from_version: 1,
+            before: { ASSIGNMENTS: 100 },
+            after: { ASSIGNMENTS: 60, TESTS: 40 },
+          },
+        ],
+      },
+    })
+    .mockResolvedValueOnce({ ok: true });
+  show();
+  fireEvent.click(screen.getByRole("button", { name: "Обновить у студентов" }));
+  await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+  const confirm = within(screen.getByRole("dialog")).getByRole("button", {
+    name: "Подтвердить",
+  });
+  expect(confirm).toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("checkbox", {
+      name: "Подтверждаю пересчёт итоговых оценок по новым весам",
+    }),
+  );
+  expect(confirm).toBeEnabled();
+  fireEvent.click(confirm);
+  await waitFor(() =>
+    expect(state.run.mock.calls[1][1]).toEqual({
+      version: "v1",
+      confirm_grading_change: true,
+    }),
+  );
+});

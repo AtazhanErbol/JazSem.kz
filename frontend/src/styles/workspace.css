@@ -1063,9 +1063,105 @@ a.contextual-action {
   padding-left: 18px;
 }
 
-.course-outline .outline-tools { position: sticky; top: 0; z-index: 2; background: #fff; padding: 8px 0 14px; border-bottom: 1px solid #e4e7ec; }
-.test-import .import-file { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; margin: 0; }
+.course-outline .outline-tools {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+  padding: 8px 0 14px;
+  border-bottom: 1px solid #e4e7ec;
+}
+.test-import .import-file {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+}
 
-.course-outline .outline-tools label { position: relative; display: block; margin: 0; }
-.course-outline .outline-tools label svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
-.course-outline .outline-tools label input { padding-left: 36px; }
+.course-outline .outline-tools label {
+  position: relative;
+  display: block;
+  margin: 0;
+}
+.course-outline .outline-tools label svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.course-outline .outline-tools label input {
+  padding-left: 36px;
+}
+
+/* Consistent spacing for authoring panels and confirmations. */
+.app-main .panel > .row-actions {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+.app-main .panel + .row-actions {
+  margin: 18px 0 24px;
+}
+.app-main .content-pane > .mini-actions {
+  margin: 16px 0 24px;
+}
+.app-main .question-editor {
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.app-main .question-editor .mini-actions {
+  margin: 10px 0;
+  gap: 10px;
+}
+.app-main .option-editor {
+  gap: 14px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.app-main .builder-adds {
+  gap: 8px;
+  margin: 14px 0 20px;
+}
+.app-main .modal-body > p {
+  margin: 0 0 16px;
+}
+.app-main .modal-body .form-actions {
+  margin-top: 24px;
+  gap: 12px;
+}
+.grading-change-notice {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #e6c982;
+  background: #fffaf0;
+  border-radius: 12px;
+}
+.grading-change-notice h3,
+.grading-change-notice p {
+  margin: 0;
+}
+.grading-change-row {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: white;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.app-main .grading-consent {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+.app-main .grading-consent input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}

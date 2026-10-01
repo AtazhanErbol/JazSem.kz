@@ -78,14 +78,16 @@ export function Empty({ children }: { children?: ReactNode }) {
 export function ErrorState({
   error,
   retry,
+  title,
 }: {
+  title?: string;
   error: unknown;
   retry?: () => void;
 }) {
   const { t } = useTranslation();
   return (
     <div className="error" role="alert">
-      <strong>{t("error")}</strong>
+      <strong>{title || t("error")}</strong>
       <p>{error instanceof Error ? error.message : String(error)}</p>
       {retry && <button onClick={retry}>{t("retry")}</button>}
     </div>
