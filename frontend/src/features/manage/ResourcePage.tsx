@@ -320,19 +320,31 @@ export function ResourcePage({ resource }: { resource: string }) {
                       {t("read")}
                     </button>
                   )}
-                  {resource === "users" &&
-                    user.role !== "STUDENT" &&
-                    row.is_active === true &&
-                    row.id !== user.id && (
-                      <button
-                        className="danger"
-                        onClick={() =>
-                          setConfirm({ path: `users/${row.id}/deactivate/` })
-                        }
-                      >
-                        {t("archive")}
-                      </button>
-                    )}
+                  {resource === "users" && user.role !== "STUDENT" && (
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={row.is_active === true}
+                      aria-label={`${t("accountActive")}: ${String(row.email)}`}
+                      className="account-switch"
+                      disabled={action.pending || row.id === user.id}
+                      onClick={() => {
+                        if (row.is_active)
+                          setConfirm({ path: `users/${row.id}/deactivate/` });
+                        else
+                          void action.run(
+                            `users/${row.id}/`,
+                            { is_active: true },
+                            "PATCH",
+                          );
+                      }}
+                    >
+                      <span className="account-switch-track" aria-hidden="true">
+                        <span />
+                      </span>
+                      {t(row.is_active ? "accountActive" : "accountInactive")}
+                    </button>
+                  )}
                   {resource === "tests" && user.role === "STUDENT" && (
                     <Link className="button" to={"/app/tests/" + row.id}>
                       {t("start")}
@@ -391,7 +403,12 @@ export function ResourcePage({ resource }: { resource: string }) {
         </Modal>
       )}
       {confirm && (
-        <Modal title={t("confirm")} onClose={() => setConfirm(undefined)}>
+        <Modal
+          title={t("confirm")}
+          onClose={() => {
+            if (!action.pending) setConfirm(undefined);
+          }}
+        >
           <p>
             {t(
               confirm.restore
@@ -400,19 +417,30 @@ export function ResourcePage({ resource }: { resource: string }) {
                   : resource === "courses"
                     ? "restoreCourseHint"
                     : "restoreArchiveHint"
-                : "confirmText",
+                : resource === "users"
+                  ? "deactivateAccountHint"
+                  : "confirmText",
             )}
           </p>
-          <button
-            className={confirm.restore ? "primary" : "danger"}
-            disabled={action.pending}
-            onClick={async () => {
-              const result = await action.run(confirm.path, confirm.body);
-              if (result.ok) setConfirm(undefined);
-            }}
-          >
-            {t("confirm")}
-          </button>
+          {action.error != null && <ErrorState error={action.error} />}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setConfirm(undefined)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className={confirm.restore ? "primary" : "danger"}
+              disabled={action.pending}
+              onClick={async () => {
+                const result = await action.run(confirm.path, confirm.body);
+                if (result.ok) setConfirm(undefined);
+              }}
+            >
+              {t("confirm")}
+            </button>
+          </div>
         </Modal>
       )}
       {detail && (

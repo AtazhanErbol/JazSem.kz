@@ -43,6 +43,7 @@ def visible(qs, user):
             if is_teacher(user)
             else qs.filter(
                 enrollments__student=user,
+                enrollments__access_revoked=False,
                 enrollments__status__in=["ASSIGNED", "IN_PROGRESS", "COMPLETED"],
                 status="PUBLISHED",
             ).distinct()
@@ -56,30 +57,47 @@ def visible(qs, user):
         return qs.filter(
             **{
                 prefix + "enrollments__student": user,
+                prefix + "enrollments__access_revoked": False,
                 prefix + "enrollments__status__in": ["ASSIGNED", "IN_PROGRESS", "COMPLETED"],
                 prefix + "status": "PUBLISHED",
                 path + "__status": "PUBLISHED",
             }
         ).distinct()
     if label == "enrollments.enrollment":
-        return qs.filter(course__teacher=user) if is_teacher(user) else qs.filter(student=user)
+        return (
+            qs.filter(course__teacher=user)
+            if is_teacher(user)
+            else qs.filter(student=user, access_revoked=False)
+        )
     if label == "assignments.submission":
         return (
             qs.filter(assignment__topic__week__course_version__course__teacher=user)
             if is_teacher(user)
-            else qs.filter(student=user)
+            else qs.filter(
+                student=user,
+                assignment__topic__week__course_version__enrollments__student=user,
+                assignment__topic__week__course_version__enrollments__access_revoked=False,
+            ).distinct()
         )
     if label == "assignments.submissionfile":
         return (
             qs.filter(submission__assignment__topic__week__course_version__course__teacher=user)
             if is_teacher(user)
-            else qs.filter(submission__student=user)
+            else qs.filter(
+                submission__student=user,
+                submission__assignment__topic__week__course_version__enrollments__student=user,
+                submission__assignment__topic__week__course_version__enrollments__access_revoked=False,
+            ).distinct()
         )
     if label == "testing.testattempt":
         return (
             qs.filter(test__topic__week__course_version__course__teacher=user)
             if is_teacher(user)
-            else qs.filter(student=user)
+            else qs.filter(
+                student=user,
+                test__topic__week__course_version__enrollments__student=user,
+                test__topic__week__course_version__enrollments__access_revoked=False,
+            ).distinct()
         )
     if label in ["ai.sourcedocument", "ai.aijob"]:
         return qs.filter(course__teacher=user) if is_teacher(user) else qs.none()

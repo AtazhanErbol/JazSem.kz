@@ -144,6 +144,7 @@ def deadline_reminders():
         for enrollment in Enrollment.objects.filter(
             course_version=assignment.topic.week.course_version,
             status__in=["ASSIGNED", "IN_PROGRESS"],
+            access_revoked=False,
         ):
             notify(
                 enrollment.student,

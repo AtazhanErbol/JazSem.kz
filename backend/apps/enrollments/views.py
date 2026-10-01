@@ -1,10 +1,15 @@
+from django.db import transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
+from apps.audit.services import record
 from apps.common.api import ReadOnlyScoped
 from apps.common.filters import EnrollmentFilter
+from apps.common.inputs import EmptyInput, validated
+from apps.common.permissions import is_teacher
 from apps.common.read_contracts import GradesOutput, ProgressOutput
 from apps.common.serializers import serializer_for
 from apps.enrollments.models import Enrollment
@@ -39,6 +44,35 @@ class EnrollmentViewSet(ReadOnlyScoped):
     queryset = Enrollment.objects.select_related("student", "course", "course_version")
     serializer_class = EnrollmentDisplaySerializer
     filterset_class = EnrollmentFilter
+
+    @transaction.atomic
+    def change_access(self, request, revoked):
+        validated(request, EmptyInput)
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        enrollment = Enrollment.objects.select_for_update().get(pk=self.get_object().pk)
+        if enrollment.access_revoked != revoked:
+            old = {"access_revoked": enrollment.access_revoked}
+            enrollment.access_revoked = revoked
+            enrollment.save(update_fields=["access_revoked", "updated_at"])
+            record(
+                request.user,
+                "enrollment.access_revoked" if revoked else "enrollment.access_restored",
+                enrollment,
+                old,
+                {"access_revoked": revoked},
+            )
+        return Response(self.get_serializer(enrollment).data)
+
+    @extend_schema(request=EmptyInput, responses=EnrollmentDisplaySerializer)
+    @action(detail=True, methods=["post"], url_path="close-access")
+    def close_access(self, request, pk=None):
+        return self.change_access(request, True)
+
+    @extend_schema(request=EmptyInput, responses=EnrollmentDisplaySerializer)
+    @action(detail=True, methods=["post"], url_path="restore-access")
+    def restore_access(self, request, pk=None):
+        return self.change_access(request, False)
 
     @extend_schema(responses=EnrollmentSummaryOutput(many=True))
     @action(detail=False, methods=["get"])

@@ -21,7 +21,8 @@ def submit(assignment, student, text, files):
         student=student, course_version=assignment.topic.week.course_version
     )
     if (
-        enrollment.status not in ["ASSIGNED", "IN_PROGRESS", "COMPLETED"]
+        enrollment.access_revoked
+        or enrollment.status not in ["ASSIGNED", "IN_PROGRESS", "COMPLETED"]
         or assignment.status != "PUBLISHED"
     ):
         raise ValidationError("Задание закрыто.")

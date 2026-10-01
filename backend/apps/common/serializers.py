@@ -12,7 +12,7 @@ _contracts = {
     "testing.question": "test text type score order explanation source_chunks",
     "testing.answeroption": "question text is_correct order",
     "testing.test": "topic title description max_score time_limit_minutes max_attempts shuffle_questions shuffle_answers available_from available_until passing_score status is_required is_final",
-    "enrollments.enrollment": "student course course_version source_type assigned_group assigned_by assigned_at started_at completed_at status",
+    "enrollments.enrollment": "student course course_version source_type assigned_group assigned_by assigned_at started_at completed_at status access_revoked",
     "enrollments.enrollmentsource": "enrollment source_key group_assignment assigned_by",
 }
 _read_only = {

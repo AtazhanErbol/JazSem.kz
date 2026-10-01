@@ -18,9 +18,11 @@ def start(test, student):
     require_visible(test, student)
     if student.role != "STUDENT":
         raise PermissionDenied()
-    Enrollment.objects.select_for_update().get(
+    enrollment = Enrollment.objects.select_for_update().get(
         student=student, course_version=test.topic.week.course_version
     )
+    if enrollment.access_revoked:
+        raise PermissionDenied("Доступ к курсу закрыт.")
     now = timezone.now()
     if (
         test.status != "PUBLISHED"
@@ -61,6 +63,11 @@ def start(test, student):
 
 @transaction.atomic
 def save_answer(attempt, student, question_id, selected):
+    enrollment = Enrollment.objects.select_for_update().get(
+        student=student, course_version=attempt.test.topic.week.course_version
+    )
+    if enrollment.access_revoked:
+        raise PermissionDenied("Доступ к курсу закрыт.")
     attempt = TestAttempt.objects.select_for_update().get(pk=attempt.pk)
     if attempt.student_id != student.pk:
         raise PermissionDenied()
@@ -87,7 +94,7 @@ def save_answer(attempt, student, question_id, selected):
 
 
 @transaction.atomic
-def finalize(attempt, student):
+def finalize(attempt, student, *, require_access=False):
     if attempt.student_id != student.pk:
         raise PermissionDenied()
     # start() and completion/beat must acquire the same locks in this order.
@@ -95,6 +102,8 @@ def finalize(attempt, student):
     enrollment = Enrollment.objects.select_for_update().get(
         student=student, course_version=attempt.test.topic.week.course_version
     )
+    if require_access and enrollment.access_revoked:
+        raise PermissionDenied("Доступ к курсу закрыт.")
     attempt = TestAttempt.objects.select_for_update().get(pk=attempt.pk)
     if attempt.student_id != student.pk:
         raise PermissionDenied()

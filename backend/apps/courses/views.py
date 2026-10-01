@@ -170,6 +170,7 @@ class CourseViewSet(ScopedViewSet):
                     else recipient.name,
                     "status": row.status,
                     "version_number": row.course_version.version_number,
+                    "access_revoked": getattr(row, "access_revoked", False),
                 }
             )
         response = self.get_paginated_response(result)
@@ -306,5 +307,7 @@ class TopicViewSet(ScopedViewSet):
                 student=request.user,
                 course_version=topic.week.course_version,
             )
+            if enrollment.access_revoked:
+                raise PermissionDenied("Доступ к курсу закрыт.")
             TopicProgress.objects.get_or_create(enrollment=enrollment, topic=topic)
             return Response(summary(enrollment, persist=True))

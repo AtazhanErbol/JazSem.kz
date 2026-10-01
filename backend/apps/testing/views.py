@@ -87,4 +87,4 @@ class AttemptViewSet(ReadOnlyScoped):
     @action(detail=True, methods=["post"])
     def finish(self, request, pk=None):
         validated(request, EmptyInput)
-        return Response(representation(finalize(self.get_object(), request.user), request))
+        return Response(representation(finalize(self.get_object(), request.user, require_access=True), request))

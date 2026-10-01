@@ -14,6 +14,7 @@ interface Recipient {
   name: string;
   status: string;
   version_number: number;
+  access_revoked: boolean;
 }
 type Recipients = Page<Recipient> & { selected_assigned: boolean };
 export function CourseSharing({
@@ -27,6 +28,7 @@ export function CourseSharing({
 }) {
   const { t } = useTranslation();
   const action = useAction();
+  const [accessTarget, setAccessTarget] = useState<Recipient>();
   const [removing, setRemoving] = useState<Recipient>();
   const [student, setStudent] = useState("");
   const [group, setGroup] = useState("");
@@ -131,6 +133,49 @@ export function CourseSharing({
         <p className="field-hint">{t("learningDisplay.chooseRecipient")}</p>
       )}
       {action.feedback}
+      {accessTarget && (
+        <Modal
+          title={t(
+            accessTarget.access_revoked ? "restoreAccess" : "closeAccess",
+          )}
+          onClose={() => {
+            if (!action.pending) setAccessTarget(undefined);
+          }}
+        >
+          <p>
+            <strong>{accessTarget.name}</strong>
+          </p>
+          <p>
+            {t(
+              accessTarget.access_revoked
+                ? "restoreAccessHint"
+                : "closeAccessHint",
+            )}
+          </p>
+          {action.error != null && <ErrorState error={action.error} />}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setAccessTarget(undefined)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className={accessTarget.access_revoked ? "primary" : "danger"}
+              disabled={action.pending}
+              onClick={async () => {
+                const result = await action.run(
+                  `enrollments/${accessTarget.id}/${accessTarget.access_revoked ? "restore-access" : "close-access"}/`,
+                  {},
+                );
+                if (result.ok) setAccessTarget(undefined);
+              }}
+            >
+              {t(accessTarget.access_revoked ? "restoreAccess" : "closeAccess")}
+            </button>
+          </div>
+        </Modal>
+      )}
       {removing && (
         <Modal
           title={t("unassignGroup")}
@@ -190,10 +235,20 @@ export function CourseSharing({
             )}
             {students.data?.results.map((row) => (
               <div className="record-row" key={row.id}>
-                <strong>{row.name}</strong>
-                <small>
-                  {t(row.status)} · v{row.version_number}
-                </small>
+                <div className="recipient-details">
+                  <strong>{row.name}</strong>
+                  <small>
+                    {t(row.access_revoked ? "accessClosed" : row.status)} · v
+                    {row.version_number}
+                  </small>
+                </div>
+                <button
+                  className={row.access_revoked ? "" : "danger-text"}
+                  disabled={action.pending}
+                  onClick={() => setAccessTarget(row)}
+                >
+                  {t(row.access_revoked ? "restoreAccess" : "closeAccess")}
+                </button>
               </div>
             ))}
             <Pagination

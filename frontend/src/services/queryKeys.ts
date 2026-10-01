@@ -32,6 +32,15 @@ export function affectedQueries(path: string): string[] {
       "enrollments",
       "dashboard",
     ],
+    enrollments: [
+      "course-recipients",
+      "enrollments",
+      "courses",
+      "tree",
+      "progress",
+      "grades",
+      "dashboard",
+    ],
     users: ["users", "options", "dashboard", "members", "course-teachers"],
     groups: [
       "course-recipients",

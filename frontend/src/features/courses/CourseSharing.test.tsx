@@ -151,3 +151,66 @@ it("requires confirmation before removing a group assignment", async () => {
     }),
   );
 });
+
+it("confirms closing student access and offers restoration", async () => {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+  const row = {
+    id: "enrollment",
+    recipient_id: "student",
+    name: "Student",
+    status: "IN_PROGRESS",
+    version_number: 1,
+    access_revoked: false,
+  };
+  query.mockImplementation(({ queryKey }) => ({
+    data: {
+      count: queryKey[2] === "students" ? 1 : 0,
+      results: queryKey[2] === "students" ? [row] : [],
+      selected_assigned: true,
+    },
+  }));
+  run.mockResolvedValue({ ok: true });
+  const view = render(
+    <CourseSharing id="course" teacher="teacher" published />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Закрыть доступ" }));
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", { name: "Отмена" }),
+  );
+  expect(run).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Закрыть доступ" }));
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Закрыть доступ",
+    }),
+  );
+  await waitFor(() =>
+    expect(run).toHaveBeenCalledWith(
+      "enrollments/enrollment/close-access/",
+      {},
+    ),
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+  );
+  row.access_revoked = true;
+  view.rerender(<CourseSharing id="course" teacher="teacher" published />);
+  expect(screen.getByText(/Доступ закрыт/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Вернуть доступ" }));
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Вернуть доступ",
+    }),
+  );
+  await waitFor(() =>
+    expect(run).toHaveBeenCalledWith(
+      "enrollments/enrollment/restore-access/",
+      {},
+    ),
+  );
+});

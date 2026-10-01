@@ -936,3 +936,37 @@ a.contextual-action {
 .app-main .dashboard-columns {
   align-items: start;
 }
+
+.account-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.account-switch-track {
+  width: 40px;
+  height: 24px;
+  border-radius: 20px;
+  padding: 3px;
+  background: #7a8493;
+  flex-shrink: 0;
+}
+.account-switch-track > span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.18s ease;
+}
+.account-switch[aria-checked="true"] .account-switch-track {
+  background: #197655;
+}
+.account-switch[aria-checked="true"] .account-switch-track > span {
+  transform: translateX(16px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-switch-track > span {
+    transition: none;
+  }
+}

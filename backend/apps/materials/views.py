@@ -63,5 +63,7 @@ class MaterialViewSet(ScopedViewSet):
                 student=request.user,
                 course_version=material.topic.week.course_version,
             )
+            if enrollment.access_revoked:
+                raise PermissionDenied("Доступ к курсу закрыт.")
             StudentProgress.objects.get_or_create(enrollment=enrollment, material=material)
             return Response(summary(enrollment, persist=True))

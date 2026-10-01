@@ -15,6 +15,7 @@ class Enrollment(Entity):
     course_version = models.ForeignKey(
         "courses.CourseVersion", on_delete=models.PROTECT, related_name="enrollments"
     )
+    access_revoked = models.BooleanField(default=False)
     source_type = models.CharField(max_length=20)
     assigned_group = models.ForeignKey("academics.StudyGroup", null=True, on_delete=models.PROTECT)
     assigned_by = models.ForeignKey(
