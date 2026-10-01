@@ -221,287 +221,316 @@ function AIWorkspace({ course }: { course: string }) {
         ))}
       </ol>
       {action.feedback}
-      <div className="wizard-grid">
-        <section className="panel">
-          <h2>01 / {t("course")}</h2>
-          <RemoteSelect
-            source="courses/?active=true"
-            label={t("course")}
-            value={course}
-            onChange={(value) => {
-              setParams(value ? { course: String(value) } : {});
-            }}
-          />
-          <Link className="button contextual-action" to="/app/courses?create=1">
-            + {t("createCourse")}
-          </Link>
-          <h2>02 / {t("sources")}</h2>
-          <label className="upload-area">
-            <Upload />
-            <strong>{t("upload")}</strong>
-            <span>{t("sourceHint")}</span>
-            <input
-              ref={fileInput}
-              type="file"
-              accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
-              onChange={(e) => setFile(e.target.files?.[0])}
+      <div className="wizard-grid ai-workspace-grid">
+        <div className="ai-source-column">
+          <section className="panel">
+            <h2>01 / {t("course")}</h2>
+            <RemoteSelect
+              source="courses/?active=true"
+              label={t("course")}
+              value={course}
+              onChange={(value) => {
+                setParams(value ? { course: String(value) } : {});
+              }}
             />
-          </label>
-          <button
-            disabled={
-              !course ||
-              !file ||
-              action.pending ||
-              !availability.data?.worker_available
-            }
-            onClick={async () => {
-              const body = new FormData();
-              body.append("course", course);
-              body.append("file", file!);
-              const uploaded = await action.run("sources/", body);
-              if (uploaded.ok) {
-                setFile(undefined);
-                if (fileInput.current) fileInput.current.value = "";
-              }
-            }}
-          >
-            {t("upload")}
-          </button>
-          {course && sources.isPending && <Loading />}
-          {sources.isError && (
-            <ErrorState
-              error={sources.error}
-              retry={() => void sources.refetch()}
-            />
-          )}
-          {sources.data && !sources.data.results.length && (
-            <p>{t("aiRecovery.noSources")}</p>
-          )}
-          {sources.data?.results.map((s) => (
-            <div className="source-row" key={s.id}>
-              <label className="check-label">
-                <input
-                  type="checkbox"
-                  checked={selectedSources.includes(s.id)}
-                  disabled={
-                    s.processing_status !== "COMPLETED" || Boolean(s.excluded)
-                  }
-                  onChange={(event) =>
-                    setSelectedSources((ids) =>
-                      event.target.checked
-                        ? [...ids, s.id]
-                        : ids.filter((id) => id !== s.id),
-                    )
-                  }
-                />
-                {String(s.filename)}
-              </label>
-              <Badge>{String(s.processing_status)}</Badge>
-              <button
-                type="button"
-                disabled={
-                  action.pending ||
-                  ["QUEUED", "PROCESSING"].includes(s.processing_status)
-                }
-                onClick={() => {
-                  setDeleteSource(s);
-                  setDeleteFilename("");
-                }}
-                aria-label={`${t("delete")}: ${s.filename}`}
-              >
-                <Trash2 size={16} />
-                {t("delete")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewSource(s)}
-                aria-label={`${t("sourcePreview.open")}: ${s.filename}`}
-              >
-                <Eye size={16} />
-                {t("sourcePreview.open")}
-              </button>
-              {Boolean(s.error) && (
-                <small>
-                  {t(`aiRecovery.errors.${s.error}`, {
-                    defaultValue: t("aiRecovery.errors.EXTRACTION_FAILED"),
-                  })}
-                </small>
-              )}
-              {s.processing_status === "FAILED" && (
-                <button
-                  disabled={action.pending}
-                  onClick={() => void action.run(`sources/${s.id}/retry/`)}
-                >
-                  {t("retry")}
-                </button>
-              )}
-              {s.excluded ? (
-                <small>{t("aiRecovery.excluded")}</small>
-              ) : (
-                <button
-                  disabled={action.pending}
-                  onClick={async () => {
-                    const result = await action.run(`sources/${s.id}/exclude/`);
-                    if (result.ok)
-                      setSelectedSources((ids) =>
-                        ids.filter((id) => id !== s.id),
-                      );
-                  }}
-                >
-                  {t("aiRecovery.exclude")}
-                </button>
-              )}
-            </div>
-          ))}
-          {sources.data && (
-            <nav className="pagination" aria-label={t("sources")}>
-              <button
-                disabled={!sources.data.previous}
-                onClick={() => setSourcePage((p) => p - 1)}
-              >
-                {t("previous")}
-              </button>
-              <span>{sourcePage}</span>
-              <button
-                disabled={!sources.data.next}
-                onClick={() => setSourcePage((p) => p + 1)}
-              >
-                {t("next")}
-              </button>
-            </nav>
-          )}
-        </section>
-        <section className="panel">
-          <h2>03 / {t("generationSettings")}</h2>
-          <label>
-            {t("aiAppend.mode")}
-            <select value={mode} onChange={(e) => setMode(e.target.value)}>
-              <option value="APPEND">{t("aiAppend.append")}</option>
-              <option value="NEW">{t("aiAppend.new")}</option>
-            </select>
-          </label>
-          {mode === "APPEND" && (
-            <>
-              <label>
-                {t("aiAppend.version")}
-                <select
-                  value={baseVersion}
-                  onChange={(e) => setBaseVersion(e.target.value)}
-                >
-                  <option value="">{t("aiAppend.choose")}</option>
-                  {versions.data
-                    ?.filter((v) =>
-                      ["DRAFT", "REVIEW", "PUBLISHED"].includes(v.status),
-                    )
-                    .map((v) => (
-                      <option key={v.id} value={v.id}>
-                        v{v.version_number} · {t(v.status)}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              {versions.isError && <ErrorState error={versions.error} />}
-              {appendInfo.isError && <ErrorState error={appendInfo.error} />}
-              {appendInfo.data && (
-                <p className="muted">
-                  {t("aiAppend.target", {
-                    version: appendInfo.data.version_number,
-                    start: appendInfo.data.start_week,
-                    end: appendInfo.data.start_week + weeks - 1,
-                  })}{" "}
-                  {t(
-                    appendInfo.data.base_status === "PUBLISHED"
-                      ? "aiAppend.copy"
-                      : "aiAppend.draft",
-                  )}
-                </p>
-              )}
-            </>
-          )}
-          {mode === "NEW" && <p className="muted">{t("aiAppend.newHint")}</p>}
-          <label>
-            {t(mode === "APPEND" ? "aiAppend.count" : "weeks")}
-            <input
-              type="number"
-              min="1"
-              max="16"
-              value={weeks}
-              onChange={(e) => setWeeks(Number(e.target.value))}
-            />
-          </label>
-          <label>
-            {t("aiAppend.instruction")}
-            <textarea
-              rows={4}
-              maxLength={2000}
-              value={instruction}
-              onChange={(e) => setInstruction(e.target.value)}
-              placeholder={t("aiAppend.example")}
-            />
-          </label>
-          <p className="muted">{t("aiAppend.instructionHint")}</p>
-          <p className="muted">{t("aiAppend.pagesHint")}</p>
-          <div className="ai-page-range">
-            <label>
-              {t("aiAppend.from")}
+            <Link
+              className="button contextual-action"
+              to="/app/courses?create=1"
+            >
+              + {t("createCourse")}
+            </Link>
+          </section>
+          <section className="panel ai-sources-panel">
+            <h2>02 / {t("sources")}</h2>
+            <p className="muted">{t("aiLayout.sourceHint")}</p>
+            <label className="upload-area">
+              <Upload />
+              <strong>{t("upload")}</strong>
+              <span>{t("sourceHint")}</span>
               <input
-                type="number"
-                min="1"
-                value={pageFrom}
-                onChange={(e) => setPageFrom(e.target.value)}
+                ref={fileInput}
+                type="file"
+                accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg"
+                onChange={(e) => setFile(e.target.files?.[0])}
               />
             </label>
+            <button
+              disabled={
+                !course ||
+                !file ||
+                action.pending ||
+                !availability.data?.worker_available
+              }
+              onClick={async () => {
+                const body = new FormData();
+                body.append("course", course);
+                body.append("file", file!);
+                const uploaded = await action.run("sources/", body);
+                if (uploaded.ok) {
+                  setFile(undefined);
+                  if (fileInput.current) fileInput.current.value = "";
+                }
+              }}
+            >
+              {t("upload")}
+            </button>
+            {course && sources.isPending && <Loading />}
+            {sources.isError && (
+              <ErrorState
+                error={sources.error}
+                retry={() => void sources.refetch()}
+              />
+            )}
+            {sources.data && !sources.data.results.length && (
+              <p>{t("aiRecovery.noSources")}</p>
+            )}
+            {sources.data?.results.map((s) => (
+              <div className="source-row" key={s.id}>
+                <label className="check-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedSources.includes(s.id)}
+                    disabled={
+                      s.processing_status !== "COMPLETED" || Boolean(s.excluded)
+                    }
+                    onChange={(event) =>
+                      setSelectedSources((ids) =>
+                        event.target.checked
+                          ? [...ids, s.id]
+                          : ids.filter((id) => id !== s.id),
+                      )
+                    }
+                  />
+                  {String(s.filename)}
+                </label>
+                <Badge>{String(s.processing_status)}</Badge>
+                <button
+                  type="button"
+                  onClick={() => setPreviewSource(s)}
+                  aria-label={`${t("sourcePreview.open")}: ${s.filename}`}
+                >
+                  <Eye size={16} />
+                  {t("sourcePreview.open")}
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    action.pending ||
+                    ["QUEUED", "PROCESSING"].includes(s.processing_status)
+                  }
+                  onClick={() => {
+                    setDeleteSource(s);
+                    setDeleteFilename("");
+                  }}
+                  aria-label={`${t("delete")}: ${s.filename}`}
+                >
+                  <Trash2 size={16} />
+                  {t("delete")}
+                </button>
+                {Boolean(s.error) && (
+                  <small>
+                    {t(`aiRecovery.errors.${s.error}`, {
+                      defaultValue: t("aiRecovery.errors.EXTRACTION_FAILED"),
+                    })}
+                  </small>
+                )}
+                {s.processing_status === "FAILED" && (
+                  <button
+                    disabled={action.pending}
+                    onClick={() => void action.run(`sources/${s.id}/retry/`)}
+                  >
+                    {t("retry")}
+                  </button>
+                )}
+                {s.excluded ? (
+                  <small>{t("aiRecovery.excluded")}</small>
+                ) : (
+                  <button
+                    disabled={action.pending}
+                    onClick={async () => {
+                      const result = await action.run(
+                        `sources/${s.id}/exclude/`,
+                      );
+                      if (result.ok)
+                        setSelectedSources((ids) =>
+                          ids.filter((id) => id !== s.id),
+                        );
+                    }}
+                  >
+                    {t("aiRecovery.exclude")}
+                  </button>
+                )}
+              </div>
+            ))}
+            {sources.data && (
+              <nav className="pagination" aria-label={t("sources")}>
+                <button
+                  disabled={!sources.data.previous}
+                  onClick={() => setSourcePage((p) => p - 1)}
+                >
+                  {t("previous")}
+                </button>
+                <span>{sourcePage}</span>
+                <button
+                  disabled={!sources.data.next}
+                  onClick={() => setSourcePage((p) => p + 1)}
+                >
+                  {t("next")}
+                </button>
+              </nav>
+            )}
+          </section>
+        </div>
+        <section className="panel ai-settings-panel">
+          <h2>03 / {t("generationSettings")}</h2>
+          <div className="ai-settings-group">
             <label>
-              {t("aiAppend.to")}
+              {t("aiAppend.mode")}
+              <select value={mode} onChange={(e) => setMode(e.target.value)}>
+                <option value="APPEND">{t("aiAppend.append")}</option>
+                <option value="NEW">{t("aiAppend.new")}</option>
+              </select>
+            </label>
+            {mode === "APPEND" && (
+              <>
+                <label>
+                  {t("aiAppend.version")}
+                  <select
+                    value={baseVersion}
+                    onChange={(e) => setBaseVersion(e.target.value)}
+                  >
+                    <option value="">{t("aiAppend.choose")}</option>
+                    {versions.data
+                      ?.filter((v) =>
+                        ["DRAFT", "REVIEW", "PUBLISHED"].includes(v.status),
+                      )
+                      .map((v) => (
+                        <option key={v.id} value={v.id}>
+                          v{v.version_number} · {t(v.status)}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                {versions.isError && <ErrorState error={versions.error} />}
+                {appendInfo.isError && <ErrorState error={appendInfo.error} />}
+                {appendInfo.data && (
+                  <p className="muted">
+                    {t("aiAppend.target", {
+                      version: appendInfo.data.version_number,
+                      start: appendInfo.data.start_week,
+                      end: appendInfo.data.start_week + weeks - 1,
+                    })}{" "}
+                    {t(
+                      appendInfo.data.base_status === "PUBLISHED"
+                        ? "aiAppend.copy"
+                        : "aiAppend.draft",
+                    )}
+                  </p>
+                )}
+              </>
+            )}
+            {mode === "NEW" && <p className="muted">{t("aiAppend.newHint")}</p>}
+            <label>
+              {t(mode === "APPEND" ? "aiAppend.count" : "weeks")}
               <input
                 type="number"
                 min="1"
-                value={pageTo}
-                onChange={(e) => setPageTo(e.target.value)}
+                max="16"
+                value={weeks}
+                onChange={(e) => setWeeks(Number(e.target.value))}
               />
             </label>
           </div>
-          <label>
-            {t("language")}
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              <option value="ru">RU</option>
-              <option value="kk">KZ</option>
-            </select>
-          </label>
-          <label>
-            {t("complexity")}
-            <select
-              value={complexity}
-              onChange={(e) => setComplexity(e.target.value)}
-            >
-              {["basic", "intermediate", "advanced"].map((v) => (
-                <option key={v} value={v}>
-                  {t(v)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="check-label">
-            <input
-              type="checkbox"
-              checked={assignments}
-              onChange={(e) => setAssignments(e.target.checked)}
-            />
-            {t("assignments")}
-          </label>
-          <label className="check-label">
-            <input
-              type="checkbox"
-              checked={tests}
-              onChange={(e) => setTests(e.target.checked)}
-            />
-            {t("tests")}
-          </label>
+          <div className="ai-settings-group">
+            <label>
+              {t("aiAppend.instruction")}
+              <textarea
+                rows={4}
+                maxLength={2000}
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                placeholder={t("aiAppend.example")}
+              />
+            </label>
+            <details className="ai-help">
+              <summary>{t("aiLayout.instructionHelp")}</summary>
+              <p className="muted">{t("aiAppend.instructionHint")}</p>
+            </details>
+            <details className="ai-help">
+              <summary>{t("aiLayout.pageHelp")}</summary>
+              <p className="muted">{t("aiAppend.pagesHint")}</p>
+            </details>
+            <div className="ai-page-range">
+              <label>
+                {t("aiAppend.from")}
+                <input
+                  type="number"
+                  min="1"
+                  value={pageFrom}
+                  onChange={(e) => setPageFrom(e.target.value)}
+                />
+              </label>
+              <label>
+                {t("aiAppend.to")}
+                <input
+                  type="number"
+                  min="1"
+                  value={pageTo}
+                  onChange={(e) => setPageTo(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+          <div className="ai-settings-group">
+            <div className="ai-options-grid">
+              <label>
+                {t("language")}
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                >
+                  <option value="ru">RU</option>
+                  <option value="kk">KZ</option>
+                </select>
+              </label>
+              <label>
+                {t("complexity")}
+                <select
+                  value={complexity}
+                  onChange={(e) => setComplexity(e.target.value)}
+                >
+                  {["basic", "intermediate", "advanced"].map((v) => (
+                    <option key={v} value={v}>
+                      {t(v)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="ai-output-options">
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={assignments}
+                  onChange={(e) => setAssignments(e.target.checked)}
+                />
+                {t("assignments")}
+              </label>
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={tests}
+                  onChange={(e) => setTests(e.target.checked)}
+                />
+                {t("tests")}
+              </label>
+            </div>
+          </div>
+          <p className="muted ai-selection-count">
+            {t("aiLayout.selected", { count: selectedSources.length })}
+          </p>
           <button
-            className="primary"
+            className="primary ai-generate-button"
             disabled={
               !canGenerate ||
               !course ||

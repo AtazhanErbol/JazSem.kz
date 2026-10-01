@@ -29,6 +29,13 @@ const ru = {
     page: "Страница / раздел {{number}}",
   },
   aiAppend: ruAIAppend,
+  aiLayout: {
+    sourceHint:
+      "Отметьте файлы, которые ИИ должен использовать. Перед выбором можно открыть и проверить содержимое.",
+    instructionHelp: "Как написать инструкцию",
+    pageHelp: "Как выбрать страницы PDF",
+    selected: "Выбрано источников: {{count}}",
+  },
   userImport: ruUserImport,
   owner_teacher: "Ответственный преподаватель",
   workspace: ruWorkspace,
@@ -345,6 +352,13 @@ const kk: typeof ru = {
     page: "Бет / бөлім {{number}}",
   },
   aiAppend: kkAIAppend,
+  aiLayout: {
+    sourceHint:
+      "ЖИ қолданатын файлдарды белгілеңіз. Таңдамас бұрын мазмұнын ашып тексеруге болады.",
+    instructionHelp: "Нұсқауды қалай жазу керек",
+    pageHelp: "PDF беттерін қалай таңдау керек",
+    selected: "Таңдалған дереккөздер: {{count}}",
+  },
   userImport: kkUserImport,
   aiRecovery: kkAIRecovery,
   owner_teacher: "Жауапты оқытушы",
