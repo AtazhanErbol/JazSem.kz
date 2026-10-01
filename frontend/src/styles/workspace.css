@@ -648,3 +648,10 @@ a.contextual-action {
 }
 
 .contextual-action + h2 { margin-top: 28px; }
+
+.dashboard-groups {
+  margin-top: 28px;
+}
+.dashboard-groups .learning-row:last-child {
+  margin-bottom: 0;
+}

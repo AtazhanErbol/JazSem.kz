@@ -133,7 +133,7 @@ function LearningDashboard() {
         </div>
       )}
       {user.role === "TEACHER" && (
-        <section className="panel">
+        <section className="panel dashboard-groups">
           <div className="section-heading">
             <h2>{t("ux.reviewQueue")}</h2>
             <Link to="/app/submissions?pending=true">{t("all")} ↗</Link>
@@ -271,7 +271,7 @@ function LearningDashboard() {
         </section>
       </div>
       {user.role === "TEACHER" && (
-        <section className="panel">
+        <section className="panel dashboard-groups">
           <div className="section-heading">
             <h2>{t("ux.myGroups")}</h2>
             <Link to="/app/groups">{t("all")}</Link>
