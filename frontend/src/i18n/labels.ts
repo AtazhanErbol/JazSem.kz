@@ -1,4 +1,7 @@
 export const ruLabels = {
+  basic: "Базовый",
+  intermediate: "Средний",
+  advanced: "Продвинутый",
   ADMIN: "Администратор",
   TEACHER: "Преподаватель",
   STUDENT: "Студент",
@@ -34,6 +37,9 @@ export const ruLabels = {
   kk: "Қазақша",
 };
 export const kkLabels = {
+  basic: "Бастапқы",
+  intermediate: "Орташа",
+  advanced: "Жоғары",
   ADMIN: "Әкімші",
   TEACHER: "Оқытушы",
   STUDENT: "Студент",

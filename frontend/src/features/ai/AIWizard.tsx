@@ -297,7 +297,7 @@ function AIWorkspace({ course }: { course: string }) {
             </div>
           ))}
           {sources.data && (
-            <div className="toolbar">
+            <nav className="toolbar" aria-label={t("sources")}>
               <button
                 disabled={!sources.data.previous}
                 onClick={() => setSourcePage((p) => p - 1)}
@@ -311,7 +311,7 @@ function AIWorkspace({ course }: { course: string }) {
               >
                 {t("next")}
               </button>
-            </div>
+            </nav>
           )}
         </section>
         <section className="panel">
@@ -343,7 +343,9 @@ function AIWorkspace({ course }: { course: string }) {
               onChange={(e) => setComplexity(e.target.value)}
             >
               {["basic", "intermediate", "advanced"].map((v) => (
-                <option key={v}>{v}</option>
+                <option key={v} value={v}>
+                  {t(v)}
+                </option>
               ))}
             </select>
           </label>
@@ -469,7 +471,7 @@ function AIWorkspace({ course }: { course: string }) {
             <p>{t("aiRecovery.noJobs")}</p>
           )}
           {jobs.data && (
-            <div className="toolbar">
+            <nav className="toolbar" aria-label={t("aiRecovery.history")}>
               <button
                 disabled={!jobs.data.previous}
                 onClick={() => setJobPage((p) => p - 1)}
@@ -483,7 +485,7 @@ function AIWorkspace({ course }: { course: string }) {
               >
                 {t("next")}
               </button>
-            </div>
+            </nav>
           )}
         </section>
       )}

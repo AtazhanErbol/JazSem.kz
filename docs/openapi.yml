@@ -4505,9 +4505,8 @@ components:
           type: boolean
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
       required:
       - created_at
       - id
@@ -4527,9 +4526,8 @@ components:
           type: boolean
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
       required:
       - question
       - text
@@ -4557,9 +4555,8 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         deadline:
           type: string
           format: date-time
@@ -4571,9 +4568,8 @@ components:
           maxLength: 20
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -4618,9 +4614,8 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         deadline:
           type: string
           format: date-time
@@ -4632,9 +4627,8 @@ components:
           maxLength: 20
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -4662,9 +4656,8 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         deadline:
           type: string
           format: date-time
@@ -4677,9 +4670,8 @@ components:
           maxLength: 20
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -4878,14 +4870,12 @@ components:
           $ref: '#/components/schemas/TypeEnum'
         score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         explanation:
           type: string
         source_chunks: {}
@@ -4926,19 +4916,16 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         time_limit_minutes:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         max_attempts:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         shuffle_questions:
           type: boolean
         shuffle_answers:
@@ -4953,9 +4940,8 @@ components:
           nullable: true
         passing_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         status:
           type: string
           maxLength: 20
@@ -5010,9 +4996,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -5074,9 +5059,8 @@ components:
           readOnly: true
         number:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         title:
           type: string
           maxLength: 240
@@ -5084,9 +5068,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         course_version:
           type: string
           format: uuid
@@ -5292,9 +5275,8 @@ components:
           readOnly: true
         version_number:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         status:
           $ref: '#/components/schemas/VersionStateEnum'
         published_at:
@@ -5915,9 +5897,8 @@ components:
           $ref: '#/components/schemas/KindEnum'
         weight:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         scheme:
           type: string
           format: uuid
@@ -5935,9 +5916,8 @@ components:
           $ref: '#/components/schemas/KindEnum'
         weight:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         scheme:
           type: string
           format: uuid
@@ -6315,15 +6295,13 @@ components:
           maxLength: 150
         size:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
           nullable: true
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         topic:
@@ -6382,9 +6360,8 @@ components:
           nullable: true
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         topic:
@@ -6424,9 +6401,8 @@ components:
             maxLength: 0
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         topic:
@@ -7223,9 +7199,8 @@ components:
           type: boolean
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
     PatchedAssignmentDisplayRequest:
       type: object
       properties:
@@ -7239,9 +7214,8 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         deadline:
           type: string
           format: date-time
@@ -7254,9 +7228,8 @@ components:
           maxLength: 20
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -7334,9 +7307,8 @@ components:
           $ref: '#/components/schemas/KindEnum'
         weight:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         scheme:
           type: string
           format: uuid
@@ -7375,9 +7347,8 @@ components:
             maxLength: 0
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         topic:
@@ -7407,14 +7378,12 @@ components:
           $ref: '#/components/schemas/TypeEnum'
         score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         explanation:
           type: string
         source_chunks: {}
@@ -7448,19 +7417,16 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         time_limit_minutes:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         max_attempts:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         shuffle_questions:
           type: boolean
         shuffle_answers:
@@ -7475,9 +7441,8 @@ components:
           nullable: true
         passing_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         status:
           type: string
           minLength: 1
@@ -7499,9 +7464,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -7542,9 +7506,8 @@ components:
       properties:
         number:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         title:
           type: string
           minLength: 1
@@ -7553,9 +7516,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         course_version:
           type: string
           format: uuid
@@ -7627,14 +7589,12 @@ components:
           $ref: '#/components/schemas/TypeEnum'
         score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         explanation:
           type: string
         source_chunks: {}
@@ -7658,14 +7618,12 @@ components:
           $ref: '#/components/schemas/TypeEnum'
         score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         explanation:
           type: string
         source_chunks: {}
@@ -7863,9 +7821,8 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         deadline:
           type: string
           format: date-time
@@ -7877,9 +7834,8 @@ components:
           maxLength: 20
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         topic:
@@ -7935,9 +7891,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         week:
@@ -7998,9 +7953,8 @@ components:
           readOnly: true
         number:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         title:
           type: string
           maxLength: 240
@@ -8008,9 +7962,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         course_version:
           type: string
           format: uuid
@@ -8319,19 +8272,16 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         time_limit_minutes:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         max_attempts:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         shuffle_questions:
           type: boolean
         shuffle_answers:
@@ -8346,9 +8296,8 @@ components:
           nullable: true
         passing_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         status:
           type: string
           maxLength: 20
@@ -8455,19 +8404,16 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         time_limit_minutes:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         max_attempts:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         shuffle_questions:
           type: boolean
         shuffle_answers:
@@ -8482,9 +8428,8 @@ components:
           nullable: true
         passing_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         status:
           type: string
           maxLength: 20
@@ -8522,19 +8467,16 @@ components:
           type: string
         max_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         time_limit_minutes:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         max_attempts:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         shuffle_questions:
           type: boolean
         shuffle_answers:
@@ -8549,9 +8491,8 @@ components:
           nullable: true
         passing_score:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         status:
           type: string
           minLength: 1
@@ -8587,9 +8528,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -8615,9 +8555,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         is_required:
           type: boolean
         source_chunks: {}
@@ -8819,9 +8758,8 @@ components:
           readOnly: true
         number:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         title:
           type: string
           maxLength: 240
@@ -8829,9 +8767,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         course_version:
           type: string
           format: uuid
@@ -8847,9 +8784,8 @@ components:
       properties:
         number:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         title:
           type: string
           minLength: 1
@@ -8858,9 +8794,8 @@ components:
           type: string
         order:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 2147483647
           minimum: 0
-          format: int64
         course_version:
           type: string
           format: uuid

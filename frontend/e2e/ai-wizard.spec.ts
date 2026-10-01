@@ -1,5 +1,119 @@
 import { test, expect } from "@playwright/test";
 
+test("AI source/history pagination restores URL state and keeps RU/KK controls localized", async ({
+  page,
+}) => {
+  const requested: string[] = [];
+  await page.route("**/api/v1/**", async (route) => {
+    const url = new URL(route.request().url()),
+      path = url.pathname;
+    let data: unknown = { count: 0, results: [], next: null, previous: null };
+    if (path.endsWith("/auth/me/"))
+      data = {
+        id: "paging-teacher",
+        email: "paging@example.test",
+        role: "TEACHER",
+        must_change_password: false,
+        preferred_language: "ru",
+      };
+    else if (path.endsWith("/ai-status/"))
+      data = {
+        enabled: true,
+        configured: true,
+        worker_available: true,
+        model: "synthetic-ui",
+        daily_budget: "0.25",
+      };
+    else if (path.endsWith("/courses/"))
+      data = {
+        count: 1,
+        results: [{ id: "course", title: "Пагинация / Беттеу ӘҒҚҢӨҰҮҺІ" }],
+        next: null,
+        previous: null,
+      };
+    else if (path.endsWith("/sources/") || path.endsWith("/ai-jobs/")) {
+      const number = Number(url.searchParams.get("page") || 1),
+        source = path.endsWith("/sources/");
+      requested.push(`${source ? "source" : "job"}:${number}`);
+      const results = Array.from({ length: number === 1 ? 25 : 1 }, (_, n) =>
+        source
+          ? {
+              id: `s${(number - 1) * 25 + n}`,
+              filename: `source ${(number - 1) * 25 + n}.txt`,
+              processing_status: "COMPLETED",
+            }
+          : {
+              id: `j${(number - 1) * 25 + n}`,
+              course: "course",
+              created_at: "2026-10-01T00:00:00Z",
+              status: "FAILED",
+            },
+      );
+      data = {
+        count: 26,
+        results,
+        next: number === 1 ? "?page=2" : null,
+        previous: number === 2 ? "?page=1" : null,
+      };
+    } else if (path.includes("/ai-jobs/j"))
+      data = {
+        id: path.split("/").at(-2),
+        course: "course",
+        status: "FAILED",
+        current_step: "FAILED",
+        progress: 0,
+      };
+    await route.fulfill({ status: 200, json: data });
+  });
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/app/ai?course=course");
+  await page
+    .getByRole("checkbox", { name: "source 0.txt", exact: true })
+    .check();
+  await page
+    .getByRole("navigation", { name: "Учебные источники", exact: true })
+    .getByRole("button", { name: "Далее", exact: true })
+    .click();
+  await expect(
+    page.getByRole("checkbox", { name: "source 25.txt", exact: true }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/sourcePage=2/);
+  await page
+    .getByRole("navigation", { name: "История генераций", exact: true })
+    .getByRole("button", { name: "Далее", exact: true })
+    .click();
+  await expect(page).toHaveURL(/jobPage=2/);
+  await page.reload();
+  await expect(
+    page.getByRole("checkbox", { name: "source 25.txt", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Қазақша", exact: true }).click();
+  await expect(
+    page.getByRole("option", { name: "Орташа", exact: true }),
+  ).toHaveAttribute("value", "intermediate");
+  expect(new URL(page.url()).searchParams.get("jobPage")).toBe("2");
+  await page.getByRole("button", { name: "Русский", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Учебные источники", exact: true })
+    .getByRole("button", { name: "Назад", exact: true })
+    .click();
+  await expect(
+    page.getByRole("checkbox", { name: "source 0.txt", exact: true }),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole("checkbox", { name: "source 25.txt", exact: true }),
+  ).toBeVisible();
+  expect(requested).toEqual(
+    expect.arrayContaining(["source:1", "source:2", "job:1", "job:2"]),
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+    ),
+  ).toBe(true);
+});
+
 test("AI wizard reviews and imports a draft without a real provider call", async ({
   page,
 }) => {
