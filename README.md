@@ -4,7 +4,7 @@
 
 Реализованы роли ADMIN/TEACHER/STUDENT, группы, дисциплины, версии курсов, назначения, учебный плеер, файлы, задания с доработкой, тесты с серверным таймером, оценки, прогресс, уведомления и AI-черновики с проверкой преподавателем. Все операции выполняются через backend; тестовый провайдер AI используется только в тестах.
 
-**Статус:** локальные RC engineering gates пройдены на `ac8ad86` (145 backend, 8 frontend, 21 browser); production release не одобрен. Успешные локальные тесты не заменяют приёмку production-инфраструктуры. Проверенные сценарии и оставшиеся release gates перечислены в [RELEASE_CANDIDATE](docs/RELEASE_CANDIDATE.md).
+**Статус:** локальные RC engineering gates пройдены на `ac8ad86` (145 backend, 8 frontend, 21 browser); production release не одобрен. После UI-доработок на `27ca055` прошли 12 frontend-тестов, lint и production build; полный предыдущий RC-прогон относится к `ac8ad86`. Успешные локальные тесты не заменяют приёмку production-инфраструктуры. Проверенные сценарии и оставшиеся release gates перечислены в [RELEASE_CANDIDATE](docs/RELEASE_CANDIDATE.md).
 
 ## Быстрый запуск через Docker
 
