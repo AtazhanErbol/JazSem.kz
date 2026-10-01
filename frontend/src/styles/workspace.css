@@ -843,3 +843,96 @@ a.contextual-action {
     transition: none !important;
   }
 }
+
+/* Shared vertical rhythm for management screens and nested records. */
+.app-main .row-actions,
+.app-main .form-actions,
+.app-main .mini-actions {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.app-main .record-row + .record-row {
+  margin-top: 12px;
+}
+.app-main .record-row {
+  min-width: 0;
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+.app-main .record-row > strong,
+.app-main .record-row > span,
+.app-main .recipient-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.app-main .panel > h3:not(:first-child) {
+  margin-top: 28px;
+}
+.app-main .panel > h3 {
+  margin-bottom: 14px;
+}
+.app-main .panel > p + .row-actions,
+.app-main .modal-body > p + .form-actions {
+  margin-top: 20px;
+}
+.app-main .page > h2:not(:first-child) {
+  margin-top: 28px;
+  margin-bottom: 16px;
+}
+.assigned-recipients {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.assigned-recipients > h3 {
+  margin: 28px 0 16px;
+}
+.assigned-recipients > h3:first-child {
+  margin-top: 0;
+}
+.recipient-details {
+  display: grid;
+  gap: 8px;
+}
+.recipient-details small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .assigned-recipients .record-row {
+    align-items: flex-start;
+  }
+  .assigned-recipients .record-row > button {
+    width: 100%;
+  }
+  .app-main .form-actions > button {
+    flex: 1 1 140px;
+  }
+}
+.app-main .modal-body > p + button {
+  margin-top: 16px;
+}
+.app-main .panel > button + button,
+.app-main .panel > button + a.button {
+  margin-inline-start: 12px;
+}
+.app-main .source-row {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.app-main .source-row > label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.app-main .question-editor + .question-editor {
+  margin-top: 20px;
+}
+.app-main .option-editor {
+  gap: 12px;
+}
+.app-main .form-actions {
+  margin-top: 20px;
+}
+.app-main .dashboard-columns {
+  align-items: start;
+}

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import type { GroupDetails, GroupMember } from "../../entities/learning";
 import { api } from "../../services/api";
-import { Badge, Empty, ErrorState, Loading } from "../../components/UI";
+import { Badge, Empty, ErrorState, Loading, Modal } from "../../components/UI";
 import { RemoteSelect } from "../../components/RemoteSelect";
 import { useAction } from "../../hooks/useAction";
 
@@ -12,6 +12,7 @@ export function GroupPage() {
   const { id } = useParams();
   const { t } = useTranslation();
   const action = useAction();
+  const [removing, setRemoving] = useState<GroupMember>();
   const [student, setStudent] = useState("");
   const group = useQuery({
     queryKey: ["groups", id],
@@ -31,7 +32,7 @@ export function GroupPage() {
   return (
     <>
       <h1>{group.data.name}</h1>
-      <Badge>{group.data.status}</Badge>
+      <Badge>{t(group.data.status)}</Badge>
       <h2>{t("members")}</h2>
       {members.isPending && <Loading />}
       {members.error && (
@@ -51,7 +52,13 @@ export function GroupPage() {
           />
           <button
             className="primary contextual-action"
-            disabled={!student || action.pending}
+            disabled={
+              !student ||
+              action.pending ||
+              members.isPending ||
+              !!members.error ||
+              members.data?.some((member) => member.student === student)
+            }
             onClick={async () => {
               const result = await action.run(`groups/${id}/members/`, {
                 student,
@@ -67,6 +74,40 @@ export function GroupPage() {
         </section>
       )}
       {action.feedback}
+      {removing && (
+        <Modal
+          title={t("removeMember")}
+          onClose={() => {
+            if (!action.pending) setRemoving(undefined);
+          }}
+        >
+          <p>
+            <strong>{removing.student_name}</strong>
+          </p>
+          <p>{t("removeMemberHint")}</p>
+          {action.error != null && <ErrorState error={action.error} />}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setRemoving(undefined)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className="danger"
+              disabled={action.pending}
+              onClick={async () => {
+                const result = await action.run(`groups/${id}/remove-member/`, {
+                  student: removing.student,
+                });
+                if (result.ok) setRemoving(undefined);
+              }}
+            >
+              {t("removeMember")}
+            </button>
+          </div>
+        </Modal>
+      )}
       {members.data?.map((member) => (
         <div className="record-row" key={member.id}>
           <span>
@@ -76,11 +117,7 @@ export function GroupPage() {
           {group.data.status === "ACTIVE" && (
             <button
               disabled={action.pending}
-              onClick={() =>
-                void action.run(`groups/${id}/remove-member/`, {
-                  student: member.student,
-                })
-              }
+              onClick={() => setRemoving(member)}
             >
               {t("removeMember")}
             </button>

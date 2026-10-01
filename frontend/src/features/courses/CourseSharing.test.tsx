@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import i18n from "../../i18n";
 import { CourseSharing } from "./CourseSharing";
@@ -104,4 +105,49 @@ it("shows persisted recipients after remount and disables their assignment", () 
     fireEvent.change(selectors[i], { target: { value: "two" } });
     expect(buttons[i]).toBeEnabled();
   }
+});
+
+it("requires confirmation before removing a group assignment", async () => {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+  query.mockImplementation(({ queryKey }: { queryKey: string[] }) => ({
+    data: {
+      count: queryKey[2] === "groups" ? 1 : 0,
+      results:
+        queryKey[2] === "groups"
+          ? [
+              {
+                id: "a1",
+                recipient_id: "group-one",
+                name: "Group One",
+                status: "ACTIVE",
+                version_number: 1,
+              },
+            ]
+          : [],
+      selected_assigned: false,
+    },
+  }));
+  run.mockResolvedValue({ ok: true });
+  render(<CourseSharing id="course" teacher="teacher" published />);
+  fireEvent.click(screen.getByRole("button", { name: "Снять назначение" }));
+  expect(screen.getByRole("dialog")).toHaveTextContent("Group One");
+  expect(run).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+  expect(run).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Снять назначение" }));
+  fireEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Снять назначение",
+    }),
+  );
+  await waitFor(() =>
+    expect(run).toHaveBeenCalledWith("groups/group-one/unassign-course/", {
+      course: "course",
+    }),
+  );
 });

@@ -156,6 +156,28 @@ class GroupViewSet(ScopedViewSet):
         )
         return Response(representation(obj, request))
 
+    @action(detail=True, methods=["post"], url_path="unassign-course")
+    @transaction.atomic
+    def unassign_course(self, request, pk=None):
+        data = validated(request, CourseInput)
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        group = StudyGroup.objects.select_for_update().get(pk=self.get_object().pk)
+        course = lookup(Course, data["course"], request.user)
+        Course.objects.select_for_update().get(pk=course.pk)
+        assignment = get_object_or_404(group.course_assignments, course=course)
+        if assignment.status == "ACTIVE":
+            assignment.status = "ARCHIVED"
+            assignment.save(update_fields=["status", "updated_at"])
+            record(
+                request.user,
+                "group.course_unassigned",
+                assignment,
+                old={"status": "ACTIVE"},
+                new={"status": "ARCHIVED"},
+            )
+        return Response(status=204)
+
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def archive(self, request, pk=None):

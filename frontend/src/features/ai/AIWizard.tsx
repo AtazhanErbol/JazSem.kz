@@ -529,35 +529,41 @@ function AIWorkspace({ course }: { course: string }) {
               }
             }}
           />
-          <button
-            disabled={
-              action.pending ||
-              !draftText ||
-              Boolean(draft.data.imported_version)
-            }
-            onClick={async () => {
-              const saved = await action.run<Row>(
-                `ai-drafts/${draft.data!.id}/`,
-                { data: JSON.parse(draftText) },
-                "PATCH",
-              );
-              if (saved.ok) setDraftText("");
-            }}
-          >
-            {t("save")}
-          </button>
-          <button
-            className="primary"
-            disabled={!!draftText || Boolean(draft.data.imported_version)}
-            onClick={() => setConfirm(true)}
-          >
-            {t("importDraft")}
-          </button>
-          {Boolean(imported || draft.data.imported_version) && (
-            <Link className="button" to={"/app/courses/" + course}>
-              {t("builder")} → {t("publish")}
-            </Link>
-          )}
+          <div className="form-actions">
+            <button
+              disabled={
+                action.pending ||
+                !draftText ||
+                Boolean(draft.data.imported_version)
+              }
+              onClick={async () => {
+                const saved = await action.run<Row>(
+                  `ai-drafts/${draft.data!.id}/`,
+                  { data: JSON.parse(draftText) },
+                  "PATCH",
+                );
+                if (saved.ok) setDraftText("");
+              }}
+            >
+              {t("save")}
+            </button>
+            <button
+              className="primary"
+              disabled={
+                action.pending ||
+                !!draftText ||
+                Boolean(draft.data.imported_version)
+              }
+              onClick={() => setConfirm(true)}
+            >
+              {t("importDraft")}
+            </button>
+            {Boolean(imported || draft.data.imported_version) && (
+              <Link className="button" to={"/app/courses/" + course}>
+                {t("builder")} → {t("publish")}
+              </Link>
+            )}
+          </div>
         </section>
       )}
       {confirm && draft.data && (

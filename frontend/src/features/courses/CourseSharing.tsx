@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
-import { ErrorState, Loading } from "../../components/UI";
+import { ErrorState, Loading, Modal } from "../../components/UI";
 import { Pagination } from "../../components/Pagination";
 import type { Page } from "../../entities/types";
 import { useState } from "react";
@@ -27,6 +27,7 @@ export function CourseSharing({
 }) {
   const { t } = useTranslation();
   const action = useAction();
+  const [removing, setRemoving] = useState<Recipient>();
   const [student, setStudent] = useState("");
   const [group, setGroup] = useState("");
   const [assigned, setAssigned] = useState<Set<string>>(() => new Set());
@@ -130,6 +131,49 @@ export function CourseSharing({
         <p className="field-hint">{t("learningDisplay.chooseRecipient")}</p>
       )}
       {action.feedback}
+      {removing && (
+        <Modal
+          title={t("unassignGroup")}
+          onClose={() => {
+            if (!action.pending) setRemoving(undefined);
+          }}
+        >
+          <p>
+            <strong>{removing.name}</strong>
+          </p>
+          <p>{t("unassignGroupHint")}</p>
+          {action.error != null && <ErrorState error={action.error} />}
+          <div className="form-actions">
+            <button
+              disabled={action.pending}
+              onClick={() => setRemoving(undefined)}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              className="danger"
+              disabled={action.pending}
+              onClick={async () => {
+                const result = await action.run(
+                  `groups/${removing.recipient_id}/unassign-course/`,
+                  { course: id },
+                );
+                if (result.ok) {
+                  setAssigned((previous) => {
+                    const next = new Set(previous);
+                    next.delete(`${id}:group:${removing.recipient_id}`);
+                    return next;
+                  });
+                  setGroupPage(1);
+                  setRemoving(undefined);
+                }
+              }}
+            >
+              {t("unassignGroup")}
+            </button>
+          </div>
+        </Modal>
+      )}
       <div className="assigned-recipients">
         <h3>{t("assignedStudents")}</h3>
         {students.isPending ? (
@@ -174,10 +218,19 @@ export function CourseSharing({
             )}
             {groups.data?.results.map((row) => (
               <div className="record-row" key={row.id}>
-                <strong>{row.name}</strong>
-                <small>
-                  {t(row.status)} · v{row.version_number}
-                </small>
+                <div className="recipient-details">
+                  <strong>{row.name}</strong>
+                  <small>
+                    {t(row.status)} · v{row.version_number}
+                  </small>
+                </div>
+                <button
+                  className="danger-text"
+                  disabled={action.pending}
+                  onClick={() => setRemoving(row)}
+                >
+                  {t("unassignGroup")}
+                </button>
               </div>
             ))}
             <Pagination
