@@ -43,6 +43,21 @@ export function MailDelivery() {
     <>
       <h1>{t("mail.title")}</h1>
       <p className="muted">{t("mail.hint")}</p>
+      <section
+        className="panel mail-status-guide"
+        aria-labelledby="mail-status-guide-title"
+      >
+        <h2 id="mail-status-guide-title">{t("mail.guideTitle")}</h2>
+        <p className="muted">{t("mail.guideFlow")}</p>
+        <dl>
+          {["PENDING", "SENDING", "RETRY", "FAILED", "SENT"].map((value) => (
+            <div key={value}>
+              <dt>{t(`mail.${value}`)}</dt>
+              <dd>{t(`mail.descriptions.${value}`)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
       {metrics.isError && (
         <ErrorState
           error={metrics.error}
