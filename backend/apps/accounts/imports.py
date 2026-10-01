@@ -10,6 +10,27 @@ from .models import User
 from .serializers import UserSerializer
 
 HEADERS = ["Email", "Имя", "Фамилия", "Роль", "Язык", "Email преподавателя"]
+LANGUAGES = {
+    **dict.fromkeys(["ru", "rus", "рус", "русский", "орыс", "орысша"], "ru"),
+    **dict.fromkeys(
+        ["kz", "kk", "kaz", "каз", "қаз", "казахский", "қазақ", "қазақша", "қазақ тілі"], "kk"
+    ),
+}
+FIELD_LABELS = dict(
+    zip(
+        ["email", "first_name", "last_name", "role", "preferred_language", "owner_teacher"], HEADERS
+    )
+)
+
+
+def error_text(value):
+    if isinstance(value, dict):
+        return "; ".join(
+            f"{FIELD_LABELS.get(key, key)}: {error_text(detail)}" for key, detail in value.items()
+        )
+    if isinstance(value, (list, tuple)):
+        return "; ".join(error_text(detail) for detail in value)
+    return str(value)
 
 
 def template():
@@ -27,7 +48,7 @@ def template():
             [
                 "Заполните первый лист: Email, Имя, Фамилия, Роль, Язык, Email преподавателя.",
                 "Роль: Студент или Преподаватель (также STUDENT / TEACHER). Администраторов импортировать нельзя.",
-                "Язык: RU или KZ (также KK). Пустое значение означает RU.",
+                "Язык: RU / рус / русский или KZ / KK / каз / қаз / қазақша. Регистр не важен. Пустое значение означает RU.",
                 "Email преподавателя необязателен: укажите существующего активного преподавателя для студента.",
                 "У администратора пустое поле оставляет студента нераспределённым; у преподавателя студент закрепляется за ним.",
                 "Сначала импортируйте преподавателей, затем студентов, если хотите указать их преподавателей в файле.",
@@ -47,9 +68,12 @@ def read_users(upload, request):
         email, first, last, role, language, owner = values
         email = email.lower()
         role = {"СТУДЕНТ": "STUDENT", "ПРЕПОДАВАТЕЛЬ": "TEACHER"}.get(role.upper(), role.upper())
-        language = language.lower() or "ru"
-        if language == "kz":
-            language = "kk"
+        language = LANGUAGES.get(language.strip().casefold() or "ru")
+        if language is None:
+            errors.append(
+                f"Строка {number}: в колонке «Язык» укажите RU / рус или KZ / каз / қаз. Пустое значение означает RU."
+            )
+            continue
         if role not in ("STUDENT", "TEACHER") or (not is_admin(request.user) and role != "STUDENT"):
             errors.append(
                 f"Строка {number}: недоступная роль. Преподаватель может добавлять только студентов."
@@ -85,7 +109,7 @@ def read_users(upload, request):
         if not first or not last:
             errors.append(f"Строка {number}: заполните имя и фамилию.")
         elif not serializer.is_valid():
-            errors.append(f"Строка {number}: {serializer.errors}")
+            errors.append(f"Строка {number}: {error_text(serializer.errors)}")
         else:
             users.append(data)
     if errors:

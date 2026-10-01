@@ -116,3 +116,36 @@ def test_duplicate_rows_and_stale_preview_atomic(world, client_for):
         ).status_code
         == 400
     )
+
+
+@pytest.mark.parametrize(
+    "language, expected",
+    [
+        ("каз", "kk"),
+        (" ҚАЗ ", "kk"),
+        ("Қазақша", "kk"),
+        ("казахский", "kk"),
+        ("KZ", "kk"),
+        ("KK", "kk"),
+        ("рус", "ru"),
+        ("Русский", "ru"),
+        ("", "ru"),
+    ],
+)
+def test_language_aliases(world, client_for, language, expected):
+    result = preview(
+        client_for(world["admin"]), [["new@example.test", "A", "B", "STUDENT", language, ""]]
+    )
+    assert result.status_code == 200, result.data
+    assert result.data["users"][0]["preferred_language"] == expected
+
+
+@pytest.mark.parametrize(
+    "email, language, label", [("new@example.test", "unknown", "Язык"), ("bad", "каз", "Email")]
+)
+def test_readable_errors(world, client_for, email, language, label):
+    result = preview(client_for(world["admin"]), [[email, "A", "B", "STUDENT", language, ""]])
+    assert result.status_code == 400
+    message = result.content.decode()
+    assert "Строка 2" in message and label in message
+    assert "ErrorDetail" not in message and "invalid_choice" not in message

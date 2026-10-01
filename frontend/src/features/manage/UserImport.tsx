@@ -62,7 +62,7 @@ export function UserImport() {
         </label>
       </div>
       {busy && <p role="status">{t("importChecking")}</p>}
-      {error != null && <ErrorState error={error} />}
+      {error != null && <ErrorState error={error} title={t("actionFailed")} />}
       {action.feedback}
       {preview && (
         <Modal
@@ -97,7 +97,9 @@ export function UserImport() {
               </li>
             ))}
           </ol>
-          {action.error != null && <ErrorState error={action.error} />}
+          {action.error != null && (
+            <ErrorState error={action.error} title={t("actionFailed")} />
+          )}
           <div className="form-actions">
             <button
               disabled={action.pending}
