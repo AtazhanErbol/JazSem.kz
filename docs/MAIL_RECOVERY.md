@@ -1,6 +1,6 @@
 # Encrypted mail delivery and recovery
 
-Mail is queued transactionally with account/reset/notification changes. A worker claims one row in a short transaction, commits, sends outside database locks, then records the result only if it still owns that lease. Beat runs the dispatcher each minute. Five attempts per retry cycle use exponential delay (30 seconds up to one hour); all attempts remain counted. Authentication, recipient and decryption failures require operator action immediately. Expired claims are recovered; the final expired attempt becomes FAILED.
+Mail is queued transactionally with account/reset/notification changes. A worker claims one row in a short transaction, commits, sends outside database locks, then records the result only if it still owns that lease. Beat runs the dispatcher each minute. Five attempts per retry cycle use exponential delay (30 seconds up to one hour); all attempts remain counted. Authentication, permanent recipient/DATA 5xx and decryption failures require operator action immediately. SMTP 4xx (including recipient refusal) is transient; SMTP_PERMANENT_FAILURE is localized in RU/KK. Expired claims are recovered; the final expired attempt becomes FAILED.
 
 ADMIN → Management → Mail delivery shows status, recipient, timestamps, attempt counts and a fixed error code. No subject, body, encrypted payload, password or reset token is exposed. Fix the reported configuration, then use Retry. Active/SENT deliveries cannot be retried. Retries are audited. `GET /api/v1/mail-outbox/metrics/` gives counts and oldest unsent age for an authenticated administrator.
 
@@ -17,4 +17,6 @@ SMTP does not offer exactly-once delivery. A worker can die after the mail serve
 
 `notifications.0002_delivery_leases` classifies already sent mail as SENT and old exhausted mail as FAILED; it preserves unsent ciphertext and attempt counts. Stop old mail workers before migration, then start the matching new workers. Roll back the application only to a release that understands these delivery states. A schema rollback cannot preserve retry/lease semantics; never mix old and new workers.
 
-Local verification uses locmem/file mail sinks. Regression tests cover delivery outside transactions, deferred retries, admin visibility/permissions, lease recovery, no repeat after SENT, missing keys and rotation. Real SMTP error/recovery and PostgreSQL competing claims are separate CI acceptance gates until recorded in RELEASE_CANDIDATE.md.
+Local verification uses locmem/file mail sinks. Regression tests cover delivery outside transactions, deferred retries, admin visibility/permissions, lease recovery, no repeat after SENT, missing keys and rotation. PostgreSQL competing claims are part of the full suite. `acceptance_faults.py` uses a real local STARTTLS SMTP sink: 451 retries with backoff then sends, 550 fails once for operator action, invalid ciphertext is retained and fails once. The exact source/evidence is recorded in RELEASE_CANDIDATE.md. Actual Gmail delivery/inbox placement remains an external gate.
+
+Upgrade order is canonical in [DEPLOYMENT](DEPLOYMENT.md); do not apply mail migrations while legacy workers can write.

@@ -1,0 +1,14 @@
+# Only together with compose.acceptance.yml; no deployment setting is weakened.
+x-ai-env: &ai-env
+  DJANGO_SETTINGS_MODULE: acceptance_ai_settings
+  PYTHONPATH: /app:/acceptance
+  E2E_FAKE_PROVIDER: '1'
+x-ai-volumes: &ai-volumes
+  - ../scripts:/acceptance:ro
+  - ../.runtime/acceptance/control:/control
+services:
+  backend: {environment: *ai-env, volumes: *ai-volumes}
+  short: {environment: *ai-env, volumes: *ai-volumes}
+  heavy: {environment: *ai-env, volumes: *ai-volumes}
+  beat: {environment: *ai-env, volumes: *ai-volumes}
+  mail: {environment: *ai-env, volumes: *ai-volumes}

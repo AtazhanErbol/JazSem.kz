@@ -1,84 +1,31 @@
-# Release candidate work log — 2026-09-30
+# JazSem.kz release candidate — final verification in progress
 
-Status: **in progress, not approved for release**. Source branch `feat/admin-workspace-guide`, SHA `a8e76869a4cafc268853973c8b0bd3f4d1083609`. Work branch `release/rc-hardening`. Source tree was clean; no user changes to preserve. Original application DB and external services are not acceptance fixtures.
+**Status: in progress, not approved for release.** Baseline: `release/rc-hardening` at `a712f644bcd7185bd9d99943ce499d0cb6943654`. All current changes are being verified locally; no push, PR, merge, tag, deployment or paid provider call is authorized by this task.
 
-## Plan and acceptance gates
+The historical [CI run 36696183172](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36696183172) verifies 125 PostgreSQL tests including eight concurrency cases, seven frontend unit tests and development infrastructure/builds at the baseline. It does not certify the new browser/runtime/fault/restore jobs. Earlier work logs and known-fixed A1–A4/deadlock findings are archived in [history](history/RELEASE_CANDIDATE_BEFORE_FINAL_VERIFICATION.md).
 
-Scope updated by the owner's replacement prompt on 2026-09-30: all 13 directions are mandatory (ownership, access/validation, recovery, admin path, teacher workspace, student continuation, real filters, form feedback, performance, AI recovery/history/costs, mobile RU/KK, evidence-based cleanup, release verification). A core-only checkpoint is intermediate; AI work with a fake provider cannot be omitted. The previous baseline and compatible changes are retained.
+## Current 13-direction matrix
 
-1. A — reproduce and fix ownership, question exposure, account activity and custom-action validation; additive/data migrations and access regression tests.
-2. B — transactional task delivery and leases, source recovery/snapshots, encrypted mail recovery, bounded extraction/file lifecycle, grading-mode consistency.
-3. C — data/locking invariants, production configuration/proxy/health, redacted observability/audit, isolated restore rehearsal.
-4. D/E — typed mutation outcomes and field errors, URL state and accessible flows; measure then optimize query/bundle costs; evidence-based cleanup.
-5. F — PostgreSQL concurrency, real-service fault injection, mandatory browser lifecycle in CI, production-image smoke/scans/artifacts; update operator runbooks and list open infrastructure gates.
+The final run will replace pending verification entries with exact counts and source SHA. Earlier local evidence is retained, not represented as a final clean-tree run.
 
-Each stage is checked before the next commit. Paid AI, real SMTP and site deployment are excluded. Synthetic accounts use `example.test`; local mail sink and test provider only. Production acceptance requires real staging evidence, not unit-test totals.
+| # | Direction | Implemented/evidence | Final status |
+|---|---|---|---|
+| 1 | Student owner/creator/history | Explicit owner, scope and PostgreSQL concurrency regressions | pending final suite |
+| 2 | Access/validation/contracts | Nested scope, private files, answer-key protection, published immutability, strict 4xx, OpenAPI | pending final suite |
+| 3 | Durable recovery | Real SIGKILL/broker/storage/SMTP; uncertain usage row and fail-closed Redis 503 fixed | pending rebuilt runtime |
+| 4 | Administrator path | Browser creation/owner/group/course, operations/mail admin gates | pending final browser |
+| 5 | Teacher authoring | Manual lifecycle, publish checklist, scoped actions, old enrollments unchanged | pending final browser |
+| 6 | Student continuation | Validated URL/stored target, answer reload/server expiry, completion distinct from score | pending final browser |
+| 7 | Filters/URL/pagination | Server allowlists, Back/Forward, filtered counts, RemoteSelect pages | pending final suite |
+| 8 | Forms/feedback | Localized ARIA errors, discriminated results, duplicate-submit/dirty guards, modal focus | pending final browser |
+| 9 | Performance | PG25/100 matched before/after, batched results, clone bulk copy, lazy routes, byte/query budgets | measured; final regression pending |
+| 10 | AI workflow/cost | Real outbox/Redis/worker fake SDK; source retry/exclusion, review/regenerate/import, cancellation/uncertain costs | pending final suite |
+| 11 | RU/KK/mobile/a11y | 390/768/1280, actual roles/forms/player/AI, keyboard drawer/modal and text zoom | pending final browser; language review external |
+| 12 | Evidence-led cleanup | Removed unused retry setting/obsolete implementations; S3 manifest/references/grace | pending final S3 check |
+| 13 | Release verification | CI startup/cleanup, production runtime, TLS/proxy, restore, scans, canonical runbooks | in progress |
 
-## Baseline observed locally
+Canonical upgrade/rollback: [DEPLOYMENT](DEPLOYMENT.md). Native image findings and exact review scope: [SECURITY_REVIEW](SECURITY_REVIEW.md). Measurements: [directory](measurements/).
 
-- Windows / Python 3.12.14 / Node 24.21.0; CI pins Python 3.12 and Node 22.
-- `config.settings.test`, isolated in-memory SQLite, eager test Celery and locmem email. This does **not** verify PostgreSQL locks or broker delivery.
-- Ruff lint/format, Django check, migration drift and pip consistency: pass.
-- Backend: 51 passed; frontend: 5 passed. ESLint, TypeScript and production build pass.
-- OpenAPI: 0 errors, 2 enum naming warnings. Baseline saved to ignored `.runtime/rc/baseline-openapi.yml`.
-- Build JS: 604.57 kB raw / 184.93 kB gzip; CSS: 52.63 / 12.05 kB. These are build sizes, not LCP measurements.
-- Docker, PostgreSQL CLI and GitHub CLI unavailable in local PATH. Real PostgreSQL/container tests will run in isolated GitHub Actions jobs; external staging/restore remain open until evidenced.
-- Historical audit/dependency scan results are not treated as fresh proof.
+## External gates (not local failures)
 
-## Findings register
-
-| ID | Priority / evidence | Reproduction and impact | Location | Fix / regression / status |
-|---|---|---|---|---|
-| A1 | P1 confirmed | Admin creates STUDENT; group membership returns 400 because creator is interpreted as owner | accounts, scope, enrollments | `test_admin_created_student_can_join_owner_group_and_course` fails on baseline; fix pending |
-| A2 | P1 confirmed | Future test cannot start but student authoring question/option lists return 200 | common API, testing | two `test_student_cannot_read_authoring_questions_before_start` cases fail; fix pending |
-| A3 | P1 confirmed | Admin PATCH self `is_active=false` returns 200 | accounts views | `test_patch_cannot_bypass_self_deactivation_policy` fails; fix pending |
-| A4 | P1 confirmed | Submission null/object/list/number/bool causes 500 | assignments actions | five field-error regression cases fail; fix pending |
-| B1–B5 | hypotheses from supplied review | Delivery/recovery, stale workers, sources, SMTP, resource limits, ungraded-course dead end | AI, notifications, materials | inspect, reproduce, fix and record evidence |
-| C | hypotheses from supplied review | Lock order, proxy identity, production startup and restore | testing, infra, config | PostgreSQL and production-profile gates pending |
-| D/E | hypotheses from supplied review | Failure UX, overfetching, bundle cost, dead code | frontend, read models | measure and verify before changes |
-
-Initial regression run: **9 failed**, reproducing A1–A4; normal baseline tests remain green. No production data was changed. These nine cases now pass; broader contracts remain in progress. A browser run additionally exposed a logout/login race: global invalidation redirected the next session after a delayed protected refetch. Auth session transitions now avoid those refetches; browser verification is pending.
-
-## Stage A implementation checkpoint
-
-Added `accounts.0003_student_owner_teacher`: nullable PROTECT owner, role constraint and data copy only from teacher creators. Administrative/unknown creators remain unassigned. Creator and historical rows are preserved. Generic reassignment rejects conflicting course/group history; only ADMIN can change ownership.
-
-Question/option authoring endpoints now require an author role. Students review only their permitted attempts, without answer keys. Account activity updates share a stable administrator lock set and prohibit self-blocking; PostgreSQL race regression is included.
-
-Runtime input serializers validate coursework, grading, revisions, version/course/group assignment and answers. Forms choose ownership and retain field errors; edit forms expose a fixed role. Mutation outcomes distinguish empty success from failure and prevent duplicate in-flight actions. Confirmation and upload state survive failed requests.
-
-Local checkpoint: **68 backend passed, 2 PostgreSQL-only skipped**; **7 frontend passed**, lint/typecheck/build pass. Migration tested from historical accounts schema and on a new synthetic QA DB. PostgreSQL concurrency and expanded contracts/observability remain gates, not assumed successes.
-
-QA app: ports 8006/5179, isolated `.runtime/rc/qa.sqlite3`, AI disabled, filebased email, no production records. Rollback: do not revert the ownership schema after newly owned admin-created students exist; roll back to a compatible application image or migrate ownership explicitly. The data-copy reverse is intentionally a no-op and never rewrites creator history.
-
-Stage A commit `5cf22c3` pushed to `release/rc-hardening`. [CI run 36689475086](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36689475086) passed backend (real PostgreSQL, including both concurrency tests), frontend and containers. Existing 15 browser scenarios passed on a fresh `.runtime/rc2/qa.sqlite3` (8006/5179). A sixteenth session-transition scenario hit the real auth throttle in the full run and passed separately after quota reset; this is recorded rather than presenting the full run as green. CI browser isolation/rate policy remains to be completed.
-
-## Mail recovery checkpoint
-
-B3 reproduced with three failing regressions (SMTP lock duration, silent failure/backoff, missing operator retry). Implemented explicit delivery states, short claims, expiring leases, fenced completion, bounded delayed retries, admin-only metadata/retry/metrics, key rotation and a RU/KK operator screen. `notifications.0002_delivery_leases` preserves old queued records and marks exhausted deliveries for review. See MAIL_RECOVERY.md.
-
-Local check before AI changes: **73 backend passed, 2 PostgreSQL-only skipped**, **7 frontend passed**, lint/typecheck pass. Lease/rotation tests include missing keys and retained ciphertext. No real recipient or paid provider was contacted. Production SMTP and competing PostgreSQL mail claims are still acceptance gates.
-
-## AI recovery checkpoint
-
-B1/B2 reproduced with three failing API regressions: broker loss after commit returns 500, a failed source blocks a valid selection, and exclusion is missing. Added transactional delivery outbox, stable identity, bounded dispatch/execution retries, expiring leases and fenced completion; persistent source snapshots; course lock and active-job uniqueness; explicit AI input/read contracts; early assessed-activity validation. Sources support retry/exclusion, UI selection and paginated history/costs; polling stops on terminal/error state. No real provider calls.
-
-Local checkpoint: **87 backend passed, 5 PostgreSQL-only skipped**, migration drift/lint/format/typecheck pass; mocked AI browser review/import passes. New tests simulate hard death after budget reservation, cancellation during provider response, duplicate delivery and late completion. PDF/OOXML/image limits have fixtures; renderer resource closure is exercised. Real process/broker/SMTP fault injection, orphan storage cleanup and container resource separation are still pending. Migration/operating semantics: BACKGROUND_RECOVERY.md.
-
-## Locking reproduction
-
-C3 is confirmed on PostgreSQL: [run 36691868557](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36691868557), commit `0394043`, failed only `test_start_and_expire_follow_one_lock_order` with `deadlock detected` (92 passed). Separate connections/events forced start's Enrollment lock against finalization's Attempt lock. This also verifies the five preceding PostgreSQL cases (admin deactivation, enrollment, cross-actor AI uniqueness, mail claim, budget cap). Finalization now takes Enrollment → Attempt, matching start, and reuses the locked enrollment for progress persistence; fixed-run evidence is pending.
-
-Fixed run [36692180974](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36692180974), SHA `d956ec5`, passed all three jobs including the PostgreSQL deadlock regression.
-
-C5 reproduced with two failed tests: forged XFF bypassed the login quota, and different clients behind a proxy shared a quota. Added explicit trusted-peer normalization, spoofed-header removal and REMOTE_ADDR-based throttling; both regressions pass. Added fail-fast production validation, domain-aware liveness, redacted stack frames and request/error correlation. Production-image/proxy-chain smoke remains required. B4 filename replacement regression failed before the metadata fix; dry-run orphan cleanup now rechecks shared references and grace age before deletion. Only synthetic filesystem fixtures were removed.
-
-CI [36692985280](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36692985280) passed at `87ef76e`. Continued A4 with explicit sensitive resource fields, strict auth/profile/action inputs, mode-specific auth form payloads and nested OpenAPI outputs for student/author trees, attempts, grading, AI, files and recovery. A new malformed-body regression found the strict-input base itself incorrectly raising a non-field string, resulting in 500; it now returns structured 400. Six contract regressions pass; OpenAPI validation now finishes with **zero errors and zero warnings**, including enum names. Schema drift gate will be added with the release pipeline.
-
-## States, operations and measurement checkpoint
-
-Added state CHECK constraints for course/version/enrollment/submission/attempt/job/source, a counts-only preflight, course/version lock ordering, group/course/student inheritance ordering and new PostgreSQL group/publication races. Added explicit audit metadata, worker/queue/storage metrics, private admin operations endpoint and separate resource-capped heavy queue. Local: **117 passed, 8 PostgreSQL-only skipped**, lint/format/migration drift and OpenAPI validation pass. Read-only production containers and real worker/proxy faults still require the expanded CI gate.
-
-Performance baseline is recorded in `docs/measurements/*-before.json`. Backend: isolated SQLite synthetic course at `4bada2d`, 33 topics, 257 questions, 1,026 options, 25 enrollments, seven samples; this is a query/lab baseline, not PostgreSQL load capacity. Corrected the measurement harness after Django's 9,000-query deque truncated late duplicate samples, then reran the **same pre-optimization source** from `git archive 4bada2d` with only query-log clearing changed. All seven duplicate samples now record 1,799 queries. Browser: production build, seven cold contexts per landing/login route, 1440×900, 4× CPU slowdown, 40 ms / 5 Mbit down, Chromium version and actual request paths captured; INP is not measured by these passive navigations. No speedup claimed yet.
-
-CI at `4bada2d` ([36694972475](https://github.com/AtazhanErbol/JazSem.kz/actions/runs/36694972475)) passed backend/containers but failed frontend lint because the new measurement script lacked explicit browser/Node global declarations. This harness lint error is fixed; no passing full CI claim for that SHA.
+Target DNS/TLS/proxy chain, managed PostgreSQL/Redis/S3 versions and IAM; actual SMTP TLS/inbox; separately approved paid AI sample with model/price/limit and RU/KK/citation quality; real OCR and subject/language editing; actual contacts/legal content; configured alerts and encrypted backup retention/access/restore. Owner approval of residual native-library risk remains required. A new GitHub Actions result requires separately authorized push/PR. No target production or staging success is inferred from this lab.

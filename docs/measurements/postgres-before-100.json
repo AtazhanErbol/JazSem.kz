@@ -1,0 +1,225 @@
+{
+  "database": "postgresql",
+  "database_version": 160015,
+  "source_ref": "a712f644bcd7185bd9d99943ce499d0cb6943654",
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "percentile_method": "nearest-rank p95 = max of seven warm samples; descriptive lab result only",
+  "http_calls": {
+    "results_25_rows": 50
+  },
+  "dataset": {
+    "topics": 33,
+    "questions": 257,
+    "options": 1026,
+    "enrollments": 100,
+    "visible_rows": 25
+  },
+  "samples": 7,
+  "student_tree": {
+    "p50_ms": 114.38,
+    "p95_ms": 194.42,
+    "observations": [
+      {
+        "ms": 109.06,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 145.99,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 114.38,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 189.08,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 87.43,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 89.14,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 194.42,
+        "queries": 12,
+        "bytes": 121233
+      }
+    ]
+  },
+  "editor_tree": {
+    "p50_ms": 491.28,
+    "p95_ms": 611.58,
+    "observations": [
+      {
+        "ms": 443.63,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 428.19,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 484.27,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 491.28,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 537.25,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 611.58,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 601.22,
+        "queries": 11,
+        "bytes": 431899
+      }
+    ]
+  },
+  "publish": {
+    "p50_ms": 91.95,
+    "p95_ms": 165.48,
+    "observations": [
+      {
+        "ms": 84.43,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 95.5,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 89.89,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 165.48,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 91.51,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 91.95,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 110.02,
+        "queries": 59,
+        "bytes": 0
+      }
+    ]
+  },
+  "duplicate": {
+    "p50_ms": 1337.01,
+    "p95_ms": 1531.03,
+    "observations": [
+      {
+        "ms": 1320.11,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1279.24,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1291.41,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1372.42,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1531.03,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1507.98,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1337.01,
+        "queries": 1803,
+        "bytes": 0
+      }
+    ]
+  },
+  "results_25_rows": {
+    "p50_ms": 798.06,
+    "p95_ms": 903.14,
+    "observations": [
+      {
+        "ms": 903.14,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 779.39,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 833.29,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 798.06,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 800.79,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 715.9,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 765.46,
+        "queries": 375,
+        "bytes": 5950
+      }
+    ]
+  },
+  "baseline_code_verification": "All tracked backend files except dataset-only benchmark harness match git object"
+}

@@ -1,6 +1,6 @@
 # Persisted states and concurrency — RC, 2026-09-30
 
-The RC migrations add choices and CHECK constraints after a read-only `python manage.py release_preflight`. A nonzero count is a migration blocker: investigate rows in an authorized environment; do not silently coerce states or delete history. The command checks enrollment/version course identity and ownership, which cannot be expressed as a cross-table SQL CHECK. Existing schema migrations remain intact.
+The RC migrations add choices and CHECK constraints after a read-only `python manage.py release_preflight`. For legacy schemas first use `--legacy`, then apply only missing additive owner/AI/mail migrations, then full preflight before state constraints; exact executable order is in DEPLOYMENT.md. A nonzero count is a migration blocker: investigate rows in an authorized environment; do not silently coerce states or delete history. The command checks enrollment/version course identity and ownership, which cannot be expressed as a cross-table SQL CHECK. Existing schema migrations remain intact.
 
 | Entity | Real transitions | Authority / history |
 |---|---|---|
@@ -17,4 +17,4 @@ Lock order: group (when applicable) → all affected courses sorted by PK → st
 
 PostgreSQL tests use separate connections and barriers/events for last-admin protection, enrollment idempotency, group assignment/join, publication/edit, start/expiration, AI uniqueness, budget and mail claims. SQLite skips are not evidence of locking. The recorded start/expiration deadlock was reproduced on PostgreSQL before its fix (RELEASE_CANDIDATE.md).
 
-Rollback: these constraints preserve data. Prefer a compatible application rollback; do not deploy old unsnapshotted AI workers over durable queued jobs. Stop workers before the AI migration, run preflight before the state migrations, migrate once, initialize the storage readiness sentinel, start both short/heavy consumers and beat, then route traffic after readiness. Apply historical migrations to a synthetic copy before staging rollout. Production/staging data checks and restore remain release gates.
+Rollback: these constraints preserve data. Prefer a compatible application rollback; do not deploy old unsnapshotted AI workers over durable queued jobs. Stop workers before the AI migration, run preflight before the state migrations, migrate once, initialize the storage readiness sentinel, start both short/heavy consumers and beat, then route traffic after readiness. Apply historical migrations to a synthetic copy before staging rollout. Synthetic PostgreSQL/object/key restore is exercised locally by acceptance_restore.py; target backup restore and ownership conflict decisions remain environment-owned gates.

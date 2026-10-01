@@ -1,0 +1,89 @@
+{
+  "source_ref": "working tree",
+  "checks": [
+    {
+      "non_root_read_only_tmp_runtime_dependencies": "passed"
+    },
+    {
+      "stopped": "minio",
+      "liveness": 200,
+      "readiness": 503,
+      "status": "storage_unavailable",
+      "detected_seconds": 21.63
+    },
+    {
+      "recovered": "minio",
+      "readiness": 200
+    },
+    {
+      "stopped": "redis",
+      "liveness": 200,
+      "readiness": 503,
+      "status": "unavailable",
+      "detected_seconds": 2.23
+    },
+    {
+      "recovered": "redis",
+      "readiness": 200
+    },
+    {
+      "stopped": "heavy",
+      "liveness": 200,
+      "readiness": 503,
+      "status": "worker_unavailable",
+      "detected_seconds": 62.52
+    },
+    {
+      "recovered": "heavy",
+      "readiness": 200
+    },
+    {
+      "stopped": "short",
+      "liveness": 200,
+      "readiness": 503,
+      "status": "worker_unavailable",
+      "detected_seconds": 64.34
+    },
+    {
+      "recovered": "short",
+      "readiness": 200
+    }
+  ],
+  "containers": {
+    "backend": {
+      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "uid": 10001,
+      "read_only": true,
+      "memory_bytes": 1073741824,
+      "nano_cpus": 2000000000
+    },
+    "short": {
+      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "uid": 10001,
+      "read_only": true,
+      "memory_bytes": 1073741824,
+      "nano_cpus": 2000000000
+    },
+    "heavy": {
+      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "uid": 10001,
+      "read_only": true,
+      "memory_bytes": 1610612736,
+      "nano_cpus": 1000000000
+    },
+    "beat": {
+      "image_id": "sha256:ce0b2f0cac2f3c994d8a2314c4500abdb52ec84a295e8abab4b684bef826187d",
+      "uid": 10001,
+      "read_only": true,
+      "memory_bytes": 1073741824,
+      "nano_cpus": 2000000000
+    },
+    "web": {
+      "image_id": "sha256:2ceaf95a6b950bcf4c06705cfaf5665843b7a21051614625b7d5792f222d3175",
+      "uid": 101,
+      "read_only": true,
+      "memory_bytes": 0,
+      "nano_cpus": 0
+    }
+  }
+}

@@ -6,7 +6,7 @@
 
 Starting alert thresholds to validate under staging load: worker age >60 s, storage/readiness false, any failed mail needing action, oldest due short work >120 s, heavy work >10 min, HTTP 5xx >1% with ≥100 requests/5 min, sustained 429 spikes. Tune latency buckets/thresholds from load tests. HTTP logs carry duration/status/request ID; task delivery logs carry task/job/source/request IDs and safe error codes. Exceptions retain filenames/functions/line numbers, not exception values or locals.
 
-Heavy OCR/generation runs in its own queue and process: concurrency 1, 1 CPU, 1536 MiB container cap, 800000 KiB post-task worker recycle, 480 s soft / 540 s hard time limits, 600 s execution lease. Short mail/expiry/dispatch work has separate capacity and prefetch 1. Hard OOM/kill can leave uncertain effects; reconciler applies the documented recovery policy, never blind paid replay. Local Windows uses one solo file-queue worker and does not prove container limits.
+Heavy OCR/generation runs in its own queue and process: concurrency 1, 1 CPU, 1536 MiB container cap, 800000 KiB post-task worker recycle, 480 s soft / 540 s hard time limits, 600 s execution lease. Short mail/expiry/dispatch work has separate capacity and prefetch 1. Hard OOM/kill can leave uncertain effects; reconciler applies the documented recovery policy, never blind paid replay. The local Windows development runner is not evidence of container limits. Separate production-profile tests in WSL/Linux verify these limits, non-root/read-only/tmp behavior, cap-drop and no-new-privileges; see measurements/runtime-infrastructure.json and runtime-extras.json.
 
 - **Login failures:** inspect safe request ID, Host/CSRF/proxy checks and auth throttles; never copy passwords/cookies into tickets.
 - **Mail failure:** inspect delivery status/code/age, repair SMTP or restore encryption keys, then admin retry; SMTP uncertainty may duplicate. See MAIL_RECOVERY.md.
@@ -15,3 +15,5 @@ Heavy OCR/generation runs in its own queue and process: concurrency 1, 1 CPU, 15
 - **Bad release:** stop traffic to the new image, roll back the application by recorded digest if schema compatible; keep new migrations/history. Restore only in an isolated environment first (BACKUP.md).
 
 Business audit records account activity/owner, content metadata, course publication/copy, group membership/assignment, enrollment, grades and recovery actions. Content bodies, passwords, mail payloads and answer keys are excluded from generic snapshots. Audit is application history, not tamper-proof external storage.
+
+Redis outage also makes throttled endpoints fail closed with structured 503/Retry-After, never bypassing authentication limits. Actual proxy spoofing/two-client throttle evidence is in measurements/proxy-clients.json. Use [DEPLOYMENT](DEPLOYMENT.md) as the single upgrade order and [SECURITY_REVIEW](SECURITY_REVIEW.md) for residual native image findings.

@@ -1,0 +1,242 @@
+{
+  "source_sha": "a712f644bcd7185bd9d99943ce499d0cb6943654",
+  "dirty_tree": true,
+  "stats": {
+    "startTime": "2026-10-01T08:16:56.162Z",
+    "duration": 236973.491,
+    "expected": 19,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "file": "admin-workspace.spec.ts",
+      "line": 5,
+      "title": "admin creates course, assignment and test from quick actions without AI",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 17373
+        }
+      ]
+    },
+    {
+      "file": "ai-integration.spec.ts",
+      "line": 3,
+      "title": "real AI HTTP/outbox/Redis/worker flow: sources, review, reload, regenerate, import and publish",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 24660
+        }
+      ]
+    },
+    {
+      "file": "ai-wizard.spec.ts",
+      "line": 3,
+      "title": "AI wizard reviews and imports a draft without a real provider call",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 1321
+        }
+      ]
+    },
+    {
+      "file": "audit.spec.ts",
+      "line": 50,
+      "title": "admin: every permitted screen on desktop/mobile and RU/KZ",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 36720
+        }
+      ]
+    },
+    {
+      "file": "audit.spec.ts",
+      "line": 50,
+      "title": "teacher: every permitted screen on desktop/mobile and RU/KZ",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 30010
+        }
+      ]
+    },
+    {
+      "file": "audit.spec.ts",
+      "line": 50,
+      "title": "student: every permitted screen on desktop/mobile and RU/KZ",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 20967
+        }
+      ]
+    },
+    {
+      "file": "audit.spec.ts",
+      "line": 99,
+      "title": "test answers survive refresh, completed attempts remain accessible",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 6054
+        }
+      ]
+    },
+    {
+      "file": "audit.spec.ts",
+      "line": 150,
+      "title": "admin preserves multiple teachers when editing a discipline",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 3894
+        }
+      ]
+    },
+    {
+      "file": "audit.spec.ts",
+      "line": 225,
+      "title": "grade results beyond the first page are reachable",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 2675
+        }
+      ]
+    },
+    {
+      "file": "authoring.spec.ts",
+      "line": 4,
+      "title": "teacher authors assignments and tests manually, publishes and assigns a course",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 9261
+        }
+      ]
+    },
+    {
+      "file": "design.spec.ts",
+      "line": 3,
+      "title": "refreshed landing, responsive layout and language switch",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 3396
+        }
+      ]
+    },
+    {
+      "file": "design.spec.ts",
+      "line": 22,
+      "title": "book follows the pointer and respects reduced motion",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 934
+        }
+      ]
+    },
+    {
+      "file": "design.spec.ts",
+      "line": 40,
+      "title": "fixed header stays visible and section links clear it",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 2111
+        }
+      ]
+    },
+    {
+      "file": "forms.spec.ts",
+      "line": 3,
+      "title": "forms preserve input on errors, reject duplicate submits, guard Escape and restore focus",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 4155
+        }
+      ]
+    },
+    {
+      "file": "learning.spec.ts",
+      "line": 5,
+      "title": "student studies, submits, takes a test; teacher grades",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 11246
+        }
+      ]
+    },
+    {
+      "file": "learning.spec.ts",
+      "line": 129,
+      "title": "landing is usable at mobile and desktop widths",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 2408
+        }
+      ]
+    },
+    {
+      "file": "lifecycle.spec.ts",
+      "line": 60,
+      "title": "real lifecycle: admin people, SMTP first login/reset, teaching, revision, grades and immutable history",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 49180
+        }
+      ]
+    },
+    {
+      "file": "management.spec.ts",
+      "line": 4,
+      "title": "profile security card and detail dialog remain usable on a short screen",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 3807
+        }
+      ]
+    },
+    {
+      "file": "session-transition.spec.ts",
+      "line": 3,
+      "title": "logout followed by another login keeps the new session",
+      "status": "expected",
+      "runs": [
+        {
+          "status": "passed",
+          "duration_ms": 3640
+        }
+      ]
+    }
+  ]
+}

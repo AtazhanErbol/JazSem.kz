@@ -1,0 +1,223 @@
+{
+  "database": "postgresql",
+  "database_version": 160015,
+  "source_ref": "a712f644bcd7185bd9d99943ce499d0cb6943654",
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "percentile_method": "nearest-rank p95 = max of seven warm samples; descriptive lab result only",
+  "http_calls": {
+    "results_25_rows": 50
+  },
+  "dataset": {
+    "topics": 33,
+    "questions": 257,
+    "options": 1026,
+    "enrollments": 25
+  },
+  "samples": 7,
+  "student_tree": {
+    "p50_ms": 152.78,
+    "p95_ms": 231.67,
+    "observations": [
+      {
+        "ms": 113.35,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 177.95,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 152.78,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 159.59,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 119.93,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 130.77,
+        "queries": 12,
+        "bytes": 121233
+      },
+      {
+        "ms": 231.67,
+        "queries": 12,
+        "bytes": 121233
+      }
+    ]
+  },
+  "editor_tree": {
+    "p50_ms": 512.74,
+    "p95_ms": 544.88,
+    "observations": [
+      {
+        "ms": 463.29,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 452.61,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 512.74,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 519.65,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 522.67,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 544.88,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 489.31,
+        "queries": 11,
+        "bytes": 431899
+      }
+    ]
+  },
+  "publish": {
+    "p50_ms": 105.82,
+    "p95_ms": 175.69,
+    "observations": [
+      {
+        "ms": 96.35,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 107.1,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 97.17,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 175.69,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 105.82,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 151.17,
+        "queries": 59,
+        "bytes": 0
+      },
+      {
+        "ms": 99.18,
+        "queries": 59,
+        "bytes": 0
+      }
+    ]
+  },
+  "duplicate": {
+    "p50_ms": 1489.68,
+    "p95_ms": 1744.72,
+    "observations": [
+      {
+        "ms": 1437.45,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1490.9,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1443.81,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1744.72,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1484.27,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1489.68,
+        "queries": 1803,
+        "bytes": 0
+      },
+      {
+        "ms": 1512.5,
+        "queries": 1803,
+        "bytes": 0
+      }
+    ]
+  },
+  "results_25_rows": {
+    "p50_ms": 805.15,
+    "p95_ms": 1057.17,
+    "observations": [
+      {
+        "ms": 1057.17,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 764.19,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 908.32,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 805.15,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 931.03,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 792.29,
+        "queries": 375,
+        "bytes": 5950
+      },
+      {
+        "ms": 778.58,
+        "queries": 375,
+        "bytes": 5950
+      }
+    ]
+  }
+}

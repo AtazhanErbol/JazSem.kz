@@ -1,8 +1,10 @@
 param(
     [string]$DatabasePath = (Join-Path $PSScriptRoot '../../e2e-release.sqlite3'),
+    [string]$DatabaseUrl = '',
     [int]$BackendPort = 8000,
     [int]$FrontendPort = 5173,
     [string]$RuntimeName = '.runtime',
+    [ValidateSet('local','e2e')][string]$SettingsProfile = 'local',
     [switch]$Seed
 )
 $ErrorActionPreference = 'Stop'
@@ -22,8 +24,8 @@ if (Test-Path -LiteralPath $manifestPath) {
     }
 }
 New-Item -ItemType Directory -Path $runtimePath -Force | Out-Null
-$env:DJANGO_SETTINGS_MODULE = 'config.settings.local'
-$env:DATABASE_URL = 'sqlite:///' + [IO.Path]::GetFullPath($DatabasePath).Replace('\', '/')
+$env:DJANGO_SETTINGS_MODULE = "config.settings.$SettingsProfile"
+$env:DATABASE_URL = if ($DatabaseUrl) { $DatabaseUrl } else { 'sqlite:///' + [IO.Path]::GetFullPath($DatabasePath).Replace('\', '/') }
 $env:JAZSEM_RUNTIME_DIR = $runtimePath
 $env:FRONTEND_URL = "http://127.0.0.1:$FrontendPort"
 $env:CSRF_TRUSTED_ORIGINS = $env:FRONTEND_URL

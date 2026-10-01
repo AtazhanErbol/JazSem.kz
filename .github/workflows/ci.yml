@@ -23,12 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.12', cache: pip, cache-dependency-path: backend/requirements.txt}
-      - run: pip install -r requirements.txt
+        with: {python-version: '3.12', cache: pip, cache-dependency-path: backend/requirements-dev.txt}
+      - run: pip install -r requirements-dev.txt
       - run: ruff check .
       - run: ruff format --check .
       - run: python manage.py makemigrations --check --dry-run
       - run: python manage.py migrate --noinput
+      - run: python manage.py check
+      - run: pip check
+      - run: pip-audit -r requirements.txt --no-deps --disable-pip
+      - run: pip-audit -r requirements-dev.txt --no-deps --disable-pip
+      - run: python manage.py spectacular --validate --fail-on-warn --file ../docs/openapi.yml
+      - run: git diff --exit-code -- ../docs/openapi.yml
       - run: pytest -q
   frontend:
     timeout-minutes: 10
@@ -44,6 +50,100 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm audit --audit-level=high
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: {POSTGRES_USER: acceptance, POSTGRES_PASSWORD: synthetic-only, POSTGRES_DB: jazsem_rc_browser}
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 3s --health-timeout 2s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd 'redis-cli ping' --health-interval 3s --health-timeout 2s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://acceptance:synthetic-only@127.0.0.1:5432/jazsem_rc_browser
+      E2E_REDIS_URL: redis://127.0.0.1:6379/0
+      DEV_SEED_PASSWORD: ci-synthetic-browser-password-7482
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip, cache-dependency-path: backend/requirements-dev.txt}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json}
+      - run: pip install -r backend/requirements-dev.txt
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: python scripts/run_browser_acceptance.py
+      - name: Sanitized browser evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-${{ github.sha }}
+          path: .runtime/browser-*/safe-artifacts/*
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+  production-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env: {RC_SOURCE_REF: '${{ github.sha }}'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r backend/requirements-dev.txt
+      - run: python scripts/acceptance_prepare.py
+      - run: docker compose -f infra/compose.acceptance.yml build
+      - run: docker compose -f infra/compose.acceptance.yml up -d postgres redis minio mail
+      - run: docker compose -f infra/compose.acceptance.yml run --rm backend python manage.py migrate --noinput
+      - run: python scripts/acceptance_phase.py init
+      - run: docker compose -f infra/compose.acceptance.yml up -d backend short heavy beat web edge
+      - run: python scripts/acceptance_phase.py tls
+      - run: python scripts/acceptance_phase.py http
+      - run: python scripts/acceptance_infrastructure.py
+        env: {RC_SOURCE_REF: '${{ github.sha }}'}
+      - name: Prepare isolated no-network provider controls
+        run: |
+          mkdir -p .runtime/acceptance/control
+          sudo chown 10001:10001 .runtime/acceptance/control
+          docker compose -f infra/compose.acceptance.yml -f infra/compose.acceptance-ai.yml up -d
+      - run: python scripts/acceptance_faults.py
+      - run: python scripts/acceptance_restore.py
+      - run: python scripts/acceptance_extras.py
+      - run: python scripts/acceptance_proxy.py
+      - run: python scripts/scan_acceptance_images.py
+      - name: Safe runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-${{ github.sha }}
+          path: .runtime/acceptance/safe-artifacts/*
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - name: Clean isolated production-profile lab
+        if: always()
+        run: docker compose -f infra/compose.acceptance.yml down -v
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - run: python scripts/scan_secrets.py
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redacted-secrets-${{ github.sha }}
+          path: .runtime/acceptance/safe-artifacts/gitleaks-*.json
+          include-hidden-files: true
+          retention-days: 14
   containers:
     runs-on: ubuntu-latest
     timeout-minutes: 15

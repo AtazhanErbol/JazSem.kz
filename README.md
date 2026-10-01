@@ -4,7 +4,7 @@
 
 Реализованы роли ADMIN/TEACHER/STUDENT, группы, дисциплины, версии курсов, назначения, учебный плеер, файлы, задания с доработкой, тесты с серверным таймером, оценки, прогресс, уведомления и AI-черновики с проверкой преподавателем. Все операции выполняются через backend; тестовый провайдер AI используется только в тестах.
 
-**Статус:** реализация для интеграционной проверки. Успешные локальные тесты не заменяют приёмку production-инфраструктуры. Проверенные сценарии и оставшиеся release gates перечислены в [PROGRESS](docs/PROGRESS.md).
+**Статус:** реализация для интеграционной проверки. Успешные локальные тесты не заменяют приёмку production-инфраструктуры. Проверенные сценарии и оставшиеся release gates перечислены в [RELEASE_CANDIDATE](docs/RELEASE_CANDIDATE.md).
 
 ## Быстрый запуск через Docker
 
@@ -39,7 +39,7 @@ Python 3.12, Node.js 22. SQLite используется только для б�
 ```sh
 python -m venv .venv
 # Активируйте .venv подходящей командой для вашей ОС.
-pip install -r backend/requirements.txt
+pip install -r backend/requirements-dev.txt
 cd backend
 python manage.py migrate
 # Установите DEV_SEED_PASSWORD в environment.
@@ -58,7 +58,7 @@ npm run dev
 Django не загружает `.env` автоматически при запуске вне Compose: экспортируйте нужные переменные в окружение процесса. Без `REDIS_URL` development использует локальный cache; для фоновых задач запустите Redis, worker и beat. В development отсутствующий ключ шифрования выводится из development secret; production требует отдельный ключ. Console email допустим только локально и содержит письмо с временным паролем. В production используйте SMTP с TLS.
 
 ```sh
-celery -A config worker --loglevel=info
+celery -A config worker --loglevel=info --queues=celery,heavy
 celery -A config beat --loglevel=info
 ```
 
@@ -79,8 +79,9 @@ npm run typecheck
 npm test
 npm run build
 npx playwright install chromium
-# При запущенных backend/frontend и заданном DEV_SEED_PASSWORD:
-npm run e2e
+# Из корня repo: fresh jazsem_rc_* PostgreSQL, E2E_REDIS_URL, DEV_SEED_PASSWORD:
+cd ..
+python scripts/run_browser_acceptance.py
 ```
 
 Для backend-тестов на PostgreSQL установите `DATABASE_URL` на отдельную тестовую БД с правом создания test database. GitHub Actions использует PostgreSQL 16. E2E меняет development-данные: используйте отдельную локальную БД, не production.

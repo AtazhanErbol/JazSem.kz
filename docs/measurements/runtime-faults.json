@@ -1,0 +1,95 @@
+{
+  "checks": [
+    {
+      "accepted": 202,
+      "stage": "before"
+    },
+    {
+      "scenario": "before",
+      "status": "COMPLETED",
+      "executions": 2,
+      "drafts": 1,
+      "usage_rows": 1,
+      "lease_expiration_injected": true
+    },
+    {
+      "accepted": 202,
+      "stage": "after"
+    },
+    {
+      "scenario": "after",
+      "status": "FAILED",
+      "executions": 1,
+      "drafts": 0,
+      "usage_rows": 0,
+      "lease_expiration_injected": true
+    },
+    {
+      "accepted": 202,
+      "stage": "cancel"
+    },
+    {
+      "scenario": "cancel",
+      "status": "CANCELLED",
+      "executions": 1,
+      "drafts": 0,
+      "usage_rows": 1,
+      "lease_expiration_injected": false
+    },
+    {
+      "accepted": 202,
+      "stage": "timeout"
+    },
+    {
+      "scenario": "timeout",
+      "status": "FAILED",
+      "executions": 1,
+      "drafts": 0,
+      "usage_rows": 1,
+      "lease_expiration_injected": false
+    },
+    {
+      "source_ready": true
+    },
+    {
+      "accepted_before_broker_loss": 202
+    },
+    {
+      "cache_outage_http": 503,
+      "accepted_job_retained": true,
+      "delivery": "PENDING"
+    },
+    {
+      "scenario": "broker",
+      "status": "COMPLETED",
+      "executions": 1,
+      "drafts": 1,
+      "usage_rows": 1,
+      "lease_expiration_injected": false
+    },
+    {
+      "smtp": [
+        {
+          "fault": "temporary",
+          "status": "SENT",
+          "attempts": 2,
+          "error_code": ""
+        },
+        {
+          "fault": "permanent",
+          "status": "FAILED",
+          "attempts": 1,
+          "error_code": "SMTP_PERMANENT_FAILURE"
+        },
+        {
+          "fault": "decryption",
+          "status": "FAILED",
+          "attempts": 1,
+          "error_code": "ENCRYPTION_KEY_UNAVAILABLE"
+        }
+      ],
+      "transport": "real STARTTLS local sink"
+    }
+  ],
+  "synthetic": true
+}

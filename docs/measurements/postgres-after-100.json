@@ -1,0 +1,266 @@
+{
+  "database": "postgresql",
+  "database_version": 160015,
+  "source_ref": "working tree",
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "percentile_method": "nearest-rank p95 = max of seven warm samples; descriptive lab result only",
+  "http_calls": {
+    "results_25_rows": 50,
+    "results_summary_25_rows": 1
+  },
+  "dataset": {
+    "topics": 33,
+    "questions": 257,
+    "options": 1026,
+    "enrollments": 100,
+    "visible_rows": 25
+  },
+  "samples": 7,
+  "results_summary_25_rows": {
+    "p50_ms": 58.75,
+    "p95_ms": 76.37,
+    "observations": [
+      {
+        "ms": 76.37,
+        "queries": 11,
+        "bytes": 20755
+      },
+      {
+        "ms": 58.75,
+        "queries": 11,
+        "bytes": 20755
+      },
+      {
+        "ms": 56.31,
+        "queries": 11,
+        "bytes": 20755
+      },
+      {
+        "ms": 72.81,
+        "queries": 11,
+        "bytes": 20755
+      },
+      {
+        "ms": 56.31,
+        "queries": 11,
+        "bytes": 20755
+      },
+      {
+        "ms": 70.71,
+        "queries": 11,
+        "bytes": 20755
+      },
+      {
+        "ms": 57.9,
+        "queries": 11,
+        "bytes": 20755
+      }
+    ]
+  },
+  "student_tree": {
+    "p50_ms": 35.71,
+    "p95_ms": 90.39,
+    "observations": [
+      {
+        "ms": 47.05,
+        "queries": 10,
+        "bytes": 121233
+      },
+      {
+        "ms": 50.06,
+        "queries": 10,
+        "bytes": 121233
+      },
+      {
+        "ms": 90.39,
+        "queries": 10,
+        "bytes": 121233
+      },
+      {
+        "ms": 32.79,
+        "queries": 10,
+        "bytes": 121233
+      },
+      {
+        "ms": 35.71,
+        "queries": 10,
+        "bytes": 121233
+      },
+      {
+        "ms": 31.51,
+        "queries": 10,
+        "bytes": 121233
+      },
+      {
+        "ms": 33.35,
+        "queries": 10,
+        "bytes": 121233
+      }
+    ]
+  },
+  "editor_tree": {
+    "p50_ms": 162.63,
+    "p95_ms": 193.63,
+    "observations": [
+      {
+        "ms": 162.63,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 167.49,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 156.68,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 185.78,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 107.85,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 105.47,
+        "queries": 11,
+        "bytes": 431899
+      },
+      {
+        "ms": 193.63,
+        "queries": 11,
+        "bytes": 431899
+      }
+    ]
+  },
+  "publish": {
+    "p50_ms": 59.87,
+    "p95_ms": 131.86,
+    "observations": [
+      {
+        "ms": 60.02,
+        "queries": 27,
+        "bytes": 0
+      },
+      {
+        "ms": 59.87,
+        "queries": 27,
+        "bytes": 0
+      },
+      {
+        "ms": 59.08,
+        "queries": 27,
+        "bytes": 0
+      },
+      {
+        "ms": 59.68,
+        "queries": 27,
+        "bytes": 0
+      },
+      {
+        "ms": 131.86,
+        "queries": 27,
+        "bytes": 0
+      },
+      {
+        "ms": 75.42,
+        "queries": 27,
+        "bytes": 0
+      },
+      {
+        "ms": 58.89,
+        "queries": 27,
+        "bytes": 0
+      }
+    ]
+  },
+  "duplicate": {
+    "p50_ms": 481.87,
+    "p95_ms": 505.57,
+    "observations": [
+      {
+        "ms": 503.51,
+        "queries": 391,
+        "bytes": 0
+      },
+      {
+        "ms": 442.11,
+        "queries": 391,
+        "bytes": 0
+      },
+      {
+        "ms": 448.03,
+        "queries": 391,
+        "bytes": 0
+      },
+      {
+        "ms": 481.87,
+        "queries": 391,
+        "bytes": 0
+      },
+      {
+        "ms": 505.57,
+        "queries": 391,
+        "bytes": 0
+      },
+      {
+        "ms": 486.2,
+        "queries": 391,
+        "bytes": 0
+      },
+      {
+        "ms": 456.54,
+        "queries": 391,
+        "bytes": 0
+      }
+    ]
+  },
+  "results_25_rows": {
+    "p50_ms": 1094.9,
+    "p95_ms": 1237.44,
+    "observations": [
+      {
+        "ms": 1237.44,
+        "queries": 400,
+        "bytes": 5950
+      },
+      {
+        "ms": 1094.9,
+        "queries": 400,
+        "bytes": 5950
+      },
+      {
+        "ms": 1087.43,
+        "queries": 400,
+        "bytes": 5950
+      },
+      {
+        "ms": 1113.6,
+        "queries": 400,
+        "bytes": 5950
+      },
+      {
+        "ms": 1065.23,
+        "queries": 400,
+        "bytes": 5950
+      },
+      {
+        "ms": 1004.48,
+        "queries": 400,
+        "bytes": 5950
+      },
+      {
+        "ms": 1235.08,
+        "queries": 400,
+        "bytes": 5950
+      }
+    ]
+  }
+}

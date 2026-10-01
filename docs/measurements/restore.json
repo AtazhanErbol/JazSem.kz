@@ -1,0 +1,28 @@
+{
+  "checks": [
+    {
+      "fixture_ready": true,
+      "objects": 7,
+      "models": 39
+    },
+    {
+      "restored_objects": 7
+    },
+    {
+      "restore_verified": true,
+      "model_fingerprints": 39,
+      "objects": 7,
+      "ownership_versions_history_grades_progress_citations": true,
+      "mail_decryption": true,
+      "authenticated_scoped_download": "Django session HTTP client",
+      "outgoing_mail_and_ai": false
+    }
+  ],
+  "dump_sha256": "a5b830b06dba88418e4d3fa46563f39805f8e3ad2bc042d8e0ed283506cc2ef1",
+  "dump_bytes": 160892,
+  "backup_seconds": 5.92,
+  "restore_and_verify_seconds": 4.91,
+  "rpo": "quiesced synthetic DB and matching objects; no writes during snapshot",
+  "rto": "measured local restore/verification only; not a production SLA",
+  "keys": "same isolated synthetic key restored through environment; no secret output"
+}

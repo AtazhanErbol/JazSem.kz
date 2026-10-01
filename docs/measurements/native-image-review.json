@@ -1,0 +1,854 @@
+{
+  "reviewed": "2026-10-01",
+  "review_by": "2026-10-15",
+  "scope": "Exact current Debian package findings only; not a production risk approval or blanket ignore",
+  "findings": [
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "bsdutils",
+        "installed": "1:2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "bsdutils",
+        "installed": "1:2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "bsdutils",
+        "installed": "1:2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "bsdutils",
+        "installed": "1:2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-54369",
+        "package": "libacl1",
+        "installed": "2.3.2-2+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "libblkid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "libblkid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "libblkid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "libblkid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-12064",
+        "package": "libcurl4t64",
+        "installed": "8.14.1-2+deb13u5",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-8286",
+        "package": "libcurl4t64",
+        "installed": "8.14.1-2+deb13u5",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-8458",
+        "package": "libcurl4t64",
+        "installed": "8.14.1-2+deb13u5",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-8927",
+        "package": "libcurl4t64",
+        "installed": "8.14.1-2+deb13u5",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-66046",
+        "package": "libexpat1",
+        "installed": "2.8.3-1~deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76956",
+        "package": "libexpat1",
+        "installed": "2.8.3-1~deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76957",
+        "package": "libexpat1",
+        "installed": "2.8.3-1~deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-93990",
+        "package": "libexpat1",
+        "installed": "2.8.3-1~deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "liblastlog2-2",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "liblastlog2-2",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "liblastlog2-2",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "liblastlog2-2",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "libmount1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "libmount1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "libmount1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "libmount1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2025-69720",
+        "package": "libncursesw6",
+        "installed": "6.5+20250216-2",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "libsmartcols1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "libsmartcols1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "libsmartcols1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "libsmartcols1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-16742",
+        "package": "libsystemd0",
+        "installed": "257.13-1~deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-73066",
+        "package": "libtesseract5",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88047",
+        "package": "libtesseract5",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88048",
+        "package": "libtesseract5",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88051",
+        "package": "libtesseract5",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88052",
+        "package": "libtesseract5",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88053",
+        "package": "libtesseract5",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-36849",
+        "package": "libtiff6",
+        "installed": "4.7.0-3+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-52490",
+        "package": "libtiff6",
+        "installed": "4.7.0-3+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2025-69720",
+        "package": "libtinfo6",
+        "installed": "6.5+20250216-2",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-16742",
+        "package": "libudev1",
+        "installed": "257.13-1~deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "libuuid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "libuuid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "libuuid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "libuuid1",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88806",
+        "package": "libx11-6",
+        "installed": "2:1.8.12-1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88806",
+        "package": "libx11-data",
+        "installed": "2:1.8.12-1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-6653",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "CRITICAL"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-74860",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-86138",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-86139",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-86140",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-86142",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-86143",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-86144",
+        "package": "libxml2",
+        "installed": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "bounded-parsers",
+      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88807",
+        "package": "libxrender1",
+        "installed": "1:0.9.12-1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "no-native-remote-clients",
+      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "login",
+        "installed": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "login",
+        "installed": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "login",
+        "installed": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "login",
+        "installed": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "mount",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "mount",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "mount",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "mount",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2025-69720",
+        "package": "ncurses-base",
+        "installed": "6.5+20250216-2",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2025-69720",
+        "package": "ncurses-bin",
+        "installed": "6.5+20250216-2",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-9538",
+        "package": "perl-base",
+        "installed": "5.40.1-6+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-73066",
+        "package": "tesseract-ocr",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88047",
+        "package": "tesseract-ocr",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88048",
+        "package": "tesseract-ocr",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88051",
+        "package": "tesseract-ocr",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88052",
+        "package": "tesseract-ocr",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-88053",
+        "package": "tesseract-ocr",
+        "installed": "5.5.0-1+b1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "fixed-models",
+      "rationale": "Traineddata is installed into the immutable image; no model upload/selection by user. OCR receives a decoded PNG/JPEG/PDF-rendered image, never user-controlled traineddata."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-76642",
+        "package": "util-linux",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78408",
+        "package": "util-linux",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78409",
+        "package": "util-linux",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    },
+    {
+      "finding": {
+        "id": "CVE-2026-78410",
+        "package": "util-linux",
+        "installed": "2.41.5-0+deb13u1",
+        "fixed": "",
+        "severity": "HIGH"
+      },
+      "classification": "local-tools",
+      "rationale": "Requires privileged local tools/services or Perl archive processing absent from request/task paths; non-root, read-only, all capabilities dropped and no-new-privileges. Re-review if entrypoints change."
+    }
+  ]
+}
