@@ -1,0 +1,208 @@
+/* Shared visual refinements; existing forms and action contracts stay intact. */
+.app-shell {
+  background: #f5f6f8;
+}
+.app-shell .sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d9e1 transparent;
+}
+.app-shell .sidebar nav a,
+.app-shell .sidebar-bottom a {
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+.app-shell .sidebar nav a.active {
+  background: #fff0f1;
+  box-shadow: inset 3px 0 0 #e32636;
+}
+.app-shell .app-header {
+  gap: 24px;
+}
+.app-shell .page {
+  padding-block: 36px 48px;
+}
+.app-shell .page h1 {
+  font-weight: 620;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+.app-shell .page h2 {
+  font-weight: 600;
+  line-height: 1.4;
+}
+.app-shell .page-heading {
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.app-shell .page-heading p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+  max-width: 85ch;
+}
+.app-shell .panel {
+  border-color: #e1e5eb;
+  box-shadow: 0 2px 4px #24262b02;
+}
+.app-shell .panel > h2 {
+  margin-bottom: 20px;
+}
+.app-shell .panel > p {
+  line-height: 1.8;
+}
+.app-shell .row-actions {
+  gap: 12px;
+}
+.app-shell .form-actions {
+  gap: 12px;
+  margin-top: 24px;
+}
+.app-shell .primary {
+  box-shadow: 0 3px 10px #e3263610;
+}
+.app-shell button:disabled {
+  box-shadow: none;
+}
+.app-shell :is(button, .button) {
+  border-radius: 9px;
+}
+.app-shell
+  :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):focus,
+.auth-page :is(input, textarea, select):focus {
+  border-color: #e32636;
+  box-shadow: 0 0 0 3px #e326360a;
+}
+.app-shell .record-row {
+  padding: 18px 20px;
+  border-color: #e1e5eb;
+}
+.app-shell .record-row + .record-row {
+  margin-top: 12px;
+}
+.app-shell .record-row :is(h3, strong) {
+  line-height: 1.55;
+}
+.app-shell .record-row small {
+  line-height: 1.6;
+}
+.app-shell .mini-actions {
+  gap: 10px;
+}
+.app-shell .search-toolbar {
+  gap: 16px;
+}
+.app-shell .filter-toolbar {
+  gap: 16px;
+}
+.app-shell .modal-head {
+  padding-bottom: 24px;
+}
+.app-shell .modal-body {
+  padding-top: 24px;
+}
+.app-shell .modal-body :is(input, select, textarea) {
+  line-height: 1.5;
+}
+.app-shell .create-prerequisites {
+  display: grid;
+  gap: 20px;
+}
+.app-shell .create-prerequisites > .button {
+  justify-self: start;
+}
+.app-shell .landing-editor-layout > nav {
+  gap: 6px;
+}
+.app-shell .landing-editor-layout > nav button {
+  padding: 12px 14px;
+  text-align: left;
+}
+.app-shell .landing-editor-layout fieldset label + label {
+  margin-top: 24px;
+}
+.app-shell .pagination {
+  gap: 14px;
+  margin-block: 24px 12px;
+}
+.app-shell .creation-card {
+  border-radius: 16px;
+}
+.app-shell .creation-card h3 {
+  line-height: 1.5;
+}
+.app-shell .creation-card p {
+  font-size: 14px;
+}
+.app-shell .upload-area {
+  border-radius: 12px;
+}
+.app-shell .section-heading {
+  gap: 20px;
+}
+.app-shell .section-heading h2 {
+  margin: 0;
+}
+.auth-page .auth-card {
+  padding-top: 56px;
+  padding-bottom: 56px;
+}
+.auth-page .auth-card h1 {
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.auth-page .auth-art {
+  background: #faf7f2;
+}
+.auth-page .auth-art h2 {
+  font-weight: 550;
+}
+:root:lang(kk) .app-shell .page :is(h1, h2, h3) {
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+@media (max-width: 768px) {
+  .app-shell .page {
+    padding: 28px 24px 40px;
+  }
+  .app-shell .page-heading {
+    gap: 16px;
+  }
+  .app-shell .page h1 {
+    font-size: 28px;
+  }
+  .app-shell .panel {
+    padding: 24px;
+  }
+  .app-shell .record-row {
+    padding: 16px;
+  }
+}
+@media (max-width: 480px) {
+  .app-shell .page {
+    padding: 24px 16px 32px;
+  }
+  .app-shell .page h1 {
+    font-size: 26px;
+  }
+  .app-shell .panel {
+    padding: 20px;
+  }
+  .app-shell .row-actions {
+    gap: 10px;
+  }
+  .app-shell .form-actions {
+    gap: 10px;
+  }
+  .app-shell .page-heading p {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .auth-page * {
+    scroll-behavior: auto;
+    transition: none !important;
+  }
+}

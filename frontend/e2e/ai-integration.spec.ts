@@ -37,27 +37,39 @@ test("real AI HTTP/outbox/Redis/worker flow: sources, review, reload, regenerate
   await page.goto(`/app/ai?course=${course}`);
   // A failed upload and cancelled navigation must preserve the actual File.
   const retainedFile = page.locator('input[type="file"]');
-  await retainedFile.setInputFiles({name: "retained.txt", mimeType: "text/plain", buffer: Buffer.from("Synthetic retained selection")});
-  await page.route("**/api/v1/sources/", async route => {
+  await retainedFile.setInputFiles({
+    name: "retained.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("Synthetic retained selection"),
+  });
+  await page.route("**/api/v1/sources/", async (route) => {
     if (route.request().method() === "POST") await route.abort("failed");
     else await route.continue();
   });
-  await page.getByRole("button", {name: "Загрузить", exact: true}).click();
-  await expect(page.getByRole("button", {name: "Загрузить", exact: true})).toBeEnabled();
+  await page.getByRole("button", { name: "Загрузить", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Загрузить", exact: true }),
+  ).toBeEnabled();
   await page.unroute("**/api/v1/sources/");
-  expect(await retainedFile.evaluate(el => (el as HTMLInputElement).files?.[0]?.name)).toBe("retained.txt");
-  page.once("dialog", dialog => dialog.dismiss());
+  expect(
+    await retainedFile.evaluate(
+      (el) => (el as HTMLInputElement).files?.[0]?.name,
+    ),
+  ).toBe("retained.txt");
+  page.once("dialog", (dialog) => dialog.dismiss());
   await page.locator(".help-card").getByRole("link").click();
   await expect(page).toHaveURL(new RegExp(`/app/ai\\?course=${course}`));
-  expect(await retainedFile.evaluate(el => (el as HTMLInputElement).files?.[0]?.name)).toBe("retained.txt");
+  expect(
+    await retainedFile.evaluate(
+      (el) => (el as HTMLInputElement).files?.[0]?.name,
+    ),
+  ).toBe("retained.txt");
   const upload = async (name: string, body: string) => {
-    await page
-      .locator('input[type="file"]')
-      .setInputFiles({
-        name,
-        mimeType: "text/plain",
-        buffer: Buffer.from(body),
-      });
+    await page.locator('input[type="file"]').setInputFiles({
+      name,
+      mimeType: "text/plain",
+      buffer: Buffer.from(body),
+    });
     const saved = page.waitForResponse(
       (r) =>
         r.url().endsWith("/api/v1/sources/") && r.request().method() === "POST",
@@ -90,6 +102,9 @@ test("real AI HTTP/outbox/Redis/worker flow: sources, review, reload, regenerate
   });
   await expect(selected).toBeEnabled({ timeout: 45000 });
   await selected.check();
+  await page
+    .getByRole("combobox", { name: "Что создать", exact: true })
+    .selectOption("NEW");
   await page.getByLabel("Недели", { exact: true }).fill("1");
   const create = page.waitForResponse(
     (r) =>

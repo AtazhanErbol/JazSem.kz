@@ -47,7 +47,11 @@ test("student studies, submits, takes a test; teacher grades", async ({
     .getByRole("link", { name: "Отправить работу", exact: true })
     .click();
   await page.getByLabel("Ваш ответ").fill("x = 3. Проверка: 3 × 3 − 9 = 0.");
-  const submissionResponse = page.waitForResponse(response => response.url().includes("/submit/") && response.request().method() === "POST");
+  const submissionResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/submit/") &&
+      response.request().method() === "POST",
+  );
   await page
     .getByRole("button", { name: "Отправить работу", exact: true })
     .click();
@@ -123,7 +127,18 @@ test("student studies, submits, takes a test; teacher grades", async ({
   await page.getByLabel("Пароль", { exact: true }).fill(password!);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
   await page.getByRole("link", { name: "Оценки", exact: true }).click();
-  await expect(page.getByText(/Задания \(60%\)/)).toBeVisible();
+  const grade = page.locator("section.panel").filter({
+    has: page.getByRole("heading", {
+      name: "Прикладная математика · Летний семестр",
+      exact: true,
+    }),
+  });
+  await expect(
+    grade.getByRole("heading", { name: "Задания", exact: true }),
+  ).toBeVisible();
+  await expect(
+    grade.getByRole("definition").filter({ hasText: /^60%$/ }),
+  ).toBeVisible();
 });
 
 test("landing is usable at mobile and desktop widths", async ({ page }) => {

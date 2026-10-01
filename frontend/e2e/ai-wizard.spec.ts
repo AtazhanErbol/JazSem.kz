@@ -31,6 +31,7 @@ test("AI source/history pagination restores URL state and keeps RU/KK controls l
         next: null,
         previous: null,
       };
+    else if (path.endsWith("/courses/course/versions/")) data = [];
     else if (path.endsWith("/sources/") || path.endsWith("/ai-jobs/")) {
       const number = Number(url.searchParams.get("page") || 1),
         source = path.endsWith("/sources/");
@@ -178,6 +179,7 @@ test("AI wizard reviews and imports a draft without a real provider call", async
         next: null,
         previous: null,
       };
+    else if (path.endsWith("/courses/course/versions/")) data = [];
     else if (path.endsWith("/sources/"))
       data = {
         count: 1,
@@ -241,6 +243,9 @@ test("AI wizard reviews and imports a draft without a real provider call", async
     .getByRole("combobox", { name: "Курс", exact: true })
     .selectOption("course");
   await page.getByRole("checkbox", { name: "lesson.txt", exact: true }).check();
+  await page
+    .getByRole("combobox", { name: "Что создать", exact: true })
+    .selectOption("NEW");
   await page
     .getByRole("button", { name: "Создать черновик", exact: true })
     .first()

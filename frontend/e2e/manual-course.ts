@@ -32,18 +32,18 @@ export async function manualCourse(
   await save();
   await page.getByRole("button", { name: "Добавить тему" }).first().click();
   await dialog.getByLabel("Название", { exact: true }).fill("First topic");
-  await dialog.getByLabel("Контент", {exact: true}).fill("Synthetic introduction to equations.");
+  await dialog
+    .getByLabel("Контент", { exact: true })
+    .fill("Synthetic introduction to equations.");
   await save();
   await page.getByRole("button", { name: "+ Материалы", exact: true }).click();
   await dialog.getByLabel("Название", { exact: true }).fill("First material");
   await dialog.getByLabel("Контент", { exact: true }).fill("Read this lesson.");
-  await dialog
-    .locator('input[type="file"]')
-    .setInputFiles({
-      name: "lesson.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from("Synthetic course material"),
-    });
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: "lesson.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("Synthetic course material"),
+  });
   await save();
   await page.getByRole("button", { name: "+ Задания", exact: true }).click();
   await dialog
@@ -56,7 +56,9 @@ export async function manualCourse(
   await page.getByRole("button", { name: "+ Тесты", exact: true }).click();
   await dialog.getByLabel("Название", { exact: true }).fill("Manual quiz");
   await save();
-  await page.getByRole("button", { name: "Manual quiz", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Тесты Manual quiz", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "+ Добавить вопрос", exact: true })
     .click();
@@ -77,18 +79,14 @@ export async function manualCourse(
   }
   await expect(page.getByText("✓ 2", { exact: true })).toBeVisible();
   await page
-    .getByRole("button", { name: "+ Схема оценивания", exact: true })
+    .getByRole("button", { name: "Настроить оценивание", exact: true })
     .click();
-  await dialog.getByLabel("Название", { exact: true }).fill("Balanced grading");
+  await dialog.getByLabel("Задания (%)", { exact: true }).fill("50");
+  await dialog.getByLabel("Тесты (%)", { exact: true }).fill("50");
   await save();
-  for (const kind of ["ASSIGNMENTS", "TESTS"]) {
-    await page
-      .getByRole("button", { name: "+ Добавить компонент", exact: true })
-      .click();
-    await dialog.getByRole("combobox").selectOption(kind);
-    await dialog.getByRole("spinbutton").fill("50");
-    await save();
-  }
+  await expect(page.locator("#course-grading .grading-total")).toHaveText(
+    "Сумма весов: 100 из 100%",
+  );
   await page.getByRole("button", { name: "Опубликовать", exact: true }).click();
   await dialog
     .getByRole("button", { name: "Подтвердить", exact: true })

@@ -5,11 +5,8 @@ import { api } from "../../services/api";
 import { ErrorState, Loading, Modal } from "../../components/UI";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { ResourcePage } from "../manage/ResourcePage";
-import {
-  defaultLandingText,
-  landingGroups,
-  type LandingContent,
-} from "./content";
+import { defaultLandingText, type LandingContent } from "./content";
+import { landingGroups } from "./editorFields";
 
 export function LandingEditor() {
   const { i18n } = useTranslation();
@@ -229,9 +226,16 @@ function EditorForm({
         <section className="panel">
           <h2>{kk ? group.kk : group.ru}</h2>
           <fieldset disabled={pending}>
-            {["about", "features", "how", "teachers", "faq", "final"].includes(
-              active,
-            ) && (
+            {[
+              "about",
+              "features",
+              "learning",
+              "creation",
+              "how",
+              "teachers",
+              "faq",
+              "final",
+            ].includes(active) && (
               <label className="check-label">
                 <input
                   type="checkbox"

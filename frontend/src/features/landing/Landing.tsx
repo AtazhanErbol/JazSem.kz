@@ -1,4 +1,5 @@
 import { defaultLandingText, type LandingContent } from "./content";
+import { useEffect, useRef, useState } from "react";
 import { ErrorState, Loading } from "../../components/UI";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
@@ -9,6 +10,13 @@ import {
   ClipboardCheck,
   Sparkles,
   ArrowRight,
+  FileText,
+  MessageSquareText,
+  PencilLine,
+  FileSpreadsheet,
+  ShieldCheck,
+  Menu,
+  X,
 } from "lucide-react";
 import { Language, Logo } from "../../components/UI";
 import { useQuery } from "@tanstack/react-query";
@@ -17,8 +25,15 @@ import type { Page, Row } from "../../entities/types";
 import { BookScene } from "./BookScene";
 import { useLandingMotion } from "./useLandingMotion";
 import "./refresh.css";
+import "./editorial.css";
 
 export function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigation = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (menuOpen) navigation.current?.querySelector("a")?.focus();
+  }, [menuOpen]);
   const { i18n } = useTranslation();
   const [params] = useSearchParams();
   const preview = params.get("preview") === "1";
@@ -36,7 +51,7 @@ export function Landing() {
   const t = (key: string) =>
     settings.data?.texts[key] ?? defaultLandingText(key, language);
   const shown = (key: string) => !settings.data?.hidden.includes(key);
-  const { root, scrolled } = useLandingMotion();
+  const { root, scrolled } = useLandingMotion(!preview || !!settings.data);
   const content = useQuery({
     queryKey: ["public-content", language],
     queryFn: () => api<Page<Row>>(`public-content/?language=${language}`),
@@ -45,6 +60,9 @@ export function Landing() {
   if (preview && settings.error) return <ErrorState error={settings.error} />;
   return (
     <div className="landing" ref={root}>
+      <a className="landing-skip" href="#landing-main">
+        {t("skipContent")}
+      </a>
       {preview && (
         <div className="landing-preview-note">
           {language === "kk"
@@ -52,13 +70,42 @@ export function Landing() {
             : "Предпросмотр сохранённого черновика — изменения ещё не опубликованы"}
         </div>
       )}
-      <header className={`landing-header${scrolled ? " is-scrolled" : ""}`}>
+      <header
+        className={`landing-header${scrolled ? " is-scrolled" : ""}`}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && menuOpen) {
+            setMenuOpen(false);
+            menuButton.current?.focus();
+          }
+        }}
+      >
         <Logo />
-        <nav>
-          {shown("features") && <a href="#features">{t("features")}</a>}
-          {shown("how") && <a href="#how">{t("how")}</a>}
-          {shown("teachers") && <a href="#teachers">{t("forTeachers")}</a>}
-          {shown("faq") && <a href="#faq">FAQ</a>}
+        <nav
+          id="landing-navigation"
+          ref={navigation}
+          className={menuOpen ? "is-open" : ""}
+          aria-label={t("features")}
+        >
+          {shown("features") && (
+            <a href="#features" onClick={() => setMenuOpen(false)}>
+              {t("features")}
+            </a>
+          )}
+          {shown("how") && (
+            <a href="#how" onClick={() => setMenuOpen(false)}>
+              {t("how")}
+            </a>
+          )}
+          {shown("teachers") && (
+            <a href="#teachers" onClick={() => setMenuOpen(false)}>
+              {t("forTeachers")}
+            </a>
+          )}
+          {shown("faq") && (
+            <a href="#faq" onClick={() => setMenuOpen(false)}>
+              FAQ
+            </a>
+          )}
         </nav>
         <div className="row-actions">
           {preview ? (
@@ -69,9 +116,19 @@ export function Landing() {
           <Link className="button primary" to="/login">
             {t("login")} <ArrowUpRight size={17} />
           </Link>
+          <button
+            className="landing-menu-toggle"
+            ref={menuButton}
+            aria-label={t(menuOpen ? "menuClose" : "menuOpen")}
+            aria-expanded={menuOpen}
+            aria-controls="landing-navigation"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </header>
-      <main>
+      <main id="landing-main" tabIndex={-1}>
         <section className="hero">
           <div className="hero-copy">
             <span className="pill">
@@ -130,7 +187,7 @@ export function Landing() {
         </section>
         {shown("about") && (
           <section className="about-strip">
-            <span>01 / JAZSEM</span>
+            <BookOpen size={28} aria-hidden="true" />
             <h2>{t("aboutTitle")}</h2>
             <p>{t("aboutText")}</p>
           </section>
@@ -140,9 +197,8 @@ export function Landing() {
             <div className="section-heading">
               <div>
                 <span className="eyebrow">{t("features")}</span>
-                <h2>{t("aboutTitle")}</h2>
+                <h2>{t("featuresTitle")}</h2>
               </div>
-              <span className="section-number">01—03</span>
             </div>
             <div className="feature-grid">
               {[BookOpen, ClipboardCheck, Sparkles].map((Icon, i) => (
@@ -155,6 +211,82 @@ export function Landing() {
                   <p>{t("feature" + (i + 1) + "Text")}</p>
                 </article>
               ))}
+            </div>
+          </section>
+        )}
+        {shown("learning") && (
+          <section id="learning" className="landing-section learning-section">
+            <div className="learning-copy">
+              <span className="eyebrow">{t("learningLabel")}</span>
+              <h2>{t("learningTitle")}</h2>
+              <p>{t("learningText")}</p>
+              <div className="learning-note">
+                <ShieldCheck size={20} aria-hidden="true" />
+                <p>{t("learningNote")}</p>
+              </div>
+            </div>
+            <div className="week-preview">
+              <div className="week-preview-heading">
+                <span>{t("weekExample")}</span>
+                <BookOpen size={24} aria-hidden="true" />
+              </div>
+              <h3>{t("weekTitle")}</h3>
+              <ol>
+                {[FileText, ClipboardCheck, MessageSquareText].map(
+                  (Icon, index) => (
+                    <li key={index}>
+                      <span className="week-stage-icon">
+                        <Icon size={21} aria-hidden="true" />
+                      </span>
+                      <div>
+                        <h4>{t(`week${index + 1}`)}</h4>
+                        <p>{t(`week${index + 1}Text`)}</p>
+                      </div>
+                    </li>
+                  ),
+                )}
+              </ol>
+            </div>
+          </section>
+        )}
+        {shown("creation") && (
+          <section id="creation" className="creation-section">
+            <div className="landing-section">
+              <div className="section-heading">
+                <div>
+                  <span className="eyebrow">{t("creationLabel")}</span>
+                  <h2>{t("creationTitle")}</h2>
+                </div>
+                <p>{t("creationText")}</p>
+              </div>
+              <div className="creation-methods">
+                <article>
+                  <span className="method-icon">
+                    <PencilLine size={26} aria-hidden="true" />
+                  </span>
+                  <h3>{t("manualTitle")}</h3>
+                  <p>{t("manualText")}</p>
+                  <div className="method-note">
+                    <FileSpreadsheet size={18} aria-hidden="true" />
+                    <span>{t("manualImport")}</span>
+                  </div>
+                </article>
+                <article>
+                  <span className="method-icon">
+                    <Sparkles size={26} aria-hidden="true" />
+                  </span>
+                  <h3>{t("assistedTitle")}</h3>
+                  <p>{t("assistedText")}</p>
+                  <div className="method-note">
+                    <Check size={18} aria-hidden="true" />
+                    <span>{t("assistedReview")}</span>
+                  </div>
+                </article>
+              </div>
+              <p className="creation-note">
+                <ShieldCheck size={18} aria-hidden="true" />
+                <span>{t("creationNote")}</span>
+              </p>
             </div>
           </section>
         )}
@@ -205,7 +337,12 @@ export function Landing() {
             <div>
               {[1, 2, 3].map((i) => (
                 <details key={i}>
-                  <summary>{t("faq" + i)}</summary>
+                  <summary>
+                    {t("faq" + i)}
+                    <span className="faq-plus" aria-hidden="true">
+                      +
+                    </span>
+                  </summary>
                   <p>{t("faq" + i + "Answer")}</p>
                 </details>
               ))}
@@ -213,7 +350,7 @@ export function Landing() {
           </section>
         )}
         {content.data?.results.map((block) => (
-          <section className="landing-section" key={block.id}>
+          <section className="landing-section landing-extra" key={block.id}>
             <h2>{String(block.title)}</h2>
             <p>{String(block.body)}</p>
           </section>

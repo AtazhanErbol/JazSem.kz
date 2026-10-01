@@ -49,7 +49,9 @@ async function firstLogin(page: Page, email: string, password: string) {
   await expect(page).toHaveURL(/change-temporary-password/);
   await page.getByLabel("Текущий пароль", { exact: true }).fill(temporary);
   await page.getByLabel("Пароль", { exact: true }).fill(password);
-  await page.getByLabel("Повторите новый пароль", { exact: true }).fill(password);
+  await page
+    .getByLabel("Повторите новый пароль", { exact: true })
+    .fill(password);
   await page
     .getByRole("button", { name: "Установить новый пароль", exact: true })
     .click();
@@ -218,13 +220,11 @@ test("real lifecycle: admin people, SMTP first login/reset, teaching, revision, 
   ).toBeDisabled();
   await page.goto(`/app/assignments/${course.assignmentId}`);
   await page.getByLabel("Ваш ответ").fill("Synthetic first solution.");
-  await page
-    .locator('input[type="file"]')
-    .setInputFiles({
-      name: "answer.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from("Synthetic answer attachment"),
-    });
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "answer.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("Synthetic answer attachment"),
+  });
   const sent = page.waitForResponse(
     (response) =>
       response.url().includes(`/assignments/${course.assignmentId}/submit/`) &&
@@ -244,9 +244,7 @@ test("real lifecycle: admin people, SMTP first login/reset, teaching, revision, 
   await page
     .getByLabel("Комментарий преподавателя")
     .fill("Please explain the equation.");
-  await page
-    .getByRole("button", { name: "На доработку", exact: true })
-    .click();
+  await page.getByRole("button", { name: "На доработку", exact: true }).click();
   await expect(
     page.getByText("Ожидается доработка студента.", { exact: true }),
   ).toBeVisible();
@@ -295,7 +293,12 @@ test("real lifecycle: admin people, SMTP first login/reset, teaching, revision, 
   await page.getByRole("button", { name: "Оценить", exact: true }).click();
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.goto(`/app/courses/${course.courseId}`);
-  await page.getByRole("button", { name: "Копировать в новую версию", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Редактировать опубликованный курс",
+      exact: true,
+    })
+    .click();
   await expect(page).toHaveURL(/version=/);
   await expect(page.getByText(/Черновик.*v2/)).toBeVisible();
   await page.getByRole("button", { name: "Опубликовать", exact: true }).click();
@@ -317,7 +320,5 @@ test("real lifecycle: admin people, SMTP first login/reset, teaching, revision, 
   expect(summaries.results[0].grades.score).toBe(90);
   expect(summaries.results[0].progress.percent).toBe(100);
   await page.goto(`/app/grades?course=${course.courseId}`);
-  await expect(
-    page.getByRole("heading", { name: "90 / 100", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("90 / 100", { exact: true })).toBeVisible();
 });

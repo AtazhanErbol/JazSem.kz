@@ -52,7 +52,9 @@ try {
   results.method="Seven cold navigations. Event Timing from two real language-toggle clicks per sample; long tasks include navigation. This is lab interaction evidence, not field INP.";
   // Headroom over measured route payloads, with auth's required form libraries
   // accounted separately. No wall-clock threshold on shared CI hardware.
-  const budgets={routes:{"/":{raw:525000,gzip:170000},"/login":{raw:650000,gzip:210000}},total_js_raw:800000};
+  // Two requested bilingual landing sections add ~6–8 KB of route code after
+  // excluding editor-only field metadata. Keep transfer and whole-build caps.
+  const budgets={routes:{"/":{raw:535000,gzip:170000},"/login":{raw:660000,gzip:210000}},total_js_raw:800000};
   results.budgets=budgets;
   const overBudget = results.build.total_js_raw>budgets.total_js_raw || Object.entries(results.routes).some(([path,route])=>route.samples.some(s=>s.script_raw>budgets.routes[path].raw || s.script_gzip>budgets.routes[path].gzip));
   await mkdir(dirname(target), { recursive: true });

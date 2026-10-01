@@ -29,6 +29,14 @@ it("keeps the original landing when no published override exists", () => {
     "Продолжайте учиться.",
   );
   expect(screen.getByTestId("book")).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", {
+      name: "Учебная неделя. Всё на своих местах.",
+    }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "Создайте самостоятельно" }),
+  ).toBeInTheDocument();
 });
 it("renders published text, image and section visibility without interpreting HTML", () => {
   query.mockImplementation(({ queryKey }) => ({
@@ -38,8 +46,9 @@ it("renders published text, image and section visibility without interpreting HT
             texts: {
               heroTitle: "<b>Наш курс</b>",
               imageAlt: "Учебная иллюстрация",
+              featuresTitle: "Наш учебный процесс",
             },
-            hidden: ["faq"],
+            hidden: ["faq", "learning", "creation"],
             image: "https://example.test/cover.png",
           }
         : { results: [] },
@@ -57,4 +66,15 @@ it("renders published text, image and section visibility without interpreting HT
   ).toHaveAttribute("src", "https://example.test/cover.png");
   expect(screen.queryByText("Вопросы и ответы")).not.toBeInTheDocument();
   expect(screen.queryByTestId("book")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "Наш учебный процесс" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", {
+      name: "Учебная неделя. Всё на своих местах.",
+    }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Создайте самостоятельно" }),
+  ).not.toBeInTheDocument();
 });

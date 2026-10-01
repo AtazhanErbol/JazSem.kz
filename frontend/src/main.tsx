@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./i18n";
 import "./styles/main.css";
 import "./styles/workspace.css";
+import "./styles/refinements.css";
 import { Protected, RoleGate } from "./app/Auth";
 import { Loading } from "./components/UI";
 import { RouteBoundary } from "./app/RouteBoundary";

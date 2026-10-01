@@ -15,7 +15,8 @@ from .models import ContentBlock
 
 PREFIX = "__landing_"
 TEXT_KEYS = "heroLabel heroTitle heroAccent heroText heroCta features how forTeachers forStudents login continue aboutTitle aboutText feature1 feature1Text feature2 feature2Text feature3 feature3Text howTitle how1 how1Text how2 how2Text how3 how3Text teacherTitle teacherText studentTitle studentText aiFlow faq faq1 faq1Answer faq2 faq2Answer faq3 faq3Answer finalTitle copyright sceneLabel sceneTag sceneTitle sceneText sceneHint imageAlt".split()
-SECTIONS = ["about", "features", "how", "teachers", "faq", "final"]
+TEXT_KEYS += "featuresTitle learningLabel learningTitle learningText learningNote weekExample weekTitle week1 week1Text week2 week2Text week3 week3Text creationLabel creationTitle creationText manualTitle manualText manualImport assistedTitle assistedText assistedReview creationNote".split()
+SECTIONS = ["about", "features", "learning", "creation", "how", "teachers", "faq", "final"]
 
 
 class LandingInput(serializers.Serializer):
@@ -24,7 +25,7 @@ class LandingInput(serializers.Serializer):
         child=serializers.CharField(max_length=4000, allow_blank=True), default=dict
     )
     hidden = serializers.ListField(
-        child=serializers.ChoiceField(choices=SECTIONS), max_length=6, default=list
+        child=serializers.ChoiceField(choices=SECTIONS), max_length=len(SECTIONS), default=list
     )
     image = serializers.URLField(max_length=2000, allow_blank=True, default="")
     publish = serializers.BooleanField(default=False)

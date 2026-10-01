@@ -11,8 +11,12 @@ def test_draft_publish_and_language_isolation(world, client_for):
     public = APIClient()
     data = {
         "language": "ru",
-        "texts": {"heroTitle": "Новый заголовок"},
-        "hidden": ["faq"],
+        "texts": {
+            "heroTitle": "Новый заголовок",
+            "learningTitle": "Учебные недели",
+            "manualTitle": "Мой способ",
+        },
+        "hidden": ["faq", "creation"],
         "image": "",
     }
     assert admin.post("/api/v1/landing/", data, format="json").status_code == 200
