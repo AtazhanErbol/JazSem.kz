@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.services import record
+from apps.common.filters import UserFilter
 from apps.common.inputs import EmptyInput, validated
 from apps.common.permissions import is_admin, is_teacher
 from apps.notifications.services import queue_mail
@@ -180,7 +181,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     http_method_names = ["get", "post", "patch", "head", "options"]
     search_fields = ["email", "first_name", "last_name", "username"]
-    filterset_fields = ["role", "is_active", "owner_teacher"]
+    filterset_class = UserFilter
     ordering_fields = ["created_at", "last_name", "email"]
 
     def get_queryset(self):

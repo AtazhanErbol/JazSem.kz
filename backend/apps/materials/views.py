@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
+from apps.audit.services import record, selected_fields
 from apps.common.api import ScopedViewSet, private_response
 from apps.common.inputs import EmptyInput, validated
 from apps.common.serializers import serializer_for
@@ -24,21 +25,24 @@ class MaterialViewSet(ScopedViewSet):
     def perform_create(self, serializer):
         self.validate_write(serializer)
         file = serializer.validated_data.get("file")
-        serializer.save(
+        material = serializer.save(
             original_filename=file.name if file else "",
             mime_type=file.content_type if file else "",
             size=file.size if file else None,
         )
+        record(self.request.user, "content.created", material, new=selected_fields(material))
 
     def perform_update(self, serializer):
         self.validate_write(serializer)
+        old = selected_fields(serializer.instance)
         file = serializer.validated_data.get("file")
         metadata = (
             {"original_filename": file.name, "mime_type": file.content_type, "size": file.size}
             if file
             else {}
         )
-        serializer.save(**metadata)
+        material = serializer.save(**metadata)
+        record(self.request.user, "content.updated", material, old, selected_fields(material))
 
     @action(detail=True, methods=["get"])
     def download(self, request, pk=None):

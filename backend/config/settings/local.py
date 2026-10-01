@@ -7,7 +7,11 @@ _root = Path(__file__).resolve().parents[3]
 _allowed = ("AI_", "OPENAI_", "EMAIL_", "DEFAULT_FROM_EMAIL", "MAIL_ENCRYPTION_KEY")
 _explicit = set(os.environ)
 # Read only service settings, never execute shell code or inherit Docker DB/S3 URLs.
-for _name in (".env", ".env.local"):
+for _name in (
+    ()
+    if os.environ.get("DJANGO_SETTINGS_MODULE") == "config.settings.e2e"
+    else (".env", ".env.local")
+):
     _path = _root / _name
     if _path.exists():
         for _line in _path.read_text(encoding="utf-8-sig").splitlines():

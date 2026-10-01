@@ -4,6 +4,8 @@ import traceback
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import TimeoutError as RedisTimeoutError
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_handler
@@ -25,6 +27,19 @@ def csrf_failure(request, reason=""):
 
 def exception_handler(exc, context):
     request_id = getattr(context.get("request"), "request_id", "")
+    if isinstance(exc, (RedisConnectionError, RedisTimeoutError)):
+        # A failed throttle/cache dependency must fail closed, without exposing
+        # connection URLs or turning a temporary outage into an opaque 500.
+        return Response(
+            {
+                "code": "service_unavailable",
+                "message": translate("Сервис временно недоступен. Повторите позже."),
+                "errors": {},
+                "request_id": request_id,
+            },
+            status=503,
+            headers={"Retry-After": "30"},
+        )
     if isinstance(exc, DjangoValidationError):
         exc = ValidationError(exc.messages)
     if isinstance(exc, IntegrityError):

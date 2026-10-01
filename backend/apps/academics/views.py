@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -16,10 +17,19 @@ from apps.courses.models import Course
 from apps.enrollments.services import add_member, assign_group
 
 
+class MemberOutput(serializer_for(GroupMembership)):
+    student_name = serializers.SerializerMethodField()
+    student_email = serializers.EmailField(source="student.email", read_only=True)
+
+    def get_student_name(self, obj) -> str:
+        return obj.student.get_full_name() or obj.student.email
+
+
 class DisciplineViewSet(ScopedViewSet):
     queryset = Discipline.objects.all()
     serializer_class = serializer_for(Discipline, ["created_by"])
     search_fields = ["name", "code"]
+    filterset_fields = ["status", "teachers"]
 
     def validate_write(self, serializer):
         if not is_admin(self.request.user):
@@ -76,10 +86,9 @@ class GroupViewSet(ScopedViewSet):
             obj = add_member(request.user, group, lookup(User, data["student"], request.user))
             return Response(representation(obj, request), status=201)
         return Response(
-            [
-                representation(m, request)
-                for m in group.memberships.select_related("student").filter(status="ACTIVE")
-            ]
+            MemberOutput(
+                group.memberships.select_related("student").filter(status="ACTIVE"), many=True
+            ).data
         )
 
     @action(detail=True, methods=["post"], url_path="remove-member")

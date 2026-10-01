@@ -17,6 +17,8 @@ from apps.notifications.models import MailOutbox, Notification
 class NotificationViewSet(ReadOnlyScoped):
     queryset = Notification.objects.all()
     serializer_class = serializer_for(Notification)
+    search_fields = ["title", "message"]
+    filterset_fields = ["is_read"]
 
     def get_queryset(self):
         return Notification.objects.filter(recipient=self.request.user)

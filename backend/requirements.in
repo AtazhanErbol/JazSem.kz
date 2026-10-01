@@ -17,9 +17,6 @@ python-pptx
 Pillow
 pytesseract
 pypdfium2
-pytest
-pytest-django
-ruff
 gunicorn
 sentry-sdk
 python-json-logger

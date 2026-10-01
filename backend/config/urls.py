@@ -128,7 +128,10 @@ def ready(request):
                 return JsonResponse({"status": "worker_unavailable"}, status=503)
         else:
             redis.Redis.from_url(
-                settings.REDIS_URL, socket_connect_timeout=2, socket_timeout=2
+                settings.REDIS_URL,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+                **(settings.REDIS_TLS_OPTIONS or {}),
             ).ping()
         workers = worker_freshness()
         if any(age is None or age > 60 for age in workers.values()):

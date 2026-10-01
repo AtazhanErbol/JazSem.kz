@@ -4,6 +4,8 @@ from urllib.parse import parse_qs, urlsplit
 from cryptography.fernet import Fernet
 from django.core.exceptions import ImproperlyConfigured
 
+from config.redis_tls import redis_tls_options
+
 
 def validate_production(env):
     """Fail closed on configuration errors, without including secret values."""
@@ -86,6 +88,7 @@ def validate_production(env):
         "DATABASE_URL sslmode",
     )
     redis = urlsplit(env["REDIS_URL"])
+    redis_tls_options(env["REDIS_URL"], env.get("REDIS_SSL_CA_CERTS", ""))
     require(
         redis.hostname
         and redis.password

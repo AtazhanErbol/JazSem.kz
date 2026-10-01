@@ -1,40 +1,17 @@
 from django.utils import timezone
 
-from apps.assignments.models import Submission
-from apps.courses.models import Topic
-from apps.testing.models import TestAttempt
 
-from .models import StudentProgress, TopicProgress
+def summary(enrollment, persist=False, data=None):
+    from apps.enrollments.read_models import LearningReadModel
 
-
-def summary(enrollment, persist=False):
-    version = enrollment.course_version
-    topics = list(
-        Topic.objects.filter(week__course_version=version).prefetch_related(
-            "materials", "assignments", "tests"
-        )
-    )
-    materials_done = set(
-        StudentProgress.objects.filter(enrollment=enrollment).values_list("material_id", flat=True)
-    )
-    assignments_done = set(
-        Submission.objects.filter(
-            student=enrollment.student, assignment__topic__week__course_version=version
-        )
-        .exclude(status="DRAFT")
-        .values_list("assignment_id", flat=True)
-    )
-    tests_done = set(
-        TestAttempt.objects.filter(
-            student=enrollment.student,
-            test__topic__week__course_version=version,
-            status__in=["GRADED", "EXPIRED"],
-        ).values_list("test_id", flat=True)
-    )
+    data = data or LearningReadModel([enrollment], mode="progress")
+    key = (enrollment.student_id, enrollment.course_version_id)
+    topics = data.topics[enrollment.course_version_id]
+    materials_done = data.materials[enrollment.pk]
+    assignments_done = data.assignments[key]
+    tests_done = data.tests[key]
     done = total = 0
-    topic_reads = set(
-        TopicProgress.objects.filter(enrollment=enrollment).values_list("topic_id", flat=True)
-    )
+    topic_reads = data.read_topics[enrollment.pk]
     completed_topics = []
     for topic in topics:
         checks = [m.pk in materials_done for m in topic.materials.all() if m.is_required]

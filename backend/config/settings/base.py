@@ -3,6 +3,8 @@ from pathlib import Path
 
 import dj_database_url
 
+from config.redis_tls import redis_tls_options
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "development-only-replace-before-deployment")
 DEBUG = False
@@ -75,6 +77,11 @@ CACHES = {
 }
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
+REDIS_TLS_OPTIONS = redis_tls_options(REDIS_URL, os.environ.get("REDIS_SSL_CA_CERTS", ""))
+if REDIS_TLS_OPTIONS:
+    CELERY_BROKER_USE_SSL = REDIS_TLS_OPTIONS.copy()
+    CELERY_REDIS_BACKEND_USE_SSL = REDIS_TLS_OPTIONS.copy()
+    CACHES["default"]["OPTIONS"] = REDIS_TLS_OPTIONS.copy()
 CELERY_TASK_SERIALIZER = "json"
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_ROUTES = {
@@ -168,7 +175,6 @@ AI_MAX_OUTPUT_TOKENS = int(os.environ.get("AI_MAX_OUTPUT_TOKENS", "8000"))
 AI_REGENERATE_OUTPUT_TOKENS = int(os.environ.get("AI_REGENERATE_OUTPUT_TOKENS", "4000"))
 OPENAI_REASONING_EFFORT = os.environ.get("OPENAI_REASONING_EFFORT", "low")
 AI_DAILY_BUDGET_USD = os.environ.get("AI_DAILY_BUDGET_USD", "0.25")
-AI_MAX_RETRIES = int(os.environ.get("AI_MAX_RETRIES", "1"))
 AI_MAX_SOURCE_CHARS = int(os.environ.get("AI_MAX_SOURCE_CHARS", "120000"))
 AI_MAX_DAILY_JOBS = int(os.environ.get("AI_MAX_DAILY_JOBS", "20"))
 AI_INPUT_PRICE = os.environ.get("AI_INPUT_PRICE_PER_MILLION", "")
@@ -207,4 +213,12 @@ LOGGING = {
 if os.environ.get("SENTRY_DSN"):
     import sentry_sdk
 
-    sentry_sdk.init(dsn=os.environ["SENTRY_DSN"], send_default_pii=False)
+    from apps.common.telemetry import scrub_event
+
+    sentry_sdk.init(
+        dsn=os.environ["SENTRY_DSN"],
+        send_default_pii=False,
+        max_request_body_size="never",
+        include_local_variables=False,
+        before_send=scrub_event,
+    )

@@ -104,7 +104,7 @@ def review(submission, actor, action, score=None, comment=""):
             if not value.is_finite() or not 0 <= value <= submission.assignment.max_score:
                 raise ValueError()
         except Exception:
-            raise ValidationError("Оценка вне допустимого диапазона.")
+            raise ValidationError({"score": "Оценка вне допустимого диапазона."})
         submission.score = (value * 100 / submission.assignment.max_score).quantize(Decimal(".01"))
         submission.status = "GRADED"
         submission.graded_at = timezone.now()

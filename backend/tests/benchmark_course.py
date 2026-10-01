@@ -5,7 +5,9 @@ MEASURE_OUT=... pytest tests/benchmark_course.py -q -s
 
 import json
 import os
+import platform
 import statistics
+import sys
 import time
 from pathlib import Path
 
@@ -17,10 +19,13 @@ from apps.assignments.models import Assignment
 from apps.courses.models import CourseVersion, Topic, Week
 from apps.courses.services import duplicate, publish
 from apps.enrollments.models import Enrollment
-from apps.testing.models import AnswerOption, Question, Test
+from apps.testing.models import AnswerOption, Question
+from apps.testing.models import Test as Quiz
 
 
 def test_large_course_metrics(world, client_for):
+    enrollment_count = int(os.environ.get("MEASURE_ENROLLMENTS", "25"))
+    assert enrollment_count >= 25
     version, course, teacher = world["version"], world["course"], world["teacher"]
     for number in range(2, 6):
         week = Week.objects.create(course_version=version, number=number, title=f"Week {number}")
@@ -29,7 +34,7 @@ def test_large_course_metrics(world, client_for):
                 week=week, title=f"Topic {index}", content="Қазақша / Русский / English. " * 60
             )
             Assignment.objects.create(topic=topic, title="Assignment", status="PUBLISHED")
-            test = Test.objects.create(topic=topic, title="Test", status="PUBLISHED")
+            test = Quiz.objects.create(topic=topic, title="Test", status="PUBLISHED")
             for position in range(8):
                 question = Question.objects.create(
                     test=test, text=f"Question {position}", type="SINGLE_CHOICE"
@@ -41,7 +46,7 @@ def test_large_course_metrics(world, client_for):
                     ]
                 )
     enrollments = [world["enrollment"]]
-    for i in range(24):
+    for i in range(enrollment_count - 1):
         student = User.objects.create(
             username=f"measure-{i}",
             email=f"measure-{i}@example.test",
@@ -60,7 +65,21 @@ def test_large_course_metrics(world, client_for):
         )
     results = {
         "database": connection.vendor,
-        "dataset": {"topics": 33, "questions": 257, "options": 1026, "enrollments": 25},
+        "database_version": getattr(connection.connection.info, "server_version", None)
+        if connection.vendor == "postgresql"
+        else __import__("sqlite3").sqlite_version,
+        "source_ref": os.environ.get("MEASURE_SHA", "working tree"),
+        "python": sys.version.split()[0],
+        "platform": platform.platform(),
+        "percentile_method": "nearest-rank p95 = max of seven warm samples; descriptive lab result only",
+        "http_calls": {"results_25_rows": 50, "results_summary_25_rows": 1},
+        "dataset": {
+            "topics": 33,
+            "questions": 257,
+            "options": 1026,
+            "enrollments": enrollment_count,
+            "visible_rows": 25,
+        },
         "samples": 7,
     }
 
@@ -104,13 +123,20 @@ def test_large_course_metrics(world, client_for):
     def result_rows():
         client = client_for(teacher)
         total = 0
-        for enrollment in enrollments:
+        for enrollment in enrollments[:25]:
             for action in ["progress", "grades"]:
                 response = client.get(f"/api/v1/enrollments/{enrollment.pk}/{action}/")
                 assert response.status_code == 200
                 total += len(response.content)
         return total
 
+    def summary_rows():
+        response = client_for(teacher).get("/api/v1/enrollments/summaries/")
+        assert response.status_code == 200 and len(response.data["results"]) == 25
+        assert response.data["count"] == enrollment_count
+        return len(response.content)
+
+    measure("results_summary_25_rows", summary_rows)
     measure("student_tree", lambda: tree("student"))
     measure("editor_tree", lambda: tree("teacher"))
     measure("publish", publishing)

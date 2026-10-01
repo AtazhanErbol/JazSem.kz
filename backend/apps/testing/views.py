@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.common.api import ReadOnlyScoped, ScopedViewSet, representation
+from apps.common.filters import TestFilter
 from apps.common.inputs import AnswerInput, EmptyInput, validated
 from apps.common.serializers import serializer_for
 from apps.testing.models import Test, TestAttempt
@@ -35,6 +36,7 @@ class TestDisplaySerializer(serializer_for(Test)):
 class TestViewSet(ScopedViewSet):
     queryset = Test.objects.select_related("topic__week__course_version")
     serializer_class = TestDisplaySerializer
+    filterset_class = TestFilter
 
     @action(detail=True, methods=["post"])
     def start(self, request, pk=None):

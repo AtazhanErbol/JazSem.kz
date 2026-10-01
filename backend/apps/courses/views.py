@@ -5,10 +5,12 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from apps.accounts.models import User
-from apps.audit.services import record
+from apps.audit.services import record, selected_fields
 from apps.common.api import ScopedViewSet, lookup, representation
+from apps.common.filters import CourseFilter
 from apps.common.inputs import EmptyInput, StudentInput, VersionInput, validated
 from apps.common.permissions import is_admin, is_teacher
+from apps.common.read_contracts import AuthorWeekOutput, StudentWeekOutput
 from apps.common.scope import editable, visible
 from apps.common.serializers import serializer_for
 from apps.courses.models import Course, Topic
@@ -23,7 +25,7 @@ from apps.progress.services import summary
 class CourseViewSet(ScopedViewSet):
     queryset = Course.objects.all()
     serializer_class = serializer_for(Course, ["current_version"])
-    filterset_fields = ["status", "discipline"]
+    filterset_class = CourseFilter
     ordering_fields = ["created_at", "updated_at", "title"]
 
     @transaction.atomic
@@ -40,6 +42,7 @@ class CourseViewSet(ScopedViewSet):
             raise ValidationError("Дисциплина должна быть назначена преподавателю.")
         course = serializer.save(teacher=teacher)
         new_version(course, self.request.user)
+        record(self.request.user, "content.created", course, new=selected_fields(course))
 
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
@@ -132,27 +135,14 @@ class CourseViewSet(ScopedViewSet):
             ).course_version
         if not version:
             raise ValidationError("Нет версии курса.")
-        weeks = []
-        for week in version.weeks.prefetch_related(
-            "topics__materials", "topics__assignments", "topics__tests__questions__options"
-        ):
-            data = representation(week, request)
-            data["topics"] = []
-            for topic in week.topics.all():
-                entry = representation(topic, request)
-                for key in ["materials", "assignments", "tests"]:
-                    entry[key] = [representation(x, request) for x in getattr(topic, key).all()]
-                if is_teacher(request.user):
-                    for test_data, test in zip(entry["tests"], topic.tests.all()):
-                        test_data["questions"] = [
-                            {
-                                **representation(q, request),
-                                "options": [representation(o, request) for o in q.options.all()],
-                            }
-                            for q in test.questions.all()
-                        ]
-                data["topics"].append(entry)
-            weeks.append(data)
+        author = is_teacher(request.user)
+        relations = ["topics__materials", "topics__assignments", "topics__tests"]
+        if author:
+            relations.append("topics__tests__questions__options")
+        week_output = AuthorWeekOutput if author else StudentWeekOutput
+        weeks = week_output(
+            version.weeks.prefetch_related(*relations), many=True, context={"request": request}
+        ).data
         scheme = GradingScheme.objects.filter(course_version=version).first()
         return Response(
             {

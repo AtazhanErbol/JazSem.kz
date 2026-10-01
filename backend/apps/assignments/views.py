@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from apps.assignments.models import Assignment, Submission, SubmissionFile
 from apps.assignments.services import review, submit
 from apps.common.api import ReadOnlyScoped, ScopedViewSet, private_response, representation
+from apps.common.filters import AssignmentFilter, SubmissionFilter
 from apps.common.inputs import GradeInput, ReviewInput, RevisionInput, SubmissionInput, validated
 from apps.common.serializers import serializer_for
 
@@ -17,7 +18,7 @@ class AssignmentDisplaySerializer(serializer_for(Assignment)):
 class AssignmentViewSet(ScopedViewSet):
     queryset = Assignment.objects.select_related("topic__week__course_version")
     serializer_class = AssignmentDisplaySerializer
-    filterset_fields = ["status", "topic"]
+    filterset_class = AssignmentFilter
     ordering_fields = ["created_at", "deadline", "title", "order"]
 
     @action(detail=True, methods=["post"])
@@ -53,7 +54,7 @@ class SubmissionDisplaySerializer(serializer_for(Submission)):
 class SubmissionViewSet(ReadOnlyScoped):
     queryset = Submission.objects.select_related("assignment", "student")
     serializer_class = SubmissionDisplaySerializer
-    filterset_fields = ["status", "assignment", "student"]
+    filterset_class = SubmissionFilter
     search_fields = ["student__email", "assignment__title"]
 
     @action(detail=True, methods=["post"])

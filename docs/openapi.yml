@@ -82,7 +82,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAICourseDraftList'
+                $ref: '#/components/schemas/PaginatedDraftOutputList'
           description: ''
   /api/v1/ai-drafts/{id}/:
     get:
@@ -104,7 +104,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AICourseDraft'
+                $ref: '#/components/schemas/DraftOutput'
           description: ''
     patch:
       operationId: v1_ai_drafts_partial_update
@@ -122,13 +122,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedEditAIDraftRequest'
+              $ref: '#/components/schemas/PatchedDraftInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedEditAIDraftRequest'
+              $ref: '#/components/schemas/PatchedDraftInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedEditAIDraftRequest'
+              $ref: '#/components/schemas/PatchedDraftInputRequest'
       security:
       - cookieAuth: []
       responses:
@@ -136,7 +136,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AICourseDraft'
+                $ref: '#/components/schemas/DraftOutput'
           description: ''
   /api/v1/ai-drafts/{id}/confirm/:
     post:
@@ -177,22 +177,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegenerateTopicRequest'
+              $ref: '#/components/schemas/RegenerateInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/RegenerateTopicRequest'
+              $ref: '#/components/schemas/RegenerateInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/RegenerateTopicRequest'
+              $ref: '#/components/schemas/RegenerateInputRequest'
         required: true
       security:
       - cookieAuth: []
       responses:
-        '200':
+        '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AICourseDraft'
+                $ref: '#/components/schemas/JobOutput'
           description: ''
   /api/v1/ai-jobs/:
     get:
@@ -225,6 +225,18 @@ paths:
         name: status
         schema:
           type: string
+          enum:
+          - CANCELLED
+          - COMPLETED
+          - FAILED
+          - PROCESSING
+          - QUEUED
+        description: |-
+          * `QUEUED` - Queued
+          * `PROCESSING` - Processing
+          * `COMPLETED` - Completed
+          * `FAILED` - Failed
+          * `CANCELLED` - Cancelled
       tags:
       - v1
       security:
@@ -234,7 +246,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAIJobList'
+                $ref: '#/components/schemas/PaginatedJobOutputList'
           description: ''
     post:
       operationId: v1_ai_jobs_create
@@ -244,22 +256,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GenerationRequest'
+              $ref: '#/components/schemas/GenerationInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/GenerationRequest'
+              $ref: '#/components/schemas/GenerationInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/GenerationRequest'
+              $ref: '#/components/schemas/GenerationInputRequest'
         required: true
       security:
       - cookieAuth: []
       responses:
-        '201':
+        '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIJob'
+                $ref: '#/components/schemas/JobOutput'
           description: ''
   /api/v1/ai-jobs/{id}/:
     get:
@@ -281,7 +293,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIJob'
+                $ref: '#/components/schemas/JobOutput'
           description: ''
   /api/v1/ai-jobs/{id}/cancel/:
     post:
@@ -296,18 +308,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AIJobRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AIJobRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AIJobRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -315,7 +315,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIJob'
+                $ref: '#/components/schemas/JobOutput'
           description: ''
   /api/v1/ai-jobs/{id}/draft/:
     get:
@@ -337,7 +337,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIJob'
+                $ref: '#/components/schemas/DraftOutput'
           description: ''
   /api/v1/ai-status/:
     get:
@@ -384,7 +384,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAIUsageLogList'
+                $ref: '#/components/schemas/PaginatedUsageOutputList'
           description: ''
   /api/v1/ai-usage/{id}/:
     get:
@@ -406,12 +406,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIUsageLog'
+                $ref: '#/components/schemas/UsageOutput'
           description: ''
   /api/v1/assignments/:
     get:
       operationId: v1_assignments_list
       parameters:
+      - in: query
+        name: course
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: due
+        schema:
+          type: string
+          enum:
+          - future
+          - none
+          - overdue
+        description: |-
+          * `overdue` - Overdue
+          * `future` - Future
+          * `none` - No deadline
       - name: ordering
         required: false
         in: query
@@ -435,6 +452,11 @@ paths:
         schema:
           type: string
       - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
+      - in: query
         name: topic
         schema:
           type: string
@@ -448,7 +470,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAssignmentList'
+                $ref: '#/components/schemas/PaginatedAssignmentDisplayList'
           description: ''
     post:
       operationId: v1_assignments_create
@@ -458,13 +480,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssignmentRequest'
+              $ref: '#/components/schemas/AssignmentDisplayRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AssignmentRequest'
+              $ref: '#/components/schemas/AssignmentDisplayRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AssignmentRequest'
+              $ref: '#/components/schemas/AssignmentDisplayRequest'
         required: true
       security:
       - cookieAuth: []
@@ -473,7 +495,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Assignment'
+                $ref: '#/components/schemas/AssignmentDisplay'
           description: ''
   /api/v1/assignments/{id}/:
     get:
@@ -495,7 +517,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Assignment'
+                $ref: '#/components/schemas/AssignmentDisplay'
           description: ''
     patch:
       operationId: v1_assignments_partial_update
@@ -513,13 +535,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedAssignmentRequest'
+              $ref: '#/components/schemas/PatchedAssignmentDisplayRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedAssignmentRequest'
+              $ref: '#/components/schemas/PatchedAssignmentDisplayRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedAssignmentRequest'
+              $ref: '#/components/schemas/PatchedAssignmentDisplayRequest'
       security:
       - cookieAuth: []
       responses:
@@ -527,7 +549,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Assignment'
+                $ref: '#/components/schemas/AssignmentDisplay'
           description: ''
     delete:
       operationId: v1_assignments_destroy
@@ -563,17 +585,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmitWorkRequest'
+              $ref: '#/components/schemas/SubmissionInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SubmitWorkRequest'
+              $ref: '#/components/schemas/SubmissionInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SubmitWorkRequest'
+              $ref: '#/components/schemas/SubmissionInputRequest'
       security:
       - cookieAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -605,6 +627,14 @@ paths:
         name: status
         schema:
           type: string
+          enum:
+          - EXPIRED
+          - GRADED
+          - IN_PROGRESS
+        description: |-
+          * `IN_PROGRESS` - In Progress
+          * `GRADED` - Graded
+          * `EXPIRED` - Expired
       - in: query
         name: test
         schema:
@@ -641,7 +671,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestAttempt'
+                $ref: '#/components/schemas/AttemptDetailOutput'
           description: ''
   /api/v1/attempts/{id}/answer/:
     post:
@@ -660,13 +690,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SaveAnswerRequest'
+              $ref: '#/components/schemas/AnswerInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SaveAnswerRequest'
+              $ref: '#/components/schemas/AnswerInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SaveAnswerRequest'
+              $ref: '#/components/schemas/AnswerInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -675,7 +705,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestAttempt'
+                $ref: '#/components/schemas/SavedOutput'
           description: ''
   /api/v1/attempts/{id}/finish/:
     post:
@@ -703,6 +733,14 @@ paths:
     get:
       operationId: v1_audit_list
       parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: query
+        name: entity_type
+        schema:
+          type: string
       - name: ordering
         required: false
         in: query
@@ -721,6 +759,11 @@ paths:
         description: A search term.
         schema:
           type: string
+      - in: query
+        name: user
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -763,13 +806,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PasswordRequest'
+              $ref: '#/components/schemas/ChangePasswordInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PasswordRequest'
+              $ref: '#/components/schemas/ChangePasswordInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PasswordRequest'
+              $ref: '#/components/schemas/ChangePasswordInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -778,7 +821,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Password'
+                $ref: '#/components/schemas/User'
           description: ''
   /api/v1/auth/forgot-password/:
     post:
@@ -804,7 +847,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Email'
+                $ref: '#/components/schemas/MessageOutput'
           description: ''
   /api/v1/auth/login/:
     get:
@@ -818,7 +861,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Login'
+                $ref: '#/components/schemas/CSRFOutput'
           description: ''
     post:
       operationId: v1_auth_login_create
@@ -843,34 +886,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Login'
+                $ref: '#/components/schemas/User'
           description: ''
   /api/v1/auth/logout/:
     post:
       operationId: v1_auth_logout_create
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EmailRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/EmailRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/EmailRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Email'
-          description: ''
+        '204':
+          description: No response body
   /api/v1/auth/me/:
     get:
       operationId: v1_auth_me_retrieve
@@ -893,13 +920,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
+              $ref: '#/components/schemas/PatchedProfileInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
+              $ref: '#/components/schemas/PatchedProfileInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
+              $ref: '#/components/schemas/PatchedProfileInputRequest'
       security:
       - cookieAuth: []
       responses:
@@ -918,13 +945,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PasswordRequest'
+              $ref: '#/components/schemas/ResetPasswordInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PasswordRequest'
+              $ref: '#/components/schemas/ResetPasswordInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PasswordRequest'
+              $ref: '#/components/schemas/ResetPasswordInputRequest'
         required: true
       security:
       - {}
@@ -933,7 +960,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Password'
+                $ref: '#/components/schemas/MessageOutput'
           description: ''
   /api/v1/chunks/:
     get:
@@ -966,7 +993,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedDocumentChunkList'
+                $ref: '#/components/schemas/PaginatedChunkOutputList'
           description: ''
   /api/v1/chunks/{id}/:
     get:
@@ -988,12 +1015,26 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentChunk'
+                $ref: '#/components/schemas/ChunkOutput'
           description: ''
   /api/v1/content/:
     get:
       operationId: v1_content_list
       parameters:
+      - in: query
+        name: is_published
+        schema:
+          type: boolean
+      - in: query
+        name: language
+        schema:
+          type: string
+          enum:
+          - kk
+          - ru
+        description: |-
+          * `ru` - RU
+          * `kk` - KZ
       - name: ordering
         required: false
         in: query
@@ -1124,7 +1165,16 @@ paths:
       operationId: v1_courses_list
       parameters:
       - in: query
+        name: active
+        schema:
+          type: boolean
+      - in: query
         name: discipline
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
         schema:
           type: string
           format: uuid
@@ -1150,6 +1200,19 @@ paths:
         name: status
         schema:
           type: string
+          enum:
+          - ARCHIVED
+          - DRAFT
+          - PUBLISHED
+        description: |-
+          * `DRAFT` - Draft
+          * `PUBLISHED` - Published
+          * `ARCHIVED` - Archived
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -1159,7 +1222,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedCourseList'
+                $ref: '#/components/schemas/PaginatedCourseWriteList'
           description: ''
     post:
       operationId: v1_courses_create
@@ -1169,13 +1232,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CourseRequest'
+              $ref: '#/components/schemas/CourseWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CourseRequest'
+              $ref: '#/components/schemas/CourseWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CourseRequest'
+              $ref: '#/components/schemas/CourseWriteRequest'
         required: true
       security:
       - cookieAuth: []
@@ -1184,7 +1247,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseWrite'
           description: ''
   /api/v1/courses/{id}/:
     get:
@@ -1206,7 +1269,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseWrite'
           description: ''
     patch:
       operationId: v1_courses_partial_update
@@ -1224,13 +1287,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedCourseRequest'
+              $ref: '#/components/schemas/PatchedCourseWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedCourseRequest'
+              $ref: '#/components/schemas/PatchedCourseWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedCourseRequest'
+              $ref: '#/components/schemas/PatchedCourseWriteRequest'
       security:
       - cookieAuth: []
       responses:
@@ -1238,7 +1301,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseWrite'
           description: ''
     delete:
       operationId: v1_courses_destroy
@@ -1270,18 +1333,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CourseRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CourseRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CourseRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -1308,13 +1359,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IndividualAssignmentRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IndividualAssignmentRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IndividualAssignmentRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -1323,7 +1374,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/Enrollment'
           description: ''
   /api/v1/courses/{id}/duplicate/:
     post:
@@ -1342,13 +1393,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CourseDuplicateRequest'
+              $ref: '#/components/schemas/VersionInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CourseDuplicateRequest'
+              $ref: '#/components/schemas/VersionInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CourseDuplicateRequest'
+              $ref: '#/components/schemas/VersionInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -1358,6 +1409,85 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CourseVersion'
+          description: ''
+  /api/v1/courses/{id}/grading-preset/:
+    post:
+      operationId: v1_courses_grading_preset_create
+      parameters:
+      - in: query
+        name: active
+        schema:
+          type: boolean
+      - in: query
+        name: discipline
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ARCHIVED
+          - DRAFT
+          - PUBLISHED
+        description: |-
+          * `DRAFT` - Draft
+          * `PUBLISHED` - Published
+          * `ARCHIVED` - Archived
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GradingComponent'
           description: ''
   /api/v1/courses/{id}/publish/:
     post:
@@ -1376,13 +1506,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CoursePublishRequest'
+              $ref: '#/components/schemas/VersionInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CoursePublishRequest'
+              $ref: '#/components/schemas/VersionInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CoursePublishRequest'
+              $ref: '#/components/schemas/VersionInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -1413,12 +1543,26 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseTree'
           description: ''
   /api/v1/courses/{id}/versions/:
     get:
-      operationId: v1_courses_versions_retrieve
+      operationId: v1_courses_versions_list
       parameters:
+      - in: query
+        name: active
+        schema:
+          type: boolean
+      - in: query
+        name: discipline
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
+        schema:
+          type: string
+          format: uuid
       - in: path
         name: id
         schema:
@@ -1426,6 +1570,35 @@ paths:
           format: uuid
         description: A UUID string identifying this course.
         required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ARCHIVED
+          - DRAFT
+          - PUBLISHED
+        description: |-
+          * `DRAFT` - Draft
+          * `PUBLISHED` - Published
+          * `ARCHIVED` - Archived
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -1435,7 +1608,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseVersion'
           description: ''
   /api/v1/dashboard/:
     get:
@@ -1473,6 +1648,19 @@ paths:
         description: A search term.
         schema:
           type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: teachers
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        explode: true
+        style: form
       tags:
       - v1
       security:
@@ -1482,7 +1670,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedDisciplineList'
+                $ref: '#/components/schemas/PaginatedDisciplineWriteList'
           description: ''
     post:
       operationId: v1_disciplines_create
@@ -1492,13 +1680,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DisciplineRequest'
+              $ref: '#/components/schemas/DisciplineWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/DisciplineRequest'
+              $ref: '#/components/schemas/DisciplineWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/DisciplineRequest'
+              $ref: '#/components/schemas/DisciplineWriteRequest'
         required: true
       security:
       - cookieAuth: []
@@ -1507,7 +1695,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Discipline'
+                $ref: '#/components/schemas/DisciplineWrite'
           description: ''
   /api/v1/disciplines/{id}/:
     get:
@@ -1529,7 +1717,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Discipline'
+                $ref: '#/components/schemas/DisciplineWrite'
           description: ''
     patch:
       operationId: v1_disciplines_partial_update
@@ -1547,13 +1735,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedDisciplineRequest'
+              $ref: '#/components/schemas/PatchedDisciplineWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedDisciplineRequest'
+              $ref: '#/components/schemas/PatchedDisciplineWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedDisciplineRequest'
+              $ref: '#/components/schemas/PatchedDisciplineWriteRequest'
       security:
       - cookieAuth: []
       responses:
@@ -1561,7 +1749,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Discipline'
+                $ref: '#/components/schemas/DisciplineWrite'
           description: ''
     delete:
       operationId: v1_disciplines_destroy
@@ -1593,18 +1781,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DisciplineRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/DisciplineRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/DisciplineRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -1620,6 +1796,11 @@ paths:
       parameters:
       - in: query
         name: course
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
         schema:
           type: string
           format: uuid
@@ -1645,8 +1826,25 @@ paths:
         name: status
         schema:
           type: string
+          enum:
+          - ARCHIVED
+          - ASSIGNED
+          - COMPLETED
+          - FAILED
+          - IN_PROGRESS
+        description: |-
+          * `ASSIGNED` - Assigned
+          * `IN_PROGRESS` - In Progress
+          * `COMPLETED` - Completed
+          * `ARCHIVED` - Archived
+          * `FAILED` - Failed
       - in: query
         name: student
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: teacher
         schema:
           type: string
           format: uuid
@@ -1659,7 +1857,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedEnrollmentList'
+                $ref: '#/components/schemas/PaginatedEnrollmentDisplayList'
           description: ''
   /api/v1/enrollments/{id}/:
     get:
@@ -1681,7 +1879,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Enrollment'
+                $ref: '#/components/schemas/EnrollmentDisplay'
           description: ''
   /api/v1/enrollments/{id}/grades/:
     get:
@@ -1703,7 +1901,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Enrollment'
+                $ref: '#/components/schemas/GradesOutput'
           description: ''
   /api/v1/enrollments/{id}/progress/:
     get:
@@ -1725,7 +1923,76 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Enrollment'
+                $ref: '#/components/schemas/ProgressOutput'
+          description: ''
+  /api/v1/enrollments/summaries/:
+    get:
+      operationId: v1_enrollments_summaries_list
+      parameters:
+      - in: query
+        name: course
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ARCHIVED
+          - ASSIGNED
+          - COMPLETED
+          - FAILED
+          - IN_PROGRESS
+        description: |-
+          * `ASSIGNED` - Assigned
+          * `IN_PROGRESS` - In Progress
+          * `COMPLETED` - Completed
+          * `ARCHIVED` - Archived
+          * `FAILED` - Failed
+      - in: query
+        name: student
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEnrollmentSummaryOutputList'
           description: ''
   /api/v1/grading-components/:
     get:
@@ -2017,6 +2284,15 @@ paths:
         description: A search term.
         schema:
           type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -2137,18 +2413,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StudyGroupRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/StudyGroupRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/StudyGroupRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -2175,13 +2439,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GroupAssignmentRequest'
+              $ref: '#/components/schemas/CourseInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/GroupAssignmentRequest'
+              $ref: '#/components/schemas/CourseInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/GroupAssignmentRequest'
+              $ref: '#/components/schemas/CourseInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -2190,11 +2454,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StudyGroup'
+                $ref: '#/components/schemas/GroupCourseAssignment'
           description: ''
   /api/v1/groups/{id}/members/:
     get:
-      operationId: v1_groups_members_retrieve
+      operationId: v1_groups_members_list
       parameters:
       - in: path
         name: id
@@ -2203,6 +2467,27 @@ paths:
           format: uuid
         description: A UUID string identifying this study group.
         required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -2212,7 +2497,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StudyGroup'
+                type: array
+                items:
+                  $ref: '#/components/schemas/MemberOutput'
           description: ''
     post:
       operationId: v1_groups_members_create
@@ -2230,13 +2517,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GroupMemberRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/GroupMemberRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/GroupMemberRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -2245,7 +2532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StudyGroup'
+                $ref: '#/components/schemas/GroupMembership'
           description: ''
   /api/v1/groups/{id}/remove-member/:
     post:
@@ -2264,14 +2551,59 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RemoveMemberRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/RemoveMemberRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/RemoveMemberRequest'
+              $ref: '#/components/schemas/StudentInputRequest'
         required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/mail-outbox/:
+    get:
+      operationId: v1_mail_outbox_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - FAILED
+          - PENDING
+          - RETRY
+          - SENDING
+          - SENT
+        description: |-
+          * `PENDING` - Pending
+          * `SENDING` - Sending
+          * `RETRY` - Retry
+          * `SENT` - Sent
+          * `FAILED` - Failed
+      tags:
+      - v1
       security:
       - cookieAuth: []
       responses:
@@ -2279,7 +2611,65 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StudyGroup'
+                $ref: '#/components/schemas/PaginatedMailDeliveryList'
+          description: ''
+  /api/v1/mail-outbox/{id}/:
+    get:
+      operationId: v1_mail_outbox_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this mail outbox.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailDelivery'
+          description: ''
+  /api/v1/mail-outbox/{id}/retry/:
+    post:
+      operationId: v1_mail_outbox_retry_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this mail outbox.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailDelivery'
+          description: ''
+  /api/v1/mail-outbox/metrics/:
+    get:
+      operationId: v1_mail_outbox_metrics_retrieve
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailMetricsOutput'
           description: ''
   /api/v1/materials/:
     get:
@@ -2312,7 +2702,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedMaterialList'
+                $ref: '#/components/schemas/PaginatedMaterialWriteList'
           description: ''
     post:
       operationId: v1_materials_create
@@ -2322,13 +2712,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MaterialRequest'
+              $ref: '#/components/schemas/MaterialWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/MaterialRequest'
+              $ref: '#/components/schemas/MaterialWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/MaterialRequest'
+              $ref: '#/components/schemas/MaterialWriteRequest'
         required: true
       security:
       - cookieAuth: []
@@ -2337,7 +2727,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Material'
+                $ref: '#/components/schemas/MaterialWrite'
           description: ''
   /api/v1/materials/{id}/:
     get:
@@ -2359,7 +2749,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Material'
+                $ref: '#/components/schemas/MaterialWrite'
           description: ''
     patch:
       operationId: v1_materials_partial_update
@@ -2377,13 +2767,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedMaterialRequest'
+              $ref: '#/components/schemas/PatchedMaterialWriteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedMaterialRequest'
+              $ref: '#/components/schemas/PatchedMaterialWriteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedMaterialRequest'
+              $ref: '#/components/schemas/PatchedMaterialWriteRequest'
       security:
       - cookieAuth: []
       responses:
@@ -2391,7 +2781,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Material'
+                $ref: '#/components/schemas/MaterialWrite'
           description: ''
     delete:
       operationId: v1_materials_destroy
@@ -2423,18 +2813,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -2442,7 +2820,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Material'
+                $ref: '#/components/schemas/ProgressOutput'
           description: ''
   /api/v1/materials/{id}/download/:
     get:
@@ -2464,12 +2842,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Material'
+                type: string
+                format: binary
           description: ''
   /api/v1/notifications/:
     get:
       operationId: v1_notifications_list
       parameters:
+      - in: query
+        name: is_read
+        schema:
+          type: boolean
       - name: ordering
         required: false
         in: query
@@ -2534,18 +2917,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NotificationRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/NotificationRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/NotificationRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -2554,6 +2925,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/operations/:
+    get:
+      operationId: v1_operations_retrieve
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationsOutput'
           description: ''
   /api/v1/options/:
     get:
@@ -2928,7 +3313,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedSourceDocumentList'
+                $ref: '#/components/schemas/PaginatedSourceOutputList'
           description: ''
     post:
       operationId: v1_sources_create
@@ -2938,13 +3323,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UploadSourceRequest'
+              $ref: '#/components/schemas/SourceInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UploadSourceRequest'
+              $ref: '#/components/schemas/SourceInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UploadSourceRequest'
+              $ref: '#/components/schemas/SourceInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -2953,7 +3338,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SourceDocument'
+                $ref: '#/components/schemas/SourceOutput'
           description: ''
   /api/v1/sources/{id}/:
     get:
@@ -2975,12 +3360,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SourceDocument'
+                $ref: '#/components/schemas/SourceOutput'
           description: ''
   /api/v1/sources/{id}/chunks/:
     get:
-      operationId: v1_sources_chunks_retrieve
+      operationId: v1_sources_chunks_list
       parameters:
+      - in: query
+        name: course
+        schema:
+          type: string
+          format: uuid
       - in: path
         name: id
         schema:
@@ -2988,6 +3378,24 @@ paths:
           format: uuid
         description: A UUID string identifying this source document.
         required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - v1
       security:
@@ -2997,7 +3405,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SourceDocument'
+                $ref: '#/components/schemas/PaginatedChunkOutputList'
           description: ''
   /api/v1/sources/{id}/download/:
     get:
@@ -3019,7 +3427,52 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SourceDocument'
+                type: string
+                format: binary
+          description: ''
+  /api/v1/sources/{id}/exclude/:
+    post:
+      operationId: v1_sources_exclude_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this source document.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceOutput'
+          description: ''
+  /api/v1/sources/{id}/retry/:
+    post:
+      operationId: v1_sources_retry_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this source document.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceOutput'
           description: ''
   /api/v1/submission-files/:
     get:
@@ -3096,7 +3549,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionFile'
+                type: string
+                format: binary
           description: ''
   /api/v1/submissions/:
     get:
@@ -3104,6 +3558,16 @@ paths:
       parameters:
       - in: query
         name: assignment
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: course
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
         schema:
           type: string
           format: uuid
@@ -3119,6 +3583,10 @@ paths:
         description: A page number within the paginated result set.
         schema:
           type: integer
+      - in: query
+        name: pending
+        schema:
+          type: boolean
       - name: search
         required: false
         in: query
@@ -3129,6 +3597,18 @@ paths:
         name: status
         schema:
           type: string
+          enum:
+          - GRADED
+          - RESUBMITTED
+          - REVISION_REQUESTED
+          - SUBMITTED
+          - UNDER_REVIEW
+        description: |-
+          * `SUBMITTED` - Submitted
+          * `RESUBMITTED` - Resubmitted
+          * `UNDER_REVIEW` - Under Review
+          * `REVISION_REQUESTED` - Revision Requested
+          * `GRADED` - Graded
       - in: query
         name: student
         schema:
@@ -3169,8 +3649,23 @@ paths:
           description: ''
   /api/v1/submissions/{id}/files/:
     get:
-      operationId: v1_submissions_files_retrieve
+      operationId: v1_submissions_files_list
       parameters:
+      - in: query
+        name: assignment
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: course
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
+        schema:
+          type: string
+          format: uuid
       - in: path
         name: id
         schema:
@@ -3178,6 +3673,43 @@ paths:
           format: uuid
         description: A UUID string identifying this submission.
         required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: pending
+        schema:
+          type: boolean
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - GRADED
+          - RESUBMITTED
+          - REVISION_REQUESTED
+          - SUBMITTED
+          - UNDER_REVIEW
+        description: |-
+          * `SUBMITTED` - Submitted
+          * `RESUBMITTED` - Resubmitted
+          * `UNDER_REVIEW` - Under Review
+          * `REVISION_REQUESTED` - Revision Requested
+          * `GRADED` - Graded
+      - in: query
+        name: student
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -3187,7 +3719,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionDisplay'
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileOutput'
           description: ''
   /api/v1/submissions/{id}/grade/:
     post:
@@ -3206,13 +3740,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GradeWorkRequest'
+              $ref: '#/components/schemas/GradeInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/GradeWorkRequest'
+              $ref: '#/components/schemas/GradeInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/GradeWorkRequest'
+              $ref: '#/components/schemas/GradeInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -3240,13 +3774,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReviseWorkRequest'
+              $ref: '#/components/schemas/RevisionInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ReviseWorkRequest'
+              $ref: '#/components/schemas/RevisionInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ReviseWorkRequest'
+              $ref: '#/components/schemas/RevisionInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -3274,14 +3808,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionDisplayRequest'
+              $ref: '#/components/schemas/ReviewInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SubmissionDisplayRequest'
+              $ref: '#/components/schemas/ReviewInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SubmissionDisplayRequest'
-        required: true
+              $ref: '#/components/schemas/ReviewInputRequest'
       security:
       - cookieAuth: []
       responses:
@@ -3289,12 +3822,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionDisplay'
+                $ref: '#/components/schemas/Submission'
           description: ''
   /api/v1/tests/:
     get:
       operationId: v1_tests_list
       parameters:
+      - in: query
+        name: course
+        schema:
+          type: string
+          format: uuid
       - name: ordering
         required: false
         in: query
@@ -3313,6 +3851,20 @@ paths:
         description: A search term.
         schema:
           type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: teacher
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: topic
+        schema:
+          type: string
+          format: uuid
       tags:
       - v1
       security:
@@ -3322,7 +3874,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedTestList'
+                $ref: '#/components/schemas/PaginatedTestDisplayList'
           description: ''
     post:
       operationId: v1_tests_create
@@ -3332,13 +3884,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TestRequest'
+              $ref: '#/components/schemas/TestDisplayRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TestRequest'
+              $ref: '#/components/schemas/TestDisplayRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TestRequest'
+              $ref: '#/components/schemas/TestDisplayRequest'
         required: true
       security:
       - cookieAuth: []
@@ -3347,7 +3899,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Test'
+                $ref: '#/components/schemas/TestDisplay'
           description: ''
   /api/v1/tests/{id}/:
     get:
@@ -3369,7 +3921,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Test'
+                $ref: '#/components/schemas/TestDisplay'
           description: ''
     patch:
       operationId: v1_tests_partial_update
@@ -3387,13 +3939,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedTestRequest'
+              $ref: '#/components/schemas/PatchedTestDisplayRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedTestRequest'
+              $ref: '#/components/schemas/PatchedTestDisplayRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedTestRequest'
+              $ref: '#/components/schemas/PatchedTestDisplayRequest'
       security:
       - cookieAuth: []
       responses:
@@ -3401,7 +3953,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Test'
+                $ref: '#/components/schemas/TestDisplay'
           description: ''
     delete:
       operationId: v1_tests_destroy
@@ -3589,18 +4141,6 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TopicRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TopicRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TopicRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
@@ -3608,12 +4148,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Topic'
+                $ref: '#/components/schemas/ProgressOutput'
           description: ''
   /api/v1/users/:
     get:
       operationId: v1_users_list
       parameters:
+      - in: query
+        name: discipline
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: group
+        schema:
+          type: string
+          format: uuid
       - in: query
         name: is_active
         schema:
@@ -3624,6 +4174,11 @@ paths:
         description: Which field to use when ordering the results.
         schema:
           type: string
+      - in: query
+        name: owner_teacher
+        schema:
+          type: string
+          format: uuid
       - name: page
         required: false
         in: query
@@ -3751,27 +4306,11 @@ paths:
         required: true
       tags:
       - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-        required: true
       security:
       - cookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
+        '204':
+          description: No response body
   /api/v1/weeks/:
     get:
       operationId: v1_weeks_list
@@ -3908,135 +4447,6 @@ paths:
           description: No response body
 components:
   schemas:
-    AICourseDraft:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-        data: {}
-        job:
-          type: string
-          format: uuid
-        imported_version:
-          type: string
-          format: uuid
-          nullable: true
-      required:
-      - created_at
-      - data
-      - id
-      - job
-      - updated_at
-    AIJob:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-        type:
-          type: string
-          maxLength: 40
-        status:
-          type: string
-          maxLength: 20
-        progress:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        current_step:
-          type: string
-          maxLength: 100
-        error:
-          type: string
-          maxLength: 250
-        started_at:
-          type: string
-          format: date-time
-          nullable: true
-        finished_at:
-          type: string
-          format: date-time
-          nullable: true
-        parameters: {}
-        request_id:
-          type: string
-          maxLength: 36
-        user:
-          type: string
-          format: uuid
-        course:
-          type: string
-          format: uuid
-      required:
-      - course
-      - created_at
-      - id
-      - updated_at
-      - user
-    AIJobRequest:
-      type: object
-      properties:
-        type:
-          type: string
-          minLength: 1
-          maxLength: 40
-        status:
-          type: string
-          minLength: 1
-          maxLength: 20
-        progress:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        current_step:
-          type: string
-          minLength: 1
-          maxLength: 100
-        error:
-          type: string
-          maxLength: 250
-        started_at:
-          type: string
-          format: date-time
-          nullable: true
-        finished_at:
-          type: string
-          format: date-time
-          nullable: true
-        parameters: {}
-        request_id:
-          type: string
-          maxLength: 36
-        user:
-          type: string
-          format: uuid
-        course:
-          type: string
-          format: uuid
-      required:
-      - course
-      - user
     AIStatusOutput:
       type: object
       properties:
@@ -4056,59 +4466,21 @@ components:
       - enabled
       - model
       - worker_available
-    AIUsageLog:
+    AnswerInputRequest:
       type: object
       properties:
-        id:
+        question:
           type: string
           format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-        operation:
-          type: string
-          maxLength: 80
-        model:
-          type: string
-          maxLength: 100
-        input_tokens:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        output_tokens:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        estimated_cost:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,6}(?:\.\d{0,6})?$
-          nullable: true
-        duration:
-          type: number
-          format: double
-        status:
-          type: string
-          maxLength: 30
-        user:
-          type: string
-          format: uuid
+        selected_options:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
       required:
-      - created_at
-      - id
-      - model
-      - operation
-      - status
-      - updated_at
-      - user
+      - question
+      - selected_options
     AnswerOption:
       type: object
       properties:
@@ -4124,6 +4496,9 @@ components:
           type: string
           format: date-time
           readOnly: true
+        question:
+          type: string
+          format: uuid
         text:
           type: string
         is_correct:
@@ -4133,9 +4508,6 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-        question:
-          type: string
-          format: uuid
       required:
       - created_at
       - id
@@ -4145,6 +4517,9 @@ components:
     AnswerOptionRequest:
       type: object
       properties:
+        question:
+          type: string
+          format: uuid
         text:
           type: string
           minLength: 1
@@ -4155,9 +4530,6 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-        question:
-          type: string
-          format: uuid
       required:
       - question
       - text
@@ -4214,7 +4586,70 @@ components:
       - title
       - topic
       - updated_at
-    AssignmentRequest:
+    AssignmentDisplay:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        course_id:
+          type: string
+          format: uuid
+          readOnly: true
+        course_version_id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        instructions:
+          type: string
+        max_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        deadline:
+          type: string
+          format: date-time
+          nullable: true
+        allow_late_submission:
+          type: boolean
+        status:
+          type: string
+          maxLength: 20
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_required:
+          type: boolean
+        source_chunks: {}
+        topic:
+          type: string
+          format: uuid
+      required:
+      - course_id
+      - course_version_id
+      - created_at
+      - id
+      - title
+      - topic
+      - updated_at
+    AssignmentDisplayRequest:
       type: object
       properties:
         title:
@@ -4254,6 +4689,131 @@ components:
       required:
       - title
       - topic
+    AttemptDetailOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        test:
+          type: string
+          format: uuid
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
+        attempt_number:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/AttemptStateEnum'
+          readOnly: true
+          default: IN_PROGRESS
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
+          nullable: true
+        question_order:
+          readOnly: true
+        option_order:
+          readOnly: true
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttemptQuestionOutput'
+        answers:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              format: uuid
+        server_time:
+          type: string
+          format: date-time
+      required:
+      - answers
+      - attempt_number
+      - created_at
+      - expires_at
+      - id
+      - option_order
+      - question_order
+      - questions
+      - score
+      - server_time
+      - started_at
+      - status
+      - student
+      - submitted_at
+      - test
+      - updated_at
+    AttemptOptionOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+      required:
+      - id
+      - text
+    AttemptQuestionOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttemptOptionOutput'
+      required:
+      - id
+      - options
+      - text
+      - type
+    AttemptStateEnum:
+      enum:
+      - IN_PROGRESS
+      - GRADED
+      - EXPIRED
+      type: string
+      description: |-
+        * `IN_PROGRESS` - In Progress
+        * `GRADED` - Graded
+        * `EXPIRED` - Expired
     AuditLog:
       type: object
       properties:
@@ -4294,6 +4854,299 @@ components:
       - entity_type
       - id
       - updated_at
+    AuthorQuestionOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        test:
+          type: string
+          format: uuid
+        text:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        explanation:
+          type: string
+        source_chunks: {}
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerOption'
+      required:
+      - created_at
+      - id
+      - options
+      - test
+      - text
+      - type
+      - updated_at
+    AuthorTestOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        topic:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        max_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        time_limit_minutes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        max_attempts:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        shuffle_questions:
+          type: boolean
+        shuffle_answers:
+          type: boolean
+        available_from:
+          type: string
+          format: date-time
+          nullable: true
+        available_until:
+          type: string
+          format: date-time
+          nullable: true
+        passing_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          type: string
+          maxLength: 20
+        is_required:
+          type: boolean
+        is_final:
+          type: boolean
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorQuestionOutput'
+      required:
+      - created_at
+      - id
+      - questions
+      - title
+      - topic
+      - updated_at
+    AuthorTopicOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        materials:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialOutput'
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Assignment'
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorTestOutput'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        content:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_required:
+          type: boolean
+        source_chunks: {}
+        week:
+          type: string
+          format: uuid
+      required:
+      - assignments
+      - created_at
+      - id
+      - materials
+      - tests
+      - title
+      - updated_at
+      - week
+    AuthorTreeOutput:
+      type: object
+      properties:
+        course:
+          $ref: '#/components/schemas/Course'
+        version:
+          $ref: '#/components/schemas/CourseVersion'
+        weeks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorWeekOutput'
+        scheme:
+          allOf:
+          - $ref: '#/components/schemas/GradingScheme'
+          nullable: true
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradingComponent'
+      required:
+      - components
+      - course
+      - scheme
+      - version
+      - weeks
+    AuthorWeekOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorTopicOutput'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        course_version:
+          type: string
+          format: uuid
+      required:
+      - course_version
+      - created_at
+      - id
+      - number
+      - title
+      - topics
+      - updated_at
+    CSRFOutput:
+      type: object
+      properties:
+        csrfToken:
+          type: string
+      required:
+      - csrfToken
+    ChangePasswordInputRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 1024
+        current_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 1024
+      required:
+      - current_password
+      - password
+    ChunkOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        document:
+          type: string
+          format: uuid
+          readOnly: true
+        page_number:
+          type: integer
+          readOnly: true
+        chunk_index:
+          type: integer
+          readOnly: true
+        content:
+          type: string
+          readOnly: true
+      required:
+      - chunk_index
+      - content
+      - document
+      - id
+      - page_number
     ComplexityEnum:
       enum:
       - basic
@@ -4323,7 +5176,7 @@ components:
           type: string
           maxLength: 80
         language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         title:
           type: string
           maxLength: 240
@@ -4346,7 +5199,7 @@ components:
           minLength: 1
           maxLength: 80
         language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         title:
           type: string
           minLength: 1
@@ -4380,10 +5233,9 @@ components:
         description:
           type: string
         status:
-          type: string
-          maxLength: 20
+          $ref: '#/components/schemas/CourseStateEnum'
         default_language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         discipline:
           type: string
           format: uuid
@@ -4393,57 +5245,36 @@ components:
         current_version:
           type: string
           format: uuid
-          readOnly: true
           nullable: true
       required:
       - created_at
-      - current_version
       - discipline
       - id
       - teacher
       - title
       - updated_at
-    CourseDuplicateRequest:
+    CourseInputRequest:
       type: object
       properties:
-        version:
+        course:
           type: string
           format: uuid
       required:
-      - version
-    CoursePublishRequest:
-      type: object
-      properties:
-        version:
-          type: string
-          format: uuid
-      required:
-      - version
-    CourseRequest:
-      type: object
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 240
-        description:
-          type: string
-        status:
-          type: string
-          minLength: 1
-          maxLength: 20
-        default_language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
-        discipline:
-          type: string
-          format: uuid
-        teacher:
-          type: string
-          format: uuid
-      required:
-      - discipline
-      - teacher
-      - title
+      - course
+    CourseStateEnum:
+      enum:
+      - DRAFT
+      - PUBLISHED
+      - ARCHIVED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `PUBLISHED` - Published
+        * `ARCHIVED` - Archived
+    CourseTree:
+      oneOf:
+      - $ref: '#/components/schemas/StudentTreeOutput'
+      - $ref: '#/components/schemas/AuthorTreeOutput'
     CourseVersion:
       type: object
       properties:
@@ -4465,8 +5296,7 @@ components:
           minimum: 0
           format: int64
         status:
-          type: string
-          maxLength: 20
+          $ref: '#/components/schemas/VersionStateEnum'
         published_at:
           type: string
           format: date-time
@@ -4484,6 +5314,72 @@ components:
       - id
       - updated_at
       - version_number
+    CourseWrite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/CourseStateEnum'
+        default_language:
+          $ref: '#/components/schemas/LanguageEnum'
+        discipline:
+          type: string
+          format: uuid
+        teacher:
+          type: string
+          format: uuid
+        current_version:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - current_version
+      - discipline
+      - id
+      - teacher
+      - title
+      - updated_at
+    CourseWriteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 240
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/CourseStateEnum'
+        default_language:
+          $ref: '#/components/schemas/LanguageEnum'
+        discipline:
+          type: string
+          format: uuid
+        teacher:
+          type: string
+          format: uuid
+      required:
+      - discipline
+      - teacher
+      - title
     Discipline:
       type: object
       properties:
@@ -4513,6 +5409,48 @@ components:
         created_by:
           type: string
           format: uuid
+        teachers:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - code
+      - created_at
+      - created_by
+      - id
+      - name
+      - teachers
+      - updated_at
+    DisciplineWrite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        name:
+          type: string
+          maxLength: 240
+        code:
+          type: string
+          maxLength: 40
+        description:
+          type: string
+        status:
+          type: string
+          maxLength: 20
+        created_by:
+          type: string
+          format: uuid
           readOnly: true
         teachers:
           type: array
@@ -4527,7 +5465,7 @@ components:
       - name
       - teachers
       - updated_at
-    DisciplineRequest:
+    DisciplineWriteRequest:
       type: object
       properties:
         name:
@@ -4553,13 +5491,24 @@ components:
       - code
       - name
       - teachers
-    DocumentChunk:
+    DraftOutput:
       type: object
       properties:
         id:
           type: string
           format: uuid
           readOnly: true
+        job:
+          type: string
+          format: uuid
+          readOnly: true
+        data:
+          readOnly: true
+        imported_version:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -4568,38 +5517,13 @@ components:
           type: string
           format: date-time
           readOnly: true
-        page_number:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        chunk_index:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        content:
-          type: string
-        metadata: {}
-        document:
-          type: string
-          format: uuid
       required:
-      - chunk_index
-      - content
       - created_at
-      - document
+      - data
       - id
-      - page_number
+      - imported_version
+      - job
       - updated_at
-    Email:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-      required:
-      - email
     EmailRequest:
       type: object
       properties:
@@ -4607,6 +5531,7 @@ components:
           type: string
           format: email
           minLength: 1
+          maxLength: 254
       required:
       - email
     Enrollment:
@@ -4616,11 +5541,76 @@ components:
           type: string
           format: uuid
           readOnly: true
-        course_title:
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
+        course:
+          type: string
+          format: uuid
+          readOnly: true
+        course_version:
+          type: string
+          format: uuid
+          readOnly: true
+        source_type:
           type: string
           readOnly: true
-        student_name:
+        assigned_group:
           type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        assigned_by:
+          type: string
+          format: uuid
+          readOnly: true
+        assigned_at:
+          type: string
+          format: date-time
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/EnrollmentStateEnum'
+          readOnly: true
+      required:
+      - assigned_at
+      - assigned_by
+      - assigned_group
+      - completed_at
+      - course
+      - course_version
+      - created_at
+      - id
+      - source_type
+      - started_at
+      - status
+      - student
+      - updated_at
+    EnrollmentDisplay:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
           readOnly: true
         created_at:
           type: string
@@ -4630,9 +5620,30 @@ components:
           type: string
           format: date-time
           readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
+        course:
+          type: string
+          format: uuid
+          readOnly: true
+        course_version:
+          type: string
+          format: uuid
+          readOnly: true
         source_type:
           type: string
-          maxLength: 20
+          readOnly: true
+        assigned_group:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        assigned_by:
+          type: string
+          format: uuid
+          readOnly: true
         assigned_at:
           type: string
           format: date-time
@@ -4640,62 +5651,196 @@ components:
         started_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         completed_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         status:
+          allOf:
+          - $ref: '#/components/schemas/EnrollmentStateEnum'
+          readOnly: true
+        course_title:
           type: string
-          maxLength: 20
-        student:
+          readOnly: true
+        student_name:
           type: string
-          format: uuid
-        course:
-          type: string
-          format: uuid
-        course_version:
-          type: string
-          format: uuid
-        assigned_group:
-          type: string
-          format: uuid
-          nullable: true
-        assigned_by:
-          type: string
-          format: uuid
+          readOnly: true
       required:
       - assigned_at
       - assigned_by
+      - assigned_group
+      - completed_at
       - course
       - course_title
       - course_version
       - created_at
       - id
       - source_type
+      - started_at
+      - status
       - student
       - student_name
       - updated_at
-    GenerationLanguageEnum:
+    EnrollmentStateEnum:
       enum:
-      - ru
-      - kk
+      - ASSIGNED
+      - IN_PROGRESS
+      - COMPLETED
+      - ARCHIVED
+      - FAILED
       type: string
       description: |-
-        * `ru` - ru
-        * `kk` - kk
-    GenerationRequest:
+        * `ASSIGNED` - Assigned
+        * `IN_PROGRESS` - In Progress
+        * `COMPLETED` - Completed
+        * `ARCHIVED` - Archived
+        * `FAILED` - Failed
+    EnrollmentSummaryOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
+        course:
+          type: string
+          format: uuid
+          readOnly: true
+        course_version:
+          type: string
+          format: uuid
+          readOnly: true
+        source_type:
+          type: string
+          readOnly: true
+        assigned_group:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        assigned_by:
+          type: string
+          format: uuid
+          readOnly: true
+        assigned_at:
+          type: string
+          format: date-time
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/EnrollmentStateEnum'
+          readOnly: true
+        course_title:
+          type: string
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
+        progress:
+          $ref: '#/components/schemas/ProgressOutput'
+        grades:
+          $ref: '#/components/schemas/GradesOutput'
+      required:
+      - assigned_at
+      - assigned_by
+      - assigned_group
+      - completed_at
+      - course
+      - course_title
+      - course_version
+      - created_at
+      - grades
+      - id
+      - progress
+      - source_type
+      - started_at
+      - status
+      - student
+      - student_name
+      - updated_at
+    FileOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        submission:
+          type: string
+          format: uuid
+          readOnly: true
+        file:
+          type: boolean
+        original_filename:
+          type: string
+          readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+      required:
+      - created_at
+      - file
+      - id
+      - mime_type
+      - original_filename
+      - size
+      - submission
+      - updated_at
+    GenerationInputRequest:
       type: object
       properties:
         course:
           type: string
           format: uuid
+        sources:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 30
+          minItems: 1
         weeks:
           type: integer
           maximum: 16
           minimum: 1
         language:
-          $ref: '#/components/schemas/GenerationLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         complexity:
           allOf:
           - $ref: '#/components/schemas/ComplexityEnum'
@@ -4709,18 +5854,47 @@ components:
       required:
       - course
       - language
+      - sources
       - weeks
-    GradeWorkRequest:
+    GradeComponentOutput:
       type: object
       properties:
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        weight:
+          type: integer
+        score:
+          type: number
+          format: double
+      required:
+      - kind
+      - score
+      - weight
+    GradeInputRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          default: ''
+          maxLength: 10000
         score:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-        comment:
-          type: string
-          minLength: 1
       required:
+      - score
+    GradesOutput:
+      type: object
+      properties:
+        score:
+          type: number
+          format: double
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradeComponentOutput'
+      required:
+      - components
       - score
     GradingComponent:
       type: object
@@ -4809,30 +5983,184 @@ components:
           format: uuid
       required:
       - course_version
-    GroupAssignmentRequest:
+    GroupCourseAssignment:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        assigned_at:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          type: string
+          maxLength: 20
+        group:
+          type: string
+          format: uuid
         course:
           type: string
           format: uuid
+        course_version:
+          type: string
+          format: uuid
+        assigned_by:
+          type: string
+          format: uuid
+      required:
+      - assigned_at
+      - assigned_by
+      - course
+      - course_version
+      - created_at
+      - group
+      - id
+      - updated_at
+    GroupMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        joined_at:
+          type: string
+          format: date-time
+          readOnly: true
+        left_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          default: ACTIVE
+          maxLength: 20
+        group:
+          type: string
+          format: uuid
+        student:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - group
+      - id
+      - joined_at
+      - student
+      - updated_at
+    JobOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        course:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        type:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/JobStateEnum'
+          readOnly: true
+        progress:
+          type: integer
+          readOnly: true
+        current_step:
+          type: string
+          readOnly: true
+        error:
+          type: string
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        parameters:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        source_count:
+          type: integer
+          readOnly: true
+        request_id:
+          type: string
+          readOnly: true
+        estimated_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,6})?$
+          readOnly: true
       required:
       - course
-    GroupMemberRequest:
-      type: object
-      properties:
-        student:
-          type: string
-          format: uuid
-      required:
-      - student
-    IndividualAssignmentRequest:
-      type: object
-      properties:
-        student:
-          type: string
-          format: uuid
-      required:
-      - student
+      - created_at
+      - current_step
+      - error
+      - estimated_cost
+      - finished_at
+      - id
+      - parameters
+      - progress
+      - request_id
+      - source_count
+      - started_at
+      - status
+      - type
+      - updated_at
+      - user
+    JobStateEnum:
+      enum:
+      - QUEUED
+      - PROCESSING
+      - COMPLETED
+      - FAILED
+      - CANCELLED
+      type: string
+      description: |-
+        * `QUEUED` - Queued
+        * `PROCESSING` - Processing
+        * `COMPLETED` - Completed
+        * `FAILED` - Failed
+        * `CANCELLED` - Cancelled
     KindEnum:
       enum:
       - ASSIGNMENTS
@@ -4843,14 +6171,14 @@ components:
         * `ASSIGNMENTS` - Assignments
         * `TESTS` - Tests
         * `FINAL` - Final
-    Login:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-      required:
-      - email
+    LanguageEnum:
+      enum:
+      - ru
+      - kk
+      type: string
+      description: |-
+        * `ru` - RU
+        * `kk` - KZ
     LoginRequest:
       type: object
       properties:
@@ -4858,14 +6186,157 @@ components:
           type: string
           format: email
           minLength: 1
+          maxLength: 254
         password:
           type: string
           writeOnly: true
           minLength: 1
+          maxLength: 1024
       required:
       - email
       - password
-    Material:
+    MailDelivery:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        recipient:
+          type: string
+          format: email
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/MailDeliveryStatusEnum'
+          readOnly: true
+        attempts:
+          type: integer
+          readOnly: true
+        cycle_attempts:
+          type: integer
+          readOnly: true
+        next_retry_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        error_code:
+          type: string
+          readOnly: true
+      required:
+      - attempts
+      - created_at
+      - cycle_attempts
+      - error_code
+      - id
+      - next_retry_at
+      - recipient
+      - sent_at
+      - status
+      - updated_at
+    MailDeliveryStatusEnum:
+      enum:
+      - PENDING
+      - SENDING
+      - RETRY
+      - SENT
+      - FAILED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `SENDING` - Sending
+        * `RETRY` - Retry
+        * `SENT` - Sent
+        * `FAILED` - Failed
+    MailMetricsOutput:
+      type: object
+      properties:
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+        oldest_unsent_seconds:
+          type: number
+          format: double
+      required:
+      - counts
+      - oldest_unsent_seconds
+    MaterialOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        file:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 240
+        type:
+          type: string
+          maxLength: 20
+        content:
+          type: string
+        external_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        original_filename:
+          type: string
+          maxLength: 255
+        mime_type:
+          type: string
+          maxLength: 150
+        size:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_required:
+          type: boolean
+        topic:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - file
+      - id
+      - title
+      - topic
+      - updated_at
+    MaterialWrite:
       type: object
       properties:
         id:
@@ -4902,6 +6373,13 @@ components:
         original_filename:
           type: string
           readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+          nullable: true
         order:
           type: integer
           maximum: 9223372036854775807
@@ -4915,11 +6393,13 @@ components:
       required:
       - created_at
       - id
+      - mime_type
       - original_filename
+      - size
       - title
       - topic
       - updated_at
-    MaterialRequest:
+    MaterialWriteRequest:
       type: object
       properties:
         title:
@@ -4955,6 +6435,62 @@ components:
       required:
       - title
       - topic
+    MemberOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
+        student_email:
+          type: string
+          format: email
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        joined_at:
+          type: string
+          format: date-time
+          readOnly: true
+        left_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          default: ACTIVE
+          maxLength: 20
+        group:
+          type: string
+          format: uuid
+        student:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - group
+      - id
+      - joined_at
+      - student
+      - student_email
+      - student_name
+      - updated_at
+    MessageOutput:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
     Notification:
       type: object
       properties:
@@ -4997,36 +6533,40 @@ components:
       - title
       - type
       - updated_at
-    NotificationRequest:
+    OperationsOutput:
       type: object
       properties:
-        type:
-          type: string
-          minLength: 1
-          maxLength: 60
-        title:
-          type: string
-          minLength: 1
-          maxLength: 240
-        message:
-          type: string
-        link:
-          type: string
-          maxLength: 300
-        is_read:
+        window_seconds:
+          type: integer
+        http:
+          type: object
+          additionalProperties:
+            type: integer
+        latency_buckets_ms:
+          type: array
+          items:
+            type: integer
+        workers:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            nullable: true
+        storage_ready:
           type: boolean
-        dedupe_key:
-          type: string
           nullable: true
-          minLength: 1
-          maxLength: 200
-        recipient:
-          type: string
-          format: uuid
+        mail:
+          $ref: '#/components/schemas/QueueOutput'
+        background:
+          $ref: '#/components/schemas/QueueOutput'
       required:
-      - recipient
-      - title
-      - type
+      - background
+      - http
+      - latency_buckets_ms
+      - mail
+      - storage_ready
+      - window_seconds
+      - workers
     Output:
       type: object
       properties:
@@ -5049,75 +6589,6 @@ components:
       - review
       - students
       - teachers
-    PaginatedAICourseDraftList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/AICourseDraft'
-    PaginatedAIJobList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/AIJob'
-    PaginatedAIUsageLogList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/AIUsageLog'
     PaginatedAnswerOptionList:
       type: object
       required:
@@ -5141,7 +6612,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AnswerOption'
-    PaginatedAssignmentList:
+    PaginatedAssignmentDisplayList:
       type: object
       required:
       - count
@@ -5163,7 +6634,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Assignment'
+            $ref: '#/components/schemas/AssignmentDisplay'
     PaginatedAuditLogList:
       type: object
       required:
@@ -5187,6 +6658,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuditLog'
+    PaginatedChunkOutputList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChunkOutput'
     PaginatedContentBlockList:
       type: object
       required:
@@ -5210,7 +6704,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ContentBlock'
-    PaginatedCourseList:
+    PaginatedCourseWriteList:
       type: object
       required:
       - count
@@ -5232,8 +6726,8 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Course'
-    PaginatedDisciplineList:
+            $ref: '#/components/schemas/CourseWrite'
+    PaginatedDisciplineWriteList:
       type: object
       required:
       - count
@@ -5255,8 +6749,8 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Discipline'
-    PaginatedDocumentChunkList:
+            $ref: '#/components/schemas/DisciplineWrite'
+    PaginatedDraftOutputList:
       type: object
       required:
       - count
@@ -5278,8 +6772,8 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/DocumentChunk'
-    PaginatedEnrollmentList:
+            $ref: '#/components/schemas/DraftOutput'
+    PaginatedEnrollmentDisplayList:
       type: object
       required:
       - count
@@ -5301,7 +6795,30 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Enrollment'
+            $ref: '#/components/schemas/EnrollmentDisplay'
+    PaginatedEnrollmentSummaryOutputList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrollmentSummaryOutput'
     PaginatedGradingComponentList:
       type: object
       required:
@@ -5348,7 +6865,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GradingScheme'
-    PaginatedMaterialList:
+    PaginatedJobOutputList:
       type: object
       required:
       - count
@@ -5370,7 +6887,53 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Material'
+            $ref: '#/components/schemas/JobOutput'
+    PaginatedMailDeliveryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MailDelivery'
+    PaginatedMaterialWriteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialWrite'
     PaginatedNotificationList:
       type: object
       required:
@@ -5417,7 +6980,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Question'
-    PaginatedSourceDocumentList:
+    PaginatedSourceOutputList:
       type: object
       required:
       - count
@@ -5439,7 +7002,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/SourceDocument'
+            $ref: '#/components/schemas/SourceOutput'
     PaginatedStudyGroupList:
       type: object
       required:
@@ -5532,7 +7095,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TestAttempt'
-    PaginatedTestList:
+    PaginatedTestDisplayList:
       type: object
       required:
       - count
@@ -5554,7 +7117,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Test'
+            $ref: '#/components/schemas/TestDisplay'
     PaginatedTopicList:
       type: object
       required:
@@ -5578,6 +7141,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Topic'
+    PaginatedUsageOutputList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsageOutput'
     PaginatedUserList:
       type: object
       required:
@@ -5624,35 +7210,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Week'
-    Password:
-      type: object
-      properties:
-        uid:
-          type: string
-        token:
-          type: string
-    PasswordRequest:
-      type: object
-      properties:
-        password:
-          type: string
-          writeOnly: true
-          minLength: 1
-        current_password:
-          type: string
-          writeOnly: true
-          minLength: 1
-        uid:
-          type: string
-          minLength: 1
-        token:
-          type: string
-          minLength: 1
-      required:
-      - password
     PatchedAnswerOptionRequest:
       type: object
       properties:
+        question:
+          type: string
+          format: uuid
         text:
           type: string
           minLength: 1
@@ -5663,10 +7226,7 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-        question:
-          type: string
-          format: uuid
-    PatchedAssignmentRequest:
+    PatchedAssignmentDisplayRequest:
       type: object
       properties:
         title:
@@ -5711,7 +7271,7 @@ components:
           minLength: 1
           maxLength: 80
         language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         title:
           type: string
           minLength: 1
@@ -5720,7 +7280,7 @@ components:
           type: string
         is_published:
           type: boolean
-    PatchedCourseRequest:
+    PatchedCourseWriteRequest:
       type: object
       properties:
         title:
@@ -5730,18 +7290,16 @@ components:
         description:
           type: string
         status:
-          type: string
-          minLength: 1
-          maxLength: 20
+          $ref: '#/components/schemas/CourseStateEnum'
         default_language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         discipline:
           type: string
           format: uuid
         teacher:
           type: string
           format: uuid
-    PatchedDisciplineRequest:
+    PatchedDisciplineWriteRequest:
       type: object
       properties:
         name:
@@ -5763,10 +7321,12 @@ components:
           items:
             type: string
             format: uuid
-    PatchedEditAIDraftRequest:
+    PatchedDraftInputRequest:
       type: object
       properties:
-        data: {}
+        data:
+          type: object
+          additionalProperties: {}
     PatchedGradingComponentRequest:
       type: object
       properties:
@@ -5790,7 +7350,7 @@ components:
         course_version:
           type: string
           format: uuid
-    PatchedMaterialRequest:
+    PatchedMaterialWriteRequest:
       type: object
       properties:
         title:
@@ -5823,9 +7383,23 @@ components:
         topic:
           type: string
           format: uuid
+    PatchedProfileInputRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        preferred_language:
+          $ref: '#/components/schemas/LanguageEnum'
     PatchedQuestionRequest:
       type: object
       properties:
+        test:
+          type: string
+          format: uuid
         text:
           type: string
           minLength: 1
@@ -5844,9 +7418,6 @@ components:
         explanation:
           type: string
         source_chunks: {}
-        test:
-          type: string
-          format: uuid
     PatchedStudyGroupRequest:
       type: object
       properties:
@@ -5863,9 +7434,12 @@ components:
         teacher:
           type: string
           format: uuid
-    PatchedTestRequest:
+    PatchedTestDisplayRequest:
       type: object
       properties:
+        topic:
+          type: string
+          format: uuid
         title:
           type: string
           minLength: 1
@@ -5912,9 +7486,6 @@ components:
           type: boolean
         is_final:
           type: boolean
-        topic:
-          type: string
-          format: uuid
     PatchedTopicRequest:
       type: object
       properties:
@@ -5961,7 +7532,11 @@ components:
           description: Отметьте, если пользователь должен считаться активным. Уберите
             эту отметку вместо удаления учётной записи.
         preferred_language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
+        owner_teacher:
+          type: string
+          format: uuid
+          nullable: true
     PatchedWeekRequest:
       type: object
       properties:
@@ -5984,14 +7559,50 @@ components:
         course_version:
           type: string
           format: uuid
-    PreferredLanguageEnum:
-      enum:
-      - ru
-      - kk
-      type: string
-      description: |-
-        * `ru` - RU
-        * `kk` - KZ
+    ProgressOutput:
+      type: object
+      properties:
+        percent:
+          type: number
+          format: double
+        completed:
+          type: integer
+        total:
+          type: integer
+        completed_topics:
+          type: array
+          items:
+            type: string
+            format: uuid
+        read_topics:
+          type: array
+          items:
+            type: string
+            format: uuid
+        materials:
+          type: array
+          items:
+            type: string
+            format: uuid
+        assignments:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tests:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - assignments
+      - completed
+      - completed_topics
+      - materials
+      - percent
+      - read_topics
+      - tests
+      - total
     Question:
       type: object
       properties:
@@ -6007,6 +7618,9 @@ components:
           type: string
           format: date-time
           readOnly: true
+        test:
+          type: string
+          format: uuid
         text:
           type: string
         type:
@@ -6024,9 +7638,6 @@ components:
         explanation:
           type: string
         source_chunks: {}
-        test:
-          type: string
-          format: uuid
       required:
       - created_at
       - id
@@ -6037,6 +7648,9 @@ components:
     QuestionRequest:
       type: object
       properties:
+        test:
+          type: string
+          format: uuid
         text:
           type: string
           minLength: 1
@@ -6055,14 +7669,24 @@ components:
         explanation:
           type: string
         source_chunks: {}
-        test:
-          type: string
-          format: uuid
       required:
       - test
       - text
       - type
-    RegenerateTopicRequest:
+    QueueOutput:
+      type: object
+      properties:
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+        oldest_pending_seconds:
+          type: number
+          format: double
+      required:
+      - counts
+      - oldest_pending_seconds
+    RegenerateInputRequest:
       type: object
       properties:
         week_index:
@@ -6074,24 +7698,46 @@ components:
         instruction:
           type: string
           minLength: 1
+          maxLength: 2000
       required:
       - instruction
       - topic_index
       - week_index
-    RemoveMemberRequest:
+    ResetPasswordInputRequest:
       type: object
       properties:
-        student:
+        password:
           type: string
-          format: uuid
+          writeOnly: true
+          minLength: 1
+          maxLength: 1024
+        uid:
+          type: string
+          minLength: 1
+          maxLength: 100
+        token:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 200
       required:
-      - student
-    ReviseWorkRequest:
+      - password
+      - token
+      - uid
+    ReviewInputRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          default: ''
+          maxLength: 10000
+    RevisionInputRequest:
       type: object
       properties:
         comment:
           type: string
           minLength: 1
+          maxLength: 10000
       required:
       - comment
     RoleEnum:
@@ -6104,21 +7750,96 @@ components:
         * `ADMIN` - Admin
         * `TEACHER` - Teacher
         * `STUDENT` - Student
-    SaveAnswerRequest:
+    SavedOutput:
       type: object
       properties:
-        question:
+        saved:
+          type: boolean
+      required:
+      - saved
+    SourceInputRequest:
+      type: object
+      properties:
+        course:
           type: string
           format: uuid
-        selected_options:
-          type: array
-          items:
-            type: string
-            format: uuid
+        file:
+          type: string
+          format: binary
       required:
-      - question
-      - selected_options
-    SourceDocument:
+      - course
+      - file
+    SourceOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        course:
+          type: string
+          format: uuid
+          readOnly: true
+        uploaded_by:
+          type: string
+          format: uuid
+          readOnly: true
+        filename:
+          type: string
+          readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+        file:
+          type: boolean
+          readOnly: true
+        processing_status:
+          allOf:
+          - $ref: '#/components/schemas/SourceStateEnum'
+          readOnly: true
+        error:
+          type: string
+          readOnly: true
+        excluded:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - course
+      - created_at
+      - error
+      - excluded
+      - file
+      - filename
+      - id
+      - mime_type
+      - processing_status
+      - size
+      - updated_at
+      - uploaded_by
+    SourceStateEnum:
+      enum:
+      - QUEUED
+      - PROCESSING
+      - COMPLETED
+      - FAILED
+      type: string
+      description: |-
+        * `QUEUED` - Queued
+        * `PROCESSING` - Processing
+        * `COMPLETED` - Completed
+        * `FAILED` - Failed
+    StudentAssignmentOutput:
       type: object
       properties:
         id:
@@ -6133,44 +7854,174 @@ components:
           type: string
           format: date-time
           readOnly: true
-        file:
+        title:
           type: string
-          format: uri
-        filename:
+          maxLength: 240
+        description:
           type: string
-          maxLength: 255
-        mime_type:
+        instructions:
           type: string
-          maxLength: 150
-        size:
+        max_score:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-        processing_status:
+        deadline:
+          type: string
+          format: date-time
+          nullable: true
+        allow_late_submission:
+          type: boolean
+        status:
           type: string
           maxLength: 20
-        extracted_text:
-          type: string
-        error:
-          type: string
-          maxLength: 250
-        uploaded_by:
-          type: string
-          format: uuid
-        course:
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_required:
+          type: boolean
+        topic:
           type: string
           format: uuid
       required:
-      - course
       - created_at
-      - file
-      - filename
       - id
-      - mime_type
-      - size
+      - title
+      - topic
       - updated_at
-      - uploaded_by
+    StudentInputRequest:
+      type: object
+      properties:
+        student:
+          type: string
+          format: uuid
+      required:
+      - student
+    StudentTopicOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        materials:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialOutput'
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentAssignmentOutput'
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/Test'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        content:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_required:
+          type: boolean
+        week:
+          type: string
+          format: uuid
+      required:
+      - assignments
+      - created_at
+      - id
+      - materials
+      - tests
+      - title
+      - updated_at
+      - week
+    StudentTreeOutput:
+      type: object
+      properties:
+        course:
+          $ref: '#/components/schemas/Course'
+        version:
+          $ref: '#/components/schemas/CourseVersion'
+        weeks:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentWeekOutput'
+        scheme:
+          allOf:
+          - $ref: '#/components/schemas/GradingScheme'
+          nullable: true
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradingComponent'
+      required:
+      - components
+      - course
+      - scheme
+      - version
+      - weeks
+    StudentWeekOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentTopicOutput'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        course_version:
+          type: string
+          format: uuid
+      required:
+      - course_version
+      - created_at
+      - id
+      - number
+      - title
+      - topics
+      - updated_at
     StudyGroup:
       type: object
       properties:
@@ -6237,48 +8088,60 @@ components:
           type: string
           format: date-time
           readOnly: true
+        assignment:
+          type: string
+          format: uuid
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
         attempt_number:
           type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
+          readOnly: true
         text_answer:
           type: string
+          readOnly: true
         submitted_at:
           type: string
           format: date-time
           readOnly: true
         status:
-          type: string
-          maxLength: 30
+          allOf:
+          - $ref: '#/components/schemas/SubmissionStateEnum'
+          readOnly: true
         score:
           type: string
           format: decimal
           pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
           nullable: true
         teacher_comment:
           type: string
-        graded_at:
-          type: string
-          format: date-time
-          nullable: true
-        assignment:
-          type: string
-          format: uuid
-        student:
-          type: string
-          format: uuid
+          readOnly: true
         graded_by:
           type: string
           format: uuid
+          readOnly: true
+          nullable: true
+        graded_at:
+          type: string
+          format: date-time
+          readOnly: true
           nullable: true
       required:
       - assignment
       - attempt_number
       - created_at
+      - graded_at
+      - graded_by
       - id
+      - score
+      - status
       - student
       - submitted_at
+      - teacher_comment
+      - text_answer
       - updated_at
     SubmissionDisplay:
       type: object
@@ -6286,15 +8149,6 @@ components:
         id:
           type: string
           format: uuid
-          readOnly: true
-        assignment_title:
-          type: string
-          readOnly: true
-        max_score:
-          type: integer
-          readOnly: true
-        student_name:
-          type: string
           readOnly: true
         created_at:
           type: string
@@ -6304,91 +8158,73 @@ components:
           type: string
           format: date-time
           readOnly: true
+        assignment:
+          type: string
+          format: uuid
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
         attempt_number:
           type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
+          readOnly: true
         text_answer:
           type: string
+          readOnly: true
         submitted_at:
           type: string
           format: date-time
           readOnly: true
         status:
-          type: string
-          maxLength: 30
+          allOf:
+          - $ref: '#/components/schemas/SubmissionStateEnum'
+          readOnly: true
         score:
           type: string
           format: decimal
           pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
           nullable: true
         teacher_comment:
           type: string
-        graded_at:
-          type: string
-          format: date-time
-          nullable: true
-        assignment:
-          type: string
-          format: uuid
-        student:
-          type: string
-          format: uuid
+          readOnly: true
         graded_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
+        graded_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        assignment_title:
+          type: string
+          readOnly: true
+        max_score:
+          type: integer
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
       required:
       - assignment
       - assignment_title
       - attempt_number
       - created_at
+      - graded_at
+      - graded_by
       - id
       - max_score
+      - score
+      - status
       - student
       - student_name
       - submitted_at
+      - teacher_comment
+      - text_answer
       - updated_at
-    SubmissionDisplayRequest:
-      type: object
-      properties:
-        attempt_number:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        text_answer:
-          type: string
-        status:
-          type: string
-          minLength: 1
-          maxLength: 30
-        score:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
-          nullable: true
-        teacher_comment:
-          type: string
-        graded_at:
-          type: string
-          format: date-time
-          nullable: true
-        assignment:
-          type: string
-          format: uuid
-        student:
-          type: string
-          format: uuid
-        graded_by:
-          type: string
-          format: uuid
-          nullable: true
-      required:
-      - assignment
-      - attempt_number
-      - student
     SubmissionFile:
       type: object
       properties:
@@ -6404,23 +8240,24 @@ components:
           type: string
           format: date-time
           readOnly: true
-        file:
-          type: string
-          format: uri
-        original_filename:
-          type: string
-          maxLength: 255
-        mime_type:
-          type: string
-          maxLength: 150
-        size:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
         submission:
           type: string
           format: uuid
+          readOnly: true
+        file:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        original_filename:
+          type: string
+          readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
       required:
       - created_at
       - file
@@ -6430,17 +8267,33 @@ components:
       - size
       - submission
       - updated_at
-    SubmitWorkRequest:
+    SubmissionInputRequest:
       type: object
       properties:
         text_answer:
           type: string
-          minLength: 1
+          default: ''
+          maxLength: 100000
         files:
           type: array
           items:
             type: string
             format: binary
+          maxItems: 5
+    SubmissionStateEnum:
+      enum:
+      - SUBMITTED
+      - RESUBMITTED
+      - UNDER_REVIEW
+      - REVISION_REQUESTED
+      - GRADED
+      type: string
+      description: |-
+        * `SUBMITTED` - Submitted
+        * `RESUBMITTED` - Resubmitted
+        * `UNDER_REVIEW` - Under Review
+        * `REVISION_REQUESTED` - Revision Requested
+        * `GRADED` - Graded
     Test:
       type: object
       properties:
@@ -6456,6 +8309,9 @@ components:
           type: string
           format: date-time
           readOnly: true
+        topic:
+          type: string
+          format: uuid
         title:
           type: string
           maxLength: 240
@@ -6500,9 +8356,6 @@ components:
           type: boolean
         is_final:
           type: boolean
-        topic:
-          type: string
-          format: uuid
       required:
       - created_at
       - id
@@ -6524,11 +8377,17 @@ components:
           type: string
           format: date-time
           readOnly: true
+        test:
+          type: string
+          format: uuid
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+          readOnly: true
         attempt_number:
           type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
+          readOnly: true
         started_at:
           type: string
           format: date-time
@@ -6536,39 +8395,125 @@ components:
         expires_at:
           type: string
           format: date-time
+          readOnly: true
         submitted_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AttemptStateEnum'
+          readOnly: true
           default: IN_PROGRESS
-          maxLength: 20
         score:
           type: string
           format: decimal
           pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
           nullable: true
-        question_order: {}
-        option_order: {}
-        test:
-          type: string
-          format: uuid
-        student:
-          type: string
-          format: uuid
+        question_order:
+          readOnly: true
+        option_order:
+          readOnly: true
       required:
       - attempt_number
       - created_at
       - expires_at
       - id
+      - option_order
+      - question_order
+      - score
       - started_at
+      - status
       - student
+      - submitted_at
       - test
       - updated_at
-    TestRequest:
+    TestDisplay:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        topic:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+        max_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        time_limit_minutes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        max_attempts:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        shuffle_questions:
+          type: boolean
+        shuffle_answers:
+          type: boolean
+        available_from:
+          type: string
+          format: date-time
+          nullable: true
+        available_until:
+          type: string
+          format: date-time
+          nullable: true
+        passing_score:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          type: string
+          maxLength: 20
+        is_required:
+          type: boolean
+        is_final:
+          type: boolean
+        course_id:
+          type: string
+          format: uuid
+          readOnly: true
+        course_version_id:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - course_id
+      - course_version_id
+      - created_at
+      - id
+      - title
+      - topic
+      - updated_at
+    TestDisplayRequest:
+      type: object
+      properties:
+        topic:
+          type: string
+          format: uuid
         title:
           type: string
           minLength: 1
@@ -6615,9 +8560,6 @@ components:
           type: boolean
         is_final:
           type: boolean
-        topic:
-          type: string
-          format: uuid
       required:
       - title
       - topic
@@ -6693,18 +8635,63 @@ components:
       description: |-
         * `SINGLE_CHOICE` - Single
         * `MULTIPLE_CHOICE` - Multiple
-    UploadSourceRequest:
+    UsageOutput:
       type: object
       properties:
-        course:
+        id:
           type: string
           format: uuid
-        file:
+          readOnly: true
+        job:
           type: string
-          format: binary
+          format: uuid
+          readOnly: true
+          nullable: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        operation:
+          type: string
+          readOnly: true
+        model:
+          type: string
+          readOnly: true
+        input_tokens:
+          type: integer
+          readOnly: true
+        output_tokens:
+          type: integer
+          readOnly: true
+        estimated_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,6})?$
+          readOnly: true
+          nullable: true
+        duration:
+          type: number
+          format: double
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
       required:
-      - course
-      - file
+      - created_at
+      - duration
+      - estimated_cost
+      - id
+      - input_tokens
+      - job
+      - model
+      - operation
+      - output_tokens
+      - status
+      - user
     User:
       type: object
       properties:
@@ -6741,12 +8728,19 @@ components:
           type: boolean
           readOnly: true
         preferred_language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
         created_by:
           type: string
           format: uuid
           readOnly: true
           nullable: true
+        owner_teacher:
+          type: string
+          format: uuid
+          nullable: true
+        owner_teacher_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -6757,6 +8751,7 @@ components:
       - email
       - id
       - must_change_password
+      - owner_teacher_name
       - username
     UserRequest:
       type: object
@@ -6782,9 +8777,31 @@ components:
           description: Отметьте, если пользователь должен считаться активным. Уберите
             эту отметку вместо удаления учётной записи.
         preferred_language:
-          $ref: '#/components/schemas/PreferredLanguageEnum'
+          $ref: '#/components/schemas/LanguageEnum'
+        owner_teacher:
+          type: string
+          format: uuid
+          nullable: true
       required:
       - email
+    VersionInputRequest:
+      type: object
+      properties:
+        version:
+          type: string
+          format: uuid
+      required:
+      - version
+    VersionStateEnum:
+      enum:
+      - DRAFT
+      - REVIEW
+      - PUBLISHED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `REVIEW` - Review
+        * `PUBLISHED` - Published
     Week:
       type: object
       properties:

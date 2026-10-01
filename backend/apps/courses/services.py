@@ -23,7 +23,11 @@ def publish(version, user):
     version = CourseVersion.objects.select_for_update().get(pk=version.pk)
     editable(version, user)
     topics = [
-        topic for week in version.weeks.prefetch_related("topics") for topic in week.topics.all()
+        topic
+        for week in version.weeks.prefetch_related(
+            "topics__materials", "topics__assignments", "topics__tests"
+        )
+        for topic in week.topics.all()
     ]
     if not topics or any(not t.title.strip() for t in topics):
         raise ValidationError("Курс должен содержать темы.")
@@ -79,9 +83,9 @@ def publish(version, user):
         t.is_required
         and (
             t.content.strip()
-            or t.materials.filter(is_required=True).exists()
-            or t.assignments.filter(is_required=True).exists()
-            or t.tests.filter(is_required=True).exists()
+            or any(m.is_required for m in t.materials.all())
+            or any(a.is_required for a in t.assignments.all())
+            or any(test.is_required for test in t.tests.all())
         )
         for t in topics
     ):
@@ -100,20 +104,32 @@ def publish(version, user):
 
 @transaction.atomic
 def duplicate(version, user):
+    from apps.testing.models import AnswerOption
+
     Course.objects.select_for_update().get(pk=version.course_id)
     version = CourseVersion.objects.select_for_update().get(pk=version.pk)
     target = new_version(version.course, user)
 
-    def copy(obj, **changes):
+    def copy(obj, *, persist=True, **changes):
         fields = {
-            f.name: getattr(obj, f.name)
+            f.attname: getattr(obj, f.attname)
             for f in obj._meta.fields
             if f.name not in ["id", "created_at", "updated_at"]
         }
-        fields.update(changes)
-        return type(obj).objects.create(**fields)
+        # Copy FK IDs without resolving each related object; overrides replace
+        # the original foreign key, never pass both relation and *_id.
+        for name, value in changes.items():
+            field = obj._meta.get_field(name)
+            fields[field.attname] = value.pk if field.is_relation else value
+        copied = type(obj)(**fields)
+        if persist:
+            copied.save()
+        return copied
 
-    for week in version.weeks.all():
+    options = []
+    for week in version.weeks.prefetch_related(
+        "topics__materials", "topics__assignments", "topics__tests__questions__options"
+    ):
         new_week = copy(week, course_version=target)
         for topic in week.topics.all():
             new_topic = copy(topic, week=new_week)
@@ -126,7 +142,10 @@ def duplicate(version, user):
                 for question in test.questions.all():
                     new_question = copy(question, test=new_test)
                     for option in question.options.all():
-                        copy(option, question=new_question)
+                        options.append(copy(option, question=new_question, persist=False))
+    # UUIDs are assigned on construction, and these plain models have no save
+    # hooks. Keep all inserts inside the clone transaction and bound each batch.
+    AnswerOption.objects.bulk_create(options, batch_size=500)
     scheme = GradingScheme.objects.filter(course_version=version).first()
     if scheme:
         new_scheme = copy(scheme, course_version=target)

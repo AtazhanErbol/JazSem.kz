@@ -152,6 +152,9 @@ def test_paid_call_crash_is_not_replayed_and_reservation_is_retained(world, sett
     job.refresh_from_db()
     assert job.status == "FAILED" and job.error == "PROVIDER_OUTCOME_UNCERTAIN"
     assert AIBudgetDay.objects.get().reserved_usd == reserved
+    from apps.ai.models import AIUsageLog
+
+    assert AIUsageLog.objects.get(job=job).status == "UNCERTAIN"
 
 
 def test_cancellation_wins_over_late_provider_and_cost_is_recorded(world, client_for, settings):

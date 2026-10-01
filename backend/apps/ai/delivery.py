@@ -4,13 +4,14 @@ import logging
 import uuid
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.courses.models import Course
 
-from .models import AIJob, SourceDocument, TaskDelivery
+from .models import AIJob, AIUsageLog, SourceDocument, TaskDelivery
 
 TERMINAL = ["DONE", "FAILED", "CANCELLED"]
 LEASE_SECONDS = 600  # exceeds the Celery hard limit of 540s
@@ -77,6 +78,21 @@ def reconcile():
             event(row, "delivery_reconciled", status=row.status, error_code=row.error_code)
             if terminal:
                 finish_target(row, "FAILED", row.error_code)
+                if uncertain:
+                    job = AIJob.objects.get(pk=row.job_id)
+                    # SIGKILL bypasses the worker exception handler. Preserve a
+                    # visible uncertainty record without refunding reservation
+                    # or overwriting a late response that already recorded cost.
+                    AIUsageLog.objects.get_or_create(
+                        job=job,
+                        defaults={
+                            "user": job.user,
+                            "operation": job.type,
+                            "model": settings.OPENAI_MODEL,
+                            "duration": max(0, (now - job.provider_started_at).total_seconds()),
+                            "status": "UNCERTAIN",
+                        },
+                    )
             elif row.job_id:
                 AIJob.objects.filter(pk=row.job_id, status="PROCESSING").update(
                     status="QUEUED", current_step="RECOVERING"

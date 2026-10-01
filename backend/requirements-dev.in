@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest
+pytest-django
+ruff
+pip-tools==7.5.1
+pip-audit==2.9.0
+aiosmtpd==1.4.6

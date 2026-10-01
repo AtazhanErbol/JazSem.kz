@@ -60,7 +60,13 @@ def delivery_error(exc):
     if isinstance(exc, smtplib.SMTPAuthenticationError):
         return "SMTP_AUTH_FAILED"
     if isinstance(exc, smtplib.SMTPRecipientsRefused):
-        return "RECIPIENT_REJECTED"
+        return (
+            "SMTP_UNAVAILABLE"
+            if exc.recipients and all(400 <= code < 500 for code, _ in exc.recipients.values())
+            else "RECIPIENT_REJECTED"
+        )
+    if isinstance(exc, smtplib.SMTPResponseException) and 500 <= exc.smtp_code < 600:
+        return "SMTP_PERMANENT_FAILURE"
     if isinstance(exc, (TimeoutError, OSError, smtplib.SMTPException)):
         return "SMTP_UNAVAILABLE"
     return "DELIVERY_FAILED"
@@ -98,6 +104,7 @@ def flush_mail():
                 "ENCRYPTION_KEY_UNAVAILABLE",
                 "SMTP_AUTH_FAILED",
                 "RECIPIENT_REJECTED",
+                "SMTP_PERMANENT_FAILURE",
             ]
             owned.update(
                 status="FAILED" if terminal else "RETRY",

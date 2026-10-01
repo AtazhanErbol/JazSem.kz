@@ -4,7 +4,7 @@ from drf_spectacular.utils import OpenApiTypes, PolymorphicProxySerializer, exte
 def annotate_actions():
     # Input contracts are the same classes executed by the handlers.
     from apps.academics.models import Discipline, GroupMembership, StudyGroup
-    from apps.academics.views import DisciplineViewSet, GroupViewSet
+    from apps.academics.views import DisciplineViewSet, GroupViewSet, MemberOutput
     from apps.accounts import serializers as auth
     from apps.accounts import views as account
     from apps.ai import contracts as ai
@@ -61,7 +61,7 @@ def annotate_actions():
     mark(
         GroupViewSet, "members", inp.StudentInput, serializer_for(GroupMembership), methods=["POST"]
     )
-    mark(GroupViewSet, "members", None, serializer_for(GroupMembership)(many=True), methods=["GET"])
+    mark(GroupViewSet, "members", None, MemberOutput(many=True), methods=["GET"])
     mark(GroupViewSet, "remove_member", inp.StudentInput, {204: None})
     mark(GroupViewSet, "archive", inp.EmptyInput, serializer_for(StudyGroup))
     mark(DisciplineViewSet, "archive", inp.EmptyInput, serializer_for(Discipline))

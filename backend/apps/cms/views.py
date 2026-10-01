@@ -11,6 +11,7 @@ class ContentViewSet(ScopedViewSet):
     queryset = ContentBlock.objects.all()
     serializer_class = serializer_for(ContentBlock)
     search_fields = ["title", "key"]
+    filterset_fields = ["language", "is_published"]
 
     def validate_write(self, serializer):
         if not is_admin(self.request.user):
