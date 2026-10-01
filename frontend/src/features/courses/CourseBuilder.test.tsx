@@ -61,7 +61,7 @@ it("requires exact draft title and version before deleting", () => {
   fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
   expect(state.run).not.toHaveBeenCalled();
 });
-it("published version offers editing but never deletion", () => {
+it("published version offers editing and confirmed deletion", () => {
   state.status = "PUBLISHED";
   show();
   expect(
@@ -70,4 +70,22 @@ it("published version offers editing but never deletion", () => {
   expect(
     screen.queryByRole("button", { name: "Удалить черновик" }),
   ).not.toBeInTheDocument();
+});
+
+it("requires exact confirmation for published deletion", () => {
+  state.status = "PUBLISHED";
+  show();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Удалить опубликованную версию" }),
+  );
+  const buttons = screen.getAllByRole("button", {
+    name: "Удалить опубликованную версию",
+  });
+  expect(buttons[1]).toBeDisabled();
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "Mathematics · v1" },
+  });
+  expect(buttons[1]).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+  expect(state.run).not.toHaveBeenCalled();
 });

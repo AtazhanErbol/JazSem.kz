@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -78,6 +79,31 @@ class CourseViewSet(ScopedViewSet):
         if course.status == "ARCHIVED":
             raise ValidationError("Сначала восстановите курс из архива.")
         source = get_object_or_404(course.versions, pk=data["version"], status="PUBLISHED")
+        # Keep assigned versions immutable, including historical/revoked assignments.
+        if (
+            not source.enrollments.exists()
+            and not GroupCourseAssignment.objects.filter(course_version=source).exists()
+        ):
+            source.status = "DRAFT"
+            source.published_at = None
+            source.save(update_fields=["status", "published_at", "updated_at"])
+            if course.current_version_id == source.pk:
+                course.current_version = (
+                    course.versions.filter(status="PUBLISHED")
+                    .exclude(pk=source.pk)
+                    .order_by("-version_number")
+                    .first()
+                )
+                course.status = "PUBLISHED" if course.current_version_id else "DRAFT"
+                course.save(update_fields=["current_version", "status", "updated_at"])
+            record(
+                request.user,
+                "course.version_unpublished",
+                source,
+                old={"status": "PUBLISHED"},
+                new={"status": "DRAFT"},
+            )
+            return Response(representation(source, request))
         draft = (
             course.versions.filter(status__in=["DRAFT", "REVIEW"])
             .order_by("-version_number")
@@ -121,6 +147,63 @@ class CourseViewSet(ScopedViewSet):
         except ProtectedError:
             raise ValidationError(
                 "Черновик связан с назначениями, работами или AI-историей. Удаление запрещено; используйте архив курса."
+            ) from None
+        return Response(
+            {
+                "course_deleted": remaining is None,
+                "next_version": str(remaining.pk) if remaining else None,
+            }
+        )
+
+    @extend_schema(request=DeleteDraftInput)
+    @action(detail=True, methods=["post"], url_path="delete-published")
+    @transaction.atomic
+    def delete_published(self, request, pk=None):
+        data = validated(request, DeleteDraftInput)
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        course = Course.objects.select_for_update().get(pk=self.get_object().pk)
+        version = get_object_or_404(
+            course.versions.select_for_update(), pk=data["version"], status="PUBLISHED"
+        )
+        if data["confirmation"] != f"{course.title} · v{version.version_number}":
+            raise ValidationError({"confirmation": "Введите точное название и номер версии."})
+        if (
+            version.enrollments.exists()
+            or GroupCourseAssignment.objects.filter(course_version=version).exists()
+        ):
+            raise ValidationError(
+                "Эта версия связана с назначениями студентов или групп. Удаление уничтожило бы учебную историю. Для изменения используйте редактирование, для закрытия курса — архив."
+            )
+        remaining = course.versions.exclude(pk=version.pk).order_by("-version_number").first()
+        try:
+            with transaction.atomic():
+                if course.current_version_id == version.pk:
+                    course.current_version = (
+                        course.versions.filter(status="PUBLISHED")
+                        .exclude(pk=version.pk)
+                        .order_by("-version_number")
+                        .first()
+                    )
+                    if course.status != "ARCHIVED":
+                        course.status = "PUBLISHED" if course.current_version_id else "DRAFT"
+                    course.save(update_fields=["current_version", "status", "updated_at"])
+                record(
+                    request.user,
+                    "course.published_version_deleted",
+                    version,
+                    old={
+                        "course": str(course.pk),
+                        "version_number": version.version_number,
+                        "title": course.title,
+                    },
+                )
+                version.delete()
+                if remaining is None:
+                    course.delete()
+        except ProtectedError:
+            raise ValidationError(
+                "Версия связана с работами, прогрессом или AI-историей. Удаление запрещено; используйте архив курса."
             ) from None
         return Response(
             {

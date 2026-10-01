@@ -149,20 +149,6 @@ export function CourseBuilder() {
                 </option>
               ))}
             </select>
-            <button
-              disabled={action.pending}
-              onClick={async () => {
-                const v = await action.run<Row>(
-                  `courses/${id}/${published ? "edit-draft" : "duplicate"}/`,
-                  {
-                    version: data.version.id,
-                  },
-                );
-                if (v.ok) setVersion(v.data.id);
-              }}
-            >
-              {t(published ? "editPublished" : "newVersion")}
-            </button>
             {editable && (
               <button className="primary" onClick={() => setConfirm("publish")}>
                 {t("publish")}
@@ -179,8 +165,32 @@ export function CourseBuilder() {
         />
       )}
       {action.feedback}
-      {!editable && <p className="notice">{t("editPublishedHint")}</p>}
-      {editable && (
+      <section
+        className="panel version-actions"
+        aria-label={t("versionActions")}
+      >
+        <h2>
+          {t("versionActions")} · v{String(data.version.version_number)}
+        </h2>
+        {published && <p className="muted">{t("editPublishedHint")}</p>}
+        <div className="row-actions">
+          <button
+            disabled={action.pending}
+            onClick={async () => {
+              const v = await action.run<Row>(
+                `courses/${id}/${published ? "edit-draft" : "duplicate"}/`,
+                {
+                  version: data.version.id,
+                },
+              );
+              if (v.ok) setVersion(v.data.id);
+            }}
+          >
+            {t(published ? "editPublished" : "newVersion")}
+          </button>
+        </div>
+      </section>
+      {(editable || published) && (
         <div className="row-actions">
           <button
             className="danger-text"
@@ -190,18 +200,18 @@ export function CourseBuilder() {
               setDeleteDraft(true);
             }}
           >
-            {t("deleteDraft")}
+            {t(published ? "deletePublished" : "deleteDraft")}
           </button>
         </div>
       )}
       {deleteDraft && (
         <Modal
-          title={t("deleteDraft")}
+          title={t(published ? "deletePublished" : "deleteDraft")}
           onClose={() => {
             if (!action.pending) setDeleteDraft(false);
           }}
         >
-          <p>{t("deleteDraftHint")}</p>
+          <p>{t(published ? "deletePublishedHint" : "deleteDraftHint")}</p>
           <p>
             <strong>{draftName}</strong>
           </p>
@@ -229,10 +239,13 @@ export function CourseBuilder() {
                 const result = await action.run<{
                   course_deleted: boolean;
                   next_version: string;
-                }>(`courses/${id}/delete-draft/`, {
-                  version: data.version.id,
-                  confirmation: deleteName,
-                });
+                }>(
+                  `courses/${id}/${published ? "delete-published" : "delete-draft"}/`,
+                  {
+                    version: data.version.id,
+                    confirmation: deleteName,
+                  },
+                );
                 if (result.ok) {
                   setDeleteDraft(false);
                   if (result.data.course_deleted) navigate("/app/courses");
@@ -240,7 +253,7 @@ export function CourseBuilder() {
                 }
               }}
             >
-              {t("deleteDraft")}
+              {t(published ? "deletePublished" : "deleteDraft")}
             </button>
           </div>
         </Modal>
