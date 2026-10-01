@@ -90,6 +90,7 @@ test("AI wizard reviews and imports a draft without a real provider call", async
     else if (path.endsWith("/ai-jobs/job/"))
       data = {
         id: "job",
+        course: "course",
         status: "COMPLETED",
         progress: 100,
         current_step: "DRAFT_READY",

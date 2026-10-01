@@ -1,11 +1,16 @@
+import type {
+  EnrollmentSummary,
+  SubmissionDetails,
+  GroupDetails,
+} from "../../entities/learning";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, BookOpen, Sparkles } from "lucide-react";
+import { ArrowUpRight, BookOpen } from "lucide-react";
 import { useUser } from "../../app/Auth";
 import { api } from "../../services/api";
 import type { Page, Row } from "../../entities/types";
-import { Empty, ErrorState, Loading } from "../../components/UI";
+import { Empty, ErrorState, Loading, ProgressBar } from "../../components/UI";
 import { AdminDashboard } from "./AdminDashboard";
 
 export function Dashboard() {
@@ -26,7 +31,40 @@ function LearningDashboard() {
   });
   const assignments = useQuery({
     queryKey: ["assignments", "dashboard"],
-    queryFn: () => api<Page<Row>>("assignments/?ordering=deadline"),
+    queryFn: () => api<Page<Row>>("assignments/?ordering=deadline&due=future"),
+  });
+  const reviews = useQuery({
+    queryKey: ["submissions", "inbox"],
+    queryFn: ({ signal }) =>
+      api<Page<SubmissionDetails>>(
+        "submissions/?pending=true",
+        "GET",
+        undefined,
+        signal,
+      ),
+    enabled: user.role === "TEACHER",
+  });
+  const groups = useQuery({
+    queryKey: ["groups", "dashboard"],
+    queryFn: ({ signal }) =>
+      api<Page<GroupDetails>>(
+        "groups/?status=ACTIVE",
+        "GET",
+        undefined,
+        signal,
+      ),
+    enabled: user.role === "TEACHER",
+  });
+  const learning = useQuery({
+    queryKey: ["enrollments", "dashboard"],
+    queryFn: ({ signal }) =>
+      api<Page<EnrollmentSummary>>(
+        "enrollments/summaries/",
+        "GET",
+        undefined,
+        signal,
+      ),
+    enabled: user.role === "STUDENT",
   });
   return (
     <>
@@ -63,10 +101,12 @@ function LearningDashboard() {
           <p>{t(user.role === "STUDENT" ? "studentText" : "teacherText")}</p>
           <Link
             className="button light"
-            to={user.role === "STUDENT" ? "/app/courses" : "/app/ai"}
+            to={
+              user.role === "STUDENT" ? "/app/courses" : "/app/courses?create=1"
+            }
           >
-            {user.role !== "STUDENT" && <Sparkles size={18} />}{" "}
-            {t(user.role === "STUDENT" ? "continue" : "ai")}{" "}
+            {" "}
+            {t(user.role === "STUDENT" ? "continue" : "createCourse")}{" "}
             <ArrowUpRight size={18} />
           </Link>
         </div>
@@ -82,9 +122,7 @@ function LearningDashboard() {
         <div className="stats-grid">
           {(user.role === "STUDENT"
             ? ["courses", "enrollments"]
-            : user.role === "ADMIN"
-              ? ["teachers", "students", "courses", "enrollments"]
-              : ["courses", "students", "groups", "review"]
+            : ["courses", "students", "groups", "review"]
           ).map((key) => (
             <div className="stat" key={key}>
               <span>{t(key)}</span>
@@ -93,6 +131,68 @@ function LearningDashboard() {
             </div>
           ))}
         </div>
+      )}
+      {user.role === "TEACHER" && (
+        <section className="panel">
+          <div className="section-heading">
+            <h2>{t("ux.reviewQueue")}</h2>
+            <Link to="/app/submissions?pending=true">{t("all")} ↗</Link>
+          </div>
+          {reviews.isPending ? (
+            <Loading />
+          ) : reviews.error ? (
+            <ErrorState
+              error={reviews.error}
+              retry={() => void reviews.refetch()}
+            />
+          ) : !reviews.data.results.length ? (
+            <Empty />
+          ) : (
+            reviews.data.results.slice(0, 5).map((row) => (
+              <Link
+                className="learning-row"
+                key={row.id}
+                to={`/app/submissions/${row.id}`}
+              >
+                <div>
+                  <h3>{row.assignment_title}</h3>
+                  <small>
+                    {row.student_name} · {t(row.status)}
+                  </small>
+                </div>
+                <ArrowUpRight />
+              </Link>
+            ))
+          )}
+        </section>
+      )}
+      {user.role === "STUDENT" && (
+        <section className="panel">
+          <h2>{t("continue")}</h2>
+          {learning.isPending ? (
+            <Loading />
+          ) : learning.error ? (
+            <ErrorState
+              error={learning.error}
+              retry={() => void learning.refetch()}
+            />
+          ) : !learning.data.results.length ? (
+            <Empty />
+          ) : (
+            learning.data.results.slice(0, 4).map((row) => (
+              <article key={row.id}>
+                <Link
+                  className="learning-row"
+                  to={`/app/courses/${row.course}`}
+                >
+                  <h3>{row.course_title}</h3>
+                  <span>{row.progress.percent}% →</span>
+                </Link>
+                <ProgressBar value={row.progress.percent} />
+              </article>
+            ))
+          )}
+        </section>
       )}
       <div className="dashboard-columns">
         <section>
@@ -134,7 +234,14 @@ function LearningDashboard() {
             <h2>{t("assignments")}</h2>
             <Link to="/app/assignments">{t("all")} ↗</Link>
           </div>
-          {assignments.data?.results.length ? (
+          {assignments.isPending ? (
+            <Loading />
+          ) : assignments.error ? (
+            <ErrorState
+              error={assignments.error}
+              retry={() => void assignments.refetch()}
+            />
+          ) : assignments.data.results.length ? (
             assignments.data.results.slice(0, 5).map((a) => (
               <Link
                 className="deadline-row"
@@ -150,7 +257,9 @@ function LearningDashboard() {
                   <h3>{String(a.title)}</h3>
                   <small>
                     {a.deadline
-                      ? new Date(String(a.deadline)).toLocaleString()
+                      ? new Date(String(a.deadline)).toLocaleString(
+                          i18n.language,
+                        )
                       : "—"}
                   </small>
                 </div>
@@ -161,6 +270,35 @@ function LearningDashboard() {
           )}
         </section>
       </div>
+      {user.role === "TEACHER" && (
+        <section className="panel">
+          <div className="section-heading">
+            <h2>{t("ux.myGroups")}</h2>
+            <Link to="/app/groups">{t("all")}</Link>
+          </div>
+          {groups.isPending ? (
+            <Loading />
+          ) : groups.error ? (
+            <ErrorState
+              error={groups.error}
+              retry={() => void groups.refetch()}
+            />
+          ) : !groups.data.results.length ? (
+            <Empty />
+          ) : (
+            groups.data.results.slice(0, 5).map((group) => (
+              <Link
+                className="learning-row"
+                key={group.id}
+                to={`/app/groups/${group.id}`}
+              >
+                {group.name}
+                <ArrowUpRight />
+              </Link>
+            ))
+          )}
+        </section>
+      )}
     </>
   );
 }

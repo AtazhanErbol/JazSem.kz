@@ -1,3 +1,4 @@
+import { ruRelease, kkRelease } from "./release";
 import { ruLabels, kkLabels } from "./labels";
 import { ruUX, kkUX } from "./ux";
 import { ruWorkspace, kkWorkspace } from "./workspace";
@@ -5,6 +6,7 @@ import { ruMail, kkMail, ruAIRecovery, kkAIRecovery } from "./operations";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 const ru = {
+  ux: ruRelease,
   aiRecovery: ruAIRecovery,
   mail: ruMail,
   owner_teacher: "Ответственный преподаватель",
@@ -225,6 +227,7 @@ const ru = {
 };
 const kk: typeof ru = {
   ...ru,
+  ux: kkRelease,
   mail: kkMail,
   aiRecovery: kkAIRecovery,
   owner_teacher: "Жауапты оқытушы",

@@ -471,3 +471,60 @@
     transform: none;
   }
 }
+.remote-select {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.remote-select .pagination {
+  margin: 0;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.remote-select select {
+  width: 100%;
+  min-width: 0;
+}
+.outline-toggle {
+  margin-bottom: 16px;
+}
+.student-player.outline-hidden {
+  grid-template-columns: 1fr;
+}
+.student-player .course-outline[hidden] {
+  display: none;
+}
+.student-player .content-pane .row-actions {
+  margin-block: 24px;
+}
+.student-player .outline-topic > strong {
+  display: block;
+  padding: 10px 0;
+}
+.record-row > span > small {
+  display: block;
+  color: var(--muted);
+}
+.resource-filters {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+}
+.resource-filters summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.filters-grid > div {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}

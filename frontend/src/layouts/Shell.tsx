@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -34,6 +34,57 @@ export function Shell() {
   const logout = useAction();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const asideRef = useRef<HTMLElement>(null);
+  const openerRef = useRef<HTMLButtonElement>(null);
+  const [mobile, setMobile] = useState(
+    () => window.matchMedia("(max-width: 768px)").matches,
+  );
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 768px)");
+    const change = () => {
+      setMobile(media.matches);
+      if (!media.matches) setOpen(false);
+    };
+    media.addEventListener("change", change);
+    return () => media.removeEventListener("change", change);
+  }, []);
+  useEffect(() => {
+    if (!open || !mobile) return;
+    const overflow = document.body.style.overflow;
+    const opener = openerRef.current;
+    document.body.style.overflow = "hidden";
+    asideRef.current?.querySelector<HTMLElement>("button, a")?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+      }
+      if (event.key !== "Tab") return;
+      const elements = asideRef.current?.querySelectorAll<HTMLElement>(
+        "a[href],button:not(:disabled)",
+      );
+      if (!elements?.length) return;
+      const first = elements[0],
+        last = elements[elements.length - 1];
+      if (
+        event.shiftKey &&
+        (document.activeElement === first ||
+          !asideRef.current?.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.body.style.overflow = overflow;
+      opener?.focus();
+    };
+  }, [open, mobile]);
   const nav = useNavigate();
   const location = useLocation();
   const cache = useQueryClient();
@@ -111,12 +162,23 @@ export function Shell() {
         />
       )}
       <aside
+        ref={asideRef}
+        inert={mobile && !open}
         id="workspace-navigation"
         className={open ? "sidebar open" : "sidebar"}
         onKeyDown={(e) => {
           if (e.key === "Escape") setOpen(false);
         }}
       >
+        {mobile && (
+          <button
+            className="icon-button"
+            aria-label={t("close")}
+            onClick={() => setOpen(false)}
+          >
+            <X />
+          </button>
+        )}
         <Logo />
         <div className="workspace-label">{t("app")}</div>
         <nav aria-label={t("app")}>
@@ -167,10 +229,11 @@ export function Shell() {
           </button>
         </div>
       </aside>
-      <div className="app-main">
+      <div className="app-main" inert={mobile && open}>
         <header className="app-header">
           <button
             className="icon-button mobile-menu"
+            ref={openerRef}
             onClick={() => setOpen(!open)}
             aria-label={t("workspace.menu")}
             aria-controls="workspace-navigation"

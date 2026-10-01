@@ -1,11 +1,14 @@
+import { RemoteSelect } from "../../components/RemoteSelect";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { DraftEditor, type DraftData } from "./DraftEditor";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Upload, Sparkles } from "lucide-react";
-import { api, allRows } from "../../services/api";
+import { api } from "../../services/api";
 import type { Page, Row } from "../../entities/types";
+import type { SourceDocument, AIJob, AIDraft } from "../../entities/ai";
 import {
   Badge,
   ErrorState,
@@ -16,20 +19,37 @@ import {
 import { useAction } from "../../hooks/useAction";
 
 export function AIWizard() {
+  const [params] = useSearchParams();
+  const course = params.get("course") || "";
+  return <AIWorkspace key={course} course={course} />;
+}
+function AIWorkspace({ course }: { course: string }) {
   const { t, i18n } = useTranslation();
   const action = useAction();
-  const [course, setCourse] = useState("");
+  const [params, setParams] = useSearchParams();
+  const updateParam = (key: string, value: string) =>
+    setParams((p) => {
+      if (value) p.set(key, value);
+      else p.delete(key);
+      return p;
+    });
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
-  const [sourcePage, setSourcePage] = useState(1);
-  const [jobPage, setJobPage] = useState(1);
+  const sourcePage = Math.max(1, Number(params.get("sourcePage")) || 1);
+  const jobPage = Math.max(1, Number(params.get("jobPage")) || 1);
+  const setSourcePage = (change: (page: number) => number) =>
+    updateParam("sourcePage", String(change(sourcePage)));
+  const setJobPage = (change: (page: number) => number) =>
+    updateParam("jobPage", String(change(jobPage)));
   const [file, setFile] = useState<File>();
   const [weeks, setWeeks] = useState(4);
   const [language, setLanguage] = useState(i18n.language);
   const [complexity, setComplexity] = useState("intermediate");
   const [assignments, setAssignments] = useState(true);
   const [tests, setTests] = useState(true);
-  const [job, setJob] = useState("");
+  const job = params.get("job") || "";
+  const setJob = (value: string) => updateParam("job", value);
   const [draftText, setDraftText] = useState("");
+  const allowNavigation = useUnsavedChanges(!!draftText || !!file);
   const [confirm, setConfirm] = useState(false);
   const [imported, setImported] = useState("");
   const availability = useQuery({
@@ -49,14 +69,10 @@ export function AIWizard() {
     availability.data?.enabled &&
     availability.data.configured &&
     availability.data.worker_available;
-  const courses = useQuery({
-    queryKey: ["options", "courses"],
-    queryFn: () => allRows("courses/"),
-  });
   const sources = useQuery({
     queryKey: ["sources", course, sourcePage],
     queryFn: () =>
-      api<Page<Row>>(`sources/?course=${course}&page=${sourcePage}`),
+      api<Page<SourceDocument>>(`sources/?course=${course}&page=${sourcePage}`),
     enabled: !!course,
     refetchInterval: (q) =>
       !q.state.error &&
@@ -68,7 +84,8 @@ export function AIWizard() {
   });
   const jobs = useQuery({
     queryKey: ["jobs", course, jobPage],
-    queryFn: () => api<Page<Row>>(`ai-jobs/?course=${course}&page=${jobPage}`),
+    queryFn: () =>
+      api<Page<AIJob>>(`ai-jobs/?course=${course}&page=${jobPage}`),
     enabled: !!course,
     refetchInterval: (q) =>
       !q.state.error &&
@@ -81,8 +98,18 @@ export function AIWizard() {
   const activeId = job || jobs.data?.results[0]?.id || "";
   const active = useQuery({
     queryKey: ["job", activeId],
-    queryFn: () => api<Row>(`ai-jobs/${activeId}/`),
-    enabled: !!activeId,
+    queryFn: async ({ signal }) => {
+      const result = await api<AIJob>(
+        `ai-jobs/${activeId}/`,
+        "GET",
+        undefined,
+        signal,
+      );
+      if (result.course !== course)
+        throw new Error(t("ux.selectedUnavailable"));
+      return result;
+    },
+    enabled: !!activeId && !!course,
     refetchInterval: (q) =>
       !q.state.error &&
       q.state.data &&
@@ -92,7 +119,7 @@ export function AIWizard() {
   });
   const draft = useQuery({
     queryKey: ["draft", activeId],
-    queryFn: () => api<Row>(`ai-jobs/${activeId}/draft/`),
+    queryFn: () => api<AIDraft<DraftData>>(`ai-jobs/${activeId}/draft/`),
     enabled: active.data?.status === "COMPLETED",
   });
   const step = draft.data
@@ -118,14 +145,23 @@ export function AIWizard() {
       <section className="help-card" aria-live="polite">
         <div>
           <strong>{t("aiStatusTitle")}</strong>
-          {availability.error && <p>{t("aiCheckFailed")}</p>}
+          {availability.isPending && <Loading />}
+          {availability.error && (
+            <ErrorState
+              error={availability.error}
+              retry={() => void availability.refetch()}
+            />
+          )}
           {availability.data && (
             <>
               {!availability.data.enabled && <p>{t("aiDisabled")}</p>}
-              {!availability.data.configured && <p>{t("aiUnconfigured")}</p>}
-              {!availability.data.worker_available && (
-                <p>{t("aiWorkerUnavailable")}</p>
+              {availability.data.enabled && !availability.data.configured && (
+                <p>{t("aiUnconfigured")}</p>
               )}
+              {availability.data.enabled &&
+                !availability.data.worker_available && (
+                  <p>{t("aiWorkerUnavailable")}</p>
+                )}
               {canGenerate && (
                 <p>
                   {t("aiReady")} · {availability.data.model}
@@ -160,35 +196,14 @@ export function AIWizard() {
       <div className="wizard-grid">
         <section className="panel">
           <h2>01 / {t("course")}</h2>
-          <label>
-            {t("course")}
-            <select
-              value={course}
-              onChange={(e) => {
-                setCourse(e.target.value);
-                setSelectedSources([]);
-                setSourcePage(1);
-                setJobPage(1);
-                setJob("");
-                setDraftText("");
-                setImported("");
-              }}
-            >
-              <option value="">{t("noSelection")}</option>
-              {courses.data?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {String(c.title)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {courses.isPending && <Loading />}
-          {courses.isError && (
-            <ErrorState
-              error={courses.error}
-              retry={() => void courses.refetch()}
-            />
-          )}
+          <RemoteSelect
+            source="courses/?active=true"
+            label={t("course")}
+            value={course}
+            onChange={(value) => {
+              setParams(value ? { course: String(value) } : {});
+            }}
+          />
           <Link to="/app/courses">+ {t("createCourse")}</Link>
           <h2>02 / {t("sources")}</h2>
           <label className="upload-area">
@@ -371,6 +386,7 @@ export function AIWizard() {
                 tests,
               });
               if (result.ok) {
+                allowNavigation();
                 setJob(result.data.id);
                 setDraftText("");
               }
@@ -494,6 +510,7 @@ export function AIWizard() {
                 { week_index: week, topic_index: topic, instruction },
               );
               if (result.ok) {
+                allowNavigation();
                 setJob(result.data.id);
                 setDraftText("");
               }

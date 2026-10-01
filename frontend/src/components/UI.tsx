@@ -102,24 +102,54 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const { t } = useTranslation();
+  const close = () => {
+    if (ref.current?.querySelector('form[data-pending="true"]')) return;
+    if (
+      ref.current?.querySelector('form[data-dirty="true"]') &&
+      !window.confirm(t("ux.unsavedConfirm"))
+    )
+      return;
+    ref.current
+      ?.querySelector("form")
+      ?.dispatchEvent(new Event("reset", { bubbles: true }));
+    onClose();
+  };
   useEffect(() => {
     const dialog = ref.current;
+    const opener = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     dialog?.showModal();
     return () => {
       dialog?.close();
       document.body.style.overflow = previousOverflow;
+      opener?.focus();
     };
   }, []);
   return (
-    <dialog ref={ref} onCancel={onClose} aria-label={title}>
+    <dialog
+      ref={ref}
+      onKeyDown={(event) => {
+        // Repeated native CloseWatcher cancellation can become non-cancelable.
+        // Handle Escape before its default action so pending/dirty guards hold.
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          close();
+        }
+      }}
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
+      }}
+      aria-label={title}
+    >
       <div className="modal-head">
         <h2>{title}</h2>
         <button
           type="button"
           className="icon-button"
-          onClick={onClose}
+          onClick={close}
           aria-label={t("close")}
         >
           <X />
@@ -140,10 +170,12 @@ export function Badge({ children }: { children: ReactNode }) {
   );
 }
 export function ProgressBar({ value }: { value: number }) {
+  const { t } = useTranslation();
   return (
     <div
       className="progress"
       role="progressbar"
+      aria-label={t("progress")}
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={100}

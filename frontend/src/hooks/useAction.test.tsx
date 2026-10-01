@@ -59,3 +59,42 @@ it("prevents duplicate in-flight submission while preserving server field errors
   });
   expect(vi.mocked(api).mock.calls.length - calls).toBe(1);
 });
+
+it("saves an answer in the visible attempt without refetching unrelated screens", async () => {
+  const cache = new QueryClient();
+  const attemptKey = ["attempts", "detail", "attempt-one"];
+  cache.setQueryData(attemptKey, {
+    id: "attempt-one",
+    answers: { q1: ["old"] },
+    status: "IN_PROGRESS",
+  });
+  cache.setQueryData(["tree", "course"], { weeks: [] });
+  cache.setQueryData(["dashboard"], { courses: 1 });
+  const invalidation = vi.spyOn(cache, "invalidateQueries");
+  const hook = renderHook(() => useAction(), {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={cache}>{children}</QueryClientProvider>
+    ),
+  });
+  vi.mocked(api).mockResolvedValueOnce({ saved: true });
+  await act(async () => {
+    await hook.result.current.run("attempts/attempt-one/answer/", {
+      question: "q1",
+      selected_options: ["new"],
+    });
+  });
+  expect(cache.getQueryData(attemptKey)).toMatchObject({
+    answers: { q1: ["new"] },
+  });
+  expect(invalidation).not.toHaveBeenCalled();
+  vi.mocked(api).mockRejectedValueOnce(new ApiError(0, "Offline"));
+  await act(async () => {
+    await hook.result.current.run("attempts/attempt-one/answer/", {
+      question: "q1",
+      selected_options: ["lost"],
+    });
+  });
+  expect(cache.getQueryData(attemptKey)).toMatchObject({
+    answers: { q1: ["new"] },
+  });
+});

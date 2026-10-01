@@ -1,14 +1,15 @@
+import { useEffect, useId, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { allRows, ApiError } from "../../services/api";
-import { ErrorState, Loading } from "../../components/UI";
+import { ApiError } from "../../services/api";
+import { RemoteSelect } from "../../components/RemoteSelect";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import type { Row } from "../../entities/types";
 import { useUser } from "../../app/Auth";
 import { useAction } from "../../hooks/useAction";
-import { fields, type Field } from "./fields";
+import { fields } from "./fields";
 
 export function RecordForm({
   resource,
@@ -28,6 +29,20 @@ export function RecordForm({
   const { t } = useTranslation();
   const user = useUser();
   const action = useAction();
+  const formId = useId();
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const accessibility = (name: string) => ({
+    "aria-invalid": !!form.formState.errors[name],
+    "aria-describedby": form.formState.errors[name]
+      ? `${formId}-${name}-error`
+      : undefined,
+  });
   const activeFields = (fields[resource] || []).filter(
     (f) =>
       !(f.name in fixed) &&
@@ -41,18 +56,26 @@ export function RecordForm({
   for (const field of activeFields) {
     shape[field.name] =
       field.name === "teachers"
-        ? z.array(z.string()).min(1)
+        ? z.array(z.string()).min(1, t("ux.required"))
         : field.type === "checkbox"
           ? z.boolean()
           : field.type === "file"
             ? z.unknown()
             : field.type === "number"
               ? z.coerce
-                  .number()
-                  .min(field.min ?? 0)
-                  .max(field.max ?? Number.MAX_SAFE_INTEGER)
+                  .number({ error: t("ux.invalidNumber") })
+                  .min(
+                    field.min ?? 0,
+                    t("ux.minValue", { value: field.min ?? 0 }),
+                  )
+                  .max(
+                    field.max ?? Number.MAX_SAFE_INTEGER,
+                    t("ux.maxValue", {
+                      value: field.max ?? Number.MAX_SAFE_INTEGER,
+                    }),
+                  )
               : field.required
-                ? z.string().min(1)
+                ? z.string().trim().min(1, t("ux.required"))
                 : z.string();
     defaults[field.name] =
       initial?.[field.name] ??
@@ -74,6 +97,7 @@ export function RecordForm({
     resolver: zodResolver(z.object(shape)),
     defaultValues: defaults,
   });
+  const allowNavigation = useUnsavedChanges(form.formState.isDirty);
   async function submit(data: Record<string, unknown>) {
     const payload: Record<string, unknown> = {
       ...data,
@@ -108,13 +132,26 @@ export function RecordForm({
       body,
       initial ? "PATCH" : "POST",
     );
-    if (result.ok) onDone(result.data);
-    else if (result.error instanceof ApiError)
+    if (!mounted.current) return;
+    if (result.ok) {
+      form.reset(data);
+      allowNavigation();
+      onDone(result.data);
+    } else if (result.error instanceof ApiError)
       for (const [name, message] of Object.entries(result.error.fieldErrors))
-        form.setError(name, { type: "server", message });
+        form.setError(name, { type: "server", message }, { shouldFocus: true });
   }
   return (
-    <form className="record-form" onSubmit={form.handleSubmit(submit)}>
+    <form
+      data-dirty={form.formState.isDirty}
+      data-pending={action.pending}
+      onReset={() => {
+        form.reset();
+        allowNavigation();
+      }}
+      className="record-form"
+      onSubmit={form.handleSubmit(submit)}
+    >
       {resource === "users" && initial && (
         <p>
           {t("role")}: <strong>{t(String(initial.role))}</strong>
@@ -133,13 +170,30 @@ export function RecordForm({
           >
             {t(field.name)}
             {field.source ? (
-              <SourceSelect
-                field={field}
+              <RemoteSelect
+                {...accessibility(field.name)}
+                source={field.source}
+                label={t(field.name)}
+                multiple={field.name === "teachers"}
                 value={form.watch(field.name) as string | string[]}
-                registration={form.register(field.name)}
+                emptyLabel={
+                  field.name === "owner_teacher"
+                    ? t("workspace.unassigned")
+                    : undefined
+                }
+                onChange={(value) =>
+                  form.setValue(field.name, value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
               />
             ) : field.type === "select" ? (
-              <select aria-label={t(field.name)} {...form.register(field.name)}>
+              <select
+                {...accessibility(field.name)}
+                aria-label={t(field.name)}
+                {...form.register(field.name)}
+              >
                 {field.options
                   ?.filter(
                     (o) =>
@@ -154,9 +208,14 @@ export function RecordForm({
                   ))}
               </select>
             ) : field.type === "textarea" ? (
-              <textarea rows={5} {...form.register(field.name)} />
+              <textarea
+                {...accessibility(field.name)}
+                rows={5}
+                {...form.register(field.name)}
+              />
             ) : (
               <input
+                {...accessibility(field.name)}
                 type={field.type || "text"}
                 min={field.min}
                 max={field.max}
@@ -169,7 +228,11 @@ export function RecordForm({
               />
             )}{" "}
             {form.formState.errors[field.name] && (
-              <small className="field-error">
+              <small
+                id={`${formId}-${field.name}-error`}
+                className="field-error"
+                role="alert"
+              >
                 {String(form.formState.errors[field.name]?.message)}
               </small>
             )}
@@ -177,7 +240,19 @@ export function RecordForm({
         ))}
       {action.feedback}
       <div className="form-actions">
-        <button type="button" onClick={() => onDone()}>
+        <button
+          type="button"
+          disabled={action.pending}
+          onClick={() => {
+            if (
+              !form.formState.isDirty ||
+              window.confirm(t("ux.unsavedConfirm"))
+            ) {
+              allowNavigation();
+              onDone();
+            }
+          }}
+        >
           {t("cancel")}
         </button>
         <button
@@ -188,55 +263,5 @@ export function RecordForm({
         </button>
       </div>
     </form>
-  );
-}
-function SourceSelect({
-  field,
-  registration,
-  value,
-}: {
-  field: Field;
-  value: string | string[];
-  registration: ReturnType<ReturnType<typeof useForm>["register"]>;
-}) {
-  const query = useQuery({
-    queryKey: ["options", field.source],
-    queryFn: () => allRows(field.source!),
-  });
-  const { t } = useTranslation();
-  if (query.isPending) return <Loading />;
-  if (query.error)
-    return (
-      <ErrorState error={query.error} retry={() => void query.refetch()} />
-    );
-  return (
-    <select
-      multiple={field.name === "teachers"}
-      value={value}
-      aria-label={t(field.name)}
-      {...registration}
-    >
-      {field.name !== "teachers" && (
-        <option value="">
-          {t(
-            field.name === "owner_teacher"
-              ? "workspace.unassigned"
-              : "noSelection",
-          )}
-        </option>
-      )}
-      {query.data?.map((row) => (
-        <option key={row.id} value={row.id}>
-          {String(
-            row.title ||
-              row.name ||
-              (row.first_name
-                ? `${row.first_name} ${row.last_name || ""} · ${row.email}`
-                : row.email) ||
-              row.id,
-          )}
-        </option>
-      ))}
-    </select>
   );
 }

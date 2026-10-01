@@ -119,7 +119,7 @@ test("test answers survive refresh, completed attempts remain accessible", async
     .getByRole("button", { name: "Начать тест / Продолжить обучение" })
     .click();
   await page.getByLabel("−2", { exact: true }).check();
-  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+  await expect(page.getByText("Ответ сохранён", { exact: true })).toBeVisible();
   const names = await page.locator(".answer-option").allTextContents();
   await page.reload();
   await expect(page.getByLabel("−2", { exact: true })).toBeChecked();
@@ -185,6 +185,10 @@ test("admin preserves multiple teachers when editing a discipline", async ({
     .getByRole("dialog")
     .getByLabel("Преподаватели", { exact: true });
   await expect(select).toHaveAttribute("multiple", "");
+  await expect(select).toBeEnabled();
+  await expect
+    .poll(() => select.locator("option:checked").count())
+    .toBeGreaterThan(0);
   const chosen = await select
     .locator("option:checked")
     .evaluateAll((items) =>
@@ -224,7 +228,7 @@ test("grade results beyond the first page are reachable", async ({ page }) => {
   await page.getByLabel("Пароль", { exact: true }).fill(password!);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
   await expect(page).toHaveURL(/\/app$/);
-  await page.route("**/api/v1/enrollments/?page=*", (route) => {
+  await page.route("**/api/v1/enrollments/summaries/?*", (route) => {
     const second =
       new URL(route.request().url()).searchParams.get("page") === "2";
     return route.fulfill({
@@ -236,13 +240,13 @@ test("grade results beyond the first page are reachable", async ({ page }) => {
           id: `audit-${second ? 26 : index + 1}`,
           course_title: `Audit course ${second ? 26 : index + 1}`,
           student_name: "Audit student",
+          course: `course-${index}`,
+          grades: { score: 75, components: [] },
+          progress: { percent: 25, completed: 1, total: 4 },
         })),
       },
     });
   });
-  await page.route("**/api/v1/enrollments/audit-*/grades/", (route) =>
-    route.fulfill({ json: { score: 75, components: [] } }),
-  );
   await page.goto("/app/grades");
   await expect(
     page.getByRole("heading", { name: "Audit course 1", exact: true }),

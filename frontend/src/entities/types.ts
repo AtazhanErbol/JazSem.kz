@@ -55,12 +55,13 @@ export interface Tree {
   scheme: Row | null;
   components: Row[];
 }
-export interface Attempt extends Row {
+export interface Attempt {
+  id: string;
   questions: Question[];
   answers: Record<string, string[]>;
   expires_at: string;
   server_time: string;
-  status: string;
+  status: "IN_PROGRESS" | "GRADED" | "EXPIRED";
   score: string | null;
 }
 export interface Progress {
@@ -70,4 +71,6 @@ export interface Progress {
   materials: string[];
   completed_topics: string[];
   read_topics: string[];
+  assignments: string[];
+  tests: string[];
 }

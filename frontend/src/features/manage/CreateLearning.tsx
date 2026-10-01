@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useUser } from "../../app/Auth";
-import { allRows, api } from "../../services/api";
+import { api } from "../../services/api";
 import type { Row, Tree } from "../../entities/types";
 import { ErrorState, Loading } from "../../components/UI";
+import { RemoteSelect } from "../../components/RemoteSelect";
 import { RecordForm } from "./RecordForm";
 
 export function CourseCreate({ onClose }: { onClose: () => void }) {
@@ -14,102 +15,64 @@ export function CourseCreate({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const [disciplineId, setDiscipline] = useState("");
   const [teacherId, setTeacher] = useState("");
-  const disciplines = useQuery({
-    queryKey: ["options", "active-disciplines"],
-    queryFn: async () =>
-      (await allRows("disciplines/")).filter(
-        (discipline) => discipline.status === "ACTIVE",
+  const discipline = useQuery({
+    queryKey: ["disciplines", disciplineId],
+    queryFn: ({ signal }) =>
+      api<{ id: string; teachers: string[]; status: string }>(
+        `disciplines/${disciplineId}/`,
+        "GET",
+        undefined,
+        signal,
       ),
+    enabled: !!disciplineId,
   });
-  const teachers = useQuery({
-    queryKey: ["course-teachers", user.id],
-    queryFn: () =>
-      user.role === "TEACHER"
-        ? Promise.resolve<Row[]>([{ ...user }])
-        : allRows("users/?role=TEACHER"),
-  });
-  if (disciplines.isPending || teachers.isPending) return <Loading />;
-  if (disciplines.error || teachers.error)
-    return <ErrorState error={disciplines.error || teachers.error} />;
-  const discipline = disciplines.data.find((d) => d.id === disciplineId);
-  const eligible = teachers.data.filter(
-    (person) =>
-      Array.isArray(discipline?.teachers) &&
-      discipline.teachers.includes(person.id),
-  );
-  const responsible =
-    user.role === "TEACHER"
-      ? user.id
-      : teacherId || (eligible.length === 1 ? eligible[0].id : "");
+  const responsible = user.role === "TEACHER" ? user.id : teacherId;
   const ready =
-    !!discipline && eligible.some((person) => person.id === responsible);
+    discipline.data?.status === "ACTIVE" &&
+    discipline.data.teachers.includes(responsible);
   return (
     <>
       <p className="muted">{t("workspace.courseIntro")}</p>
-      {!disciplines.data.length ? (
-        <div className="workspace-empty">
-          <h3>{t("workspace.noDisciplines")}</h3>
-          <p>{t("workspace.noDisciplinesHint")}</p>
-          {user.role === "ADMIN" && (
-            <Link className="button primary" to="/app/disciplines?create=1">
-              {t("workspace.createDiscipline")}
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="record-form create-prerequisites">
-          <label>
-            {t("discipline")}
-            <select
-              aria-label={t("discipline")}
-              value={disciplineId}
-              onChange={(e) => {
-                setDiscipline(e.target.value);
-                setTeacher("");
-              }}
-            >
-              <option value="">{t("workspace.chooseDiscipline")}</option>
-              {disciplines.data.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {String(d.name)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {user.role === "ADMIN" && (
-            <label>
-              {t("workspace.courseTeacher")}
-              <select
-                aria-label={t("workspace.courseTeacher")}
-                value={responsible}
-                disabled={!discipline}
-                onChange={(e) => setTeacher(e.target.value)}
-              >
-                <option value="">{t("workspace.chooseTeacher")}</option>
-                {eligible.map((person) => (
-                  <option key={person.id} value={person.id}>
-                    {String(person.first_name)} {String(person.last_name)} ·{" "}
-                    {String(person.email)}
-                  </option>
-                ))}
-              </select>
-              <small className="muted">
-                {t("workspace.courseTeacherHint")}
-              </small>
-            </label>
-          )}
-          {discipline && !eligible.length && (
-            <p className="notice">
-              {t("workspace.noTeachers")}{" "}
-              {user.role === "ADMIN" && (
-                <Link to="/app/disciplines">
-                  {t("workspace.openDisciplines")}
-                </Link>
-              )}
-            </p>
-          )}
-        </div>
-      )}
+      <div className="record-form create-prerequisites">
+        <h3>{t("discipline")}</h3>
+        <RemoteSelect
+          source="disciplines/?status=ACTIVE"
+          label={t("discipline")}
+          value={disciplineId}
+          onChange={(value) => {
+            setDiscipline(String(value));
+            setTeacher("");
+          }}
+        />
+        {user.role === "ADMIN" && (
+          <Link to="/app/disciplines?create=1">
+            {t("workspace.createDiscipline")}
+          </Link>
+        )}
+        {disciplineId && discipline.isPending && <Loading />}
+        {discipline.error && (
+          <ErrorState
+            error={discipline.error}
+            retry={() => void discipline.refetch()}
+          />
+        )}
+        {discipline.data && user.role === "ADMIN" && (
+          <>
+            <h3>{t("workspace.courseTeacher")}</h3>
+            <RemoteSelect
+              key={disciplineId}
+              source={`users/?role=TEACHER&is_active=true&discipline=${disciplineId}`}
+              label={t("workspace.courseTeacher")}
+              value={responsible}
+              onChange={(value) => setTeacher(String(value))}
+            />
+            <small className="muted">{t("workspace.courseTeacherHint")}</small>
+          </>
+        )}
+        {discipline.data && !discipline.data.teachers.length && (
+          <p className="notice">{t("workspace.noTeachers")}</p>
+        )}
+      </div>
       {ready && (
         <RecordForm
           resource="courses"
@@ -133,55 +96,24 @@ export function ActivityCreate({
 }) {
   const { t } = useTranslation();
   const [course, setCourse] = useState("");
-  const courses = useQuery({
-    queryKey: ["options", "active-courses"],
-    queryFn: async () =>
-      (await allRows("courses/")).filter(
-        (course) => course.status !== "ARCHIVED",
-      ),
-  });
   return (
     <>
       <p className="muted">{t("workspace.activityIntro")}</p>
-      {courses.isPending ? (
-        <Loading />
-      ) : courses.error ? (
-        <ErrorState error={courses.error} />
-      ) : !courses.data.length ? (
-        <div className="workspace-empty">
-          <h3>{t("workspace.noCourses")}</h3>
-          <p>{t("workspace.noCoursesHint")}</p>
-          <Link className="button primary" to="/app/courses?create=1">
-            {t("createCourse")}
-          </Link>
-        </div>
-      ) : (
-        <>
-          <h3>{t("workspace.locationStep")}</h3>
-          <label>
-            {t("workspace.chooseCourse")}
-            <select
-              aria-label={t("workspace.chooseCourse")}
-              value={course}
-              onChange={(e) => setCourse(e.target.value)}
-            >
-              <option value="">—</option>
-              {courses.data.map((c) => (
-                <option value={c.id} key={c.id}>
-                  {String(c.title)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {course && (
-            <ActivityLocation
-              key={course}
-              course={course}
-              resource={resource}
-              onClose={onClose}
-            />
-          )}
-        </>
+      <h3>{t("workspace.locationStep")}</h3>
+      <RemoteSelect
+        source="courses/?active=true"
+        label={t("workspace.chooseCourse")}
+        value={course}
+        onChange={(value) => setCourse(String(value))}
+      />
+      <Link to="/app/courses?create=1">{t("createCourse")}</Link>
+      {course && (
+        <ActivityLocation
+          key={course}
+          course={course}
+          resource={resource}
+          onClose={onClose}
+        />
       )}
     </>
   );

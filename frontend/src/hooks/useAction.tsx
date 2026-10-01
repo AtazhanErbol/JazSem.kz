@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api } from "../services/api";
 import { ErrorState } from "../components/UI";
+import { affectedQueries, queryKeys } from "../services/queryKeys";
+import type { Attempt } from "../entities/types";
 
 export function useAction() {
   const running = useRef(false);
@@ -24,11 +26,26 @@ export function useAction() {
     setSuccess("");
     try {
       const result = await api<T>(path, method, body);
-      // Protected refetches during logout can redirect the next session
-      // after a delayed 403. Session changes have their own cache handling.
-      if (!path.startsWith("auth/")) await cache.invalidateQueries();
-      else if (path === "auth/change-password/" || path === "auth/me/")
-        await cache.invalidateQueries({ queryKey: ["me"] });
+      const [resource, id, verb] = path.split("/");
+      if (resource === "attempts" && verb === "answer") {
+        const answer = body as { question: string; selected_options: string[] };
+        cache.setQueryData<Attempt>(queryKeys.detail("attempts", id), (old) =>
+          old
+            ? {
+                ...old,
+                answers: {
+                  ...old.answers,
+                  [answer.question]: answer.selected_options,
+                },
+              }
+            : old,
+        );
+      }
+      await Promise.all(
+        affectedQueries(path).map((root) =>
+          cache.invalidateQueries({ queryKey: [root] }),
+        ),
+      );
       setSuccess(successMessage ?? t("saved"));
       return { ok: true, data: result };
     } catch (e) {
@@ -42,6 +59,7 @@ export function useAction() {
   return {
     run,
     pending,
+    error,
     feedback: (
       <>
         {error !== undefined && <ErrorState error={error} />}

@@ -1,4 +1,3 @@
-import type { Page, Row } from "../entities/types";
 import i18n from "../i18n";
 
 export class ApiError extends Error {
@@ -14,7 +13,9 @@ let csrf = "";
 async function request(url: string, options: RequestInit) {
   try {
     return await fetch(url, options);
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError")
+      throw error;
     throw new ApiError(0, i18n.t("networkError"));
   }
 }
@@ -58,6 +59,7 @@ export async function api<T>(
   path: string,
   method = "GET",
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<T> {
   if (method !== "GET" && !csrf) {
     const response = await request("/api/v1/auth/login/", {
@@ -67,6 +69,7 @@ export async function api<T>(
   }
   const form = body instanceof FormData;
   const response = await request("/api/v1/" + path, {
+    signal,
     method,
     credentials: "same-origin",
     headers: {
@@ -79,14 +82,4 @@ export async function api<T>(
   if (path.startsWith("auth/") && method === "POST" && response.ok) csrf = "";
   if (response.status === 204) return undefined as T;
   return (await readResponse(response)) as T;
-}
-export async function allRows(path: string): Promise<Row[]> {
-  const result: Row[] = [];
-  let next: string | null = path;
-  while (next) {
-    const page: Page<Row> = await api<Page<Row>>(next);
-    result.push(...page.results);
-    next = page.next ? page.next.split("/api/v1/")[1] : null;
-  }
-  return result;
 }

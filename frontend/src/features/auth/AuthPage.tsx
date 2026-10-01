@@ -21,11 +21,19 @@ export function AuthPage({
   const cache = useQueryClient();
   const schema = z
     .object({
-      email: mode === "login" || mode === "forgot" ? z.email() : z.string(),
+      email:
+        mode === "login" || mode === "forgot"
+          ? z.email(t("ux.invalidEmail"))
+          : z.string(),
       password:
         mode === "forgot"
           ? z.string()
-          : z.string().min(mode === "login" ? 1 : 8),
+          : z
+              .string()
+              .min(
+                mode === "login" ? 1 : 8,
+                t(mode === "login" ? "ux.required" : "ux.passwordLength"),
+              ),
       current_password: z.string(),
       confirm_password: z.string(),
     })
@@ -110,8 +118,17 @@ export function AuthPage({
               <input
                 type="email"
                 autoComplete="username"
+                aria-invalid={!!form.formState.errors.email}
+                aria-describedby={
+                  form.formState.errors.email ? "email-error" : undefined
+                }
                 {...form.register("email")}
               />
+              {form.formState.errors.email && (
+                <span className="field-error" id="email-error" role="alert">
+                  {form.formState.errors.email?.message}
+                </span>
+              )}
             </label>
           )}
           {mode === "change" && (
@@ -120,8 +137,23 @@ export function AuthPage({
               <input
                 type="password"
                 autoComplete="current-password"
+                aria-invalid={!!form.formState.errors.current_password}
+                aria-describedby={
+                  form.formState.errors.current_password
+                    ? "current_password-error"
+                    : undefined
+                }
                 {...form.register("current_password")}
               />
+              {form.formState.errors.current_password && (
+                <span
+                  className="field-error"
+                  id="current_password-error"
+                  role="alert"
+                >
+                  {form.formState.errors.current_password?.message}
+                </span>
+              )}
             </label>
           )}
           {mode !== "forgot" && (
@@ -132,23 +164,42 @@ export function AuthPage({
                 autoComplete={
                   mode === "login" ? "current-password" : "new-password"
                 }
+                aria-invalid={!!form.formState.errors.password}
+                aria-describedby={
+                  form.formState.errors.password ? "password-error" : undefined
+                }
                 {...form.register("password")}
               />
+              {form.formState.errors.password && (
+                <span className="field-error" id="password-error" role="alert">
+                  {form.formState.errors.password?.message}
+                </span>
+              )}
             </label>
           )}
-          {Object.entries(form.formState.errors).map(([key, error]) => (
-            <p role="alert" key={key}>
-              {t(key)}: {error.message}
-            </p>
-          ))}
           {["reset", "change"].includes(mode) && (
             <label>
               {t("confirmPassword")}
               <input
                 type="password"
                 autoComplete="new-password"
+                aria-invalid={!!form.formState.errors.confirm_password}
+                aria-describedby={
+                  form.formState.errors.confirm_password
+                    ? "confirm_password-error"
+                    : undefined
+                }
                 {...form.register("confirm_password")}
               />
+              {form.formState.errors.confirm_password && (
+                <span
+                  className="field-error"
+                  id="confirm_password-error"
+                  role="alert"
+                >
+                  {form.formState.errors.confirm_password?.message}
+                </span>
+              )}
             </label>
           )}
           <button className="primary" disabled={action.pending}>

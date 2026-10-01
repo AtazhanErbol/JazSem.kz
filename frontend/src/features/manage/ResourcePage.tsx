@@ -12,6 +12,9 @@ import { RecordForm } from "./RecordForm";
 import { fields } from "./fields";
 import { RecordDetails } from "./RecordDetails";
 import { ActivityCreate, CourseCreate } from "./CreateLearning";
+import { capabilities } from "./capabilities";
+import { ResourceFilters } from "./ResourceFilters";
+import { queryKeys } from "../../services/queryKeys";
 
 export function ResourcePage({ resource }: { resource: string }) {
   const { t, i18n } = useTranslation();
@@ -23,17 +26,33 @@ export function ResourcePage({ resource }: { resource: string }) {
     ["TEACHER", "STUDENT"].includes(params.get("role") || "")
       ? params.get("role")!
       : "";
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const page = Math.max(1, Math.floor(Number(params.get("page"))) || 1);
+  const search = params.get("search") || "";
+  const change = (key: string, value: string) =>
+    setParams((p) => {
+      if (value) p.set(key, value);
+      else p.delete(key);
+      if (key !== "page") p.delete("page");
+      return p;
+    });
+  const setPage = (value: number) => change("page", String(value));
+  const supported = capabilities[resource];
+  const apiParams = new URLSearchParams();
+  apiParams.set("page", String(page));
+  for (const key of [
+    "role",
+    ...(supported?.search ? ["search"] : []),
+    ...(supported?.filters.map((filter) => filter.key) || []),
+    ...(supported?.order ? ["ordering"] : []),
+  ])
+    if (params.has(key)) apiParams.set(key, params.get(key)!);
   const [edit, setEdit] = useState<Row | null | undefined>();
   const [confirm, setConfirm] = useState<{ path: string; body?: unknown }>();
   const [detail, setDetail] = useState<Row>();
   const query = useQuery({
-    queryKey: [resource, page, search, role],
-    queryFn: () =>
-      api<Page<Row>>(
-        `${resource}/?page=${page}&search=${encodeURIComponent(search)}${role ? `&role=${role}` : ""}`,
-      ),
+    queryKey: queryKeys.list(resource, apiParams.toString()),
+    queryFn: ({ signal }) =>
+      api<Page<Row>>(`${resource}/?${apiParams}`, "GET", undefined, signal),
   });
   const canCreate =
     user.role !== "STUDENT" &&
@@ -134,18 +153,20 @@ export function ResourcePage({ resource }: { resource: string }) {
           </div>
         </section>
       )}
-      <div className="toolbar">
-        <Search size={18} />
-        <input
-          aria-label={t("search")}
-          placeholder={t("search")}
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-      </div>
+      {supported?.search && (
+        <div className="toolbar">
+          <Search size={18} />
+          <input
+            aria-label={t("search")}
+            placeholder={t("search")}
+            value={search}
+            onChange={(e) => {
+              change("search", e.target.value);
+            }}
+          />
+        </div>
+      )}
+      <ResourceFilters resource={resource} params={params} change={change} />
       {resource === "users" && user.role === "ADMIN" && (
         <div className="people-filters" aria-label={t("workspace.people")}>
           {[
@@ -157,8 +178,8 @@ export function ResourcePage({ resource }: { resource: string }) {
               key={value}
               aria-pressed={role === value}
               onClick={() => {
-                setPage(1);
                 setParams((p) => {
+                  p.delete("page");
                   if (value) p.set("role", value);
                   else p.delete("role");
                   return p;
@@ -259,6 +280,7 @@ export function ResourcePage({ resource }: { resource: string }) {
                       <button onClick={() => setEdit(row)}>{t("edit")}</button>
                     )}
                   {["courses", "groups", "disciplines"].includes(resource) &&
+                    row.status !== "ARCHIVED" &&
                     user.role !== "STUDENT" &&
                     (resource !== "disciplines" || user.role === "ADMIN") && (
                       <button
@@ -279,16 +301,19 @@ export function ResourcePage({ resource }: { resource: string }) {
                       {t("read")}
                     </button>
                   )}
-                  {resource === "users" && user.role !== "STUDENT" && (
-                    <button
-                      className="danger"
-                      onClick={() =>
-                        setConfirm({ path: `users/${row.id}/deactivate/` })
-                      }
-                    >
-                      {t("archive")}
-                    </button>
-                  )}
+                  {resource === "users" &&
+                    user.role !== "STUDENT" &&
+                    row.is_active === true &&
+                    row.id !== user.id && (
+                      <button
+                        className="danger"
+                        onClick={() =>
+                          setConfirm({ path: `users/${row.id}/deactivate/` })
+                        }
+                      >
+                        {t("archive")}
+                      </button>
+                    )}
                   {resource === "tests" && user.role === "STUDENT" && (
                     <Link className="button" to={"/app/tests/" + row.id}>
                       {t("start")}
@@ -316,7 +341,7 @@ export function ResourcePage({ resource }: { resource: string }) {
         </div>
       )}
       {query.data && query.data.count > 25 && (
-        <div className="pagination">
+        <nav className="pagination" aria-label={t("pages")}>
           <button
             disabled={!query.data.previous}
             onClick={() => setPage(page - 1)}
@@ -327,7 +352,7 @@ export function ResourcePage({ resource }: { resource: string }) {
           <button disabled={!query.data.next} onClick={() => setPage(page + 1)}>
             {t("next")}
           </button>
-        </div>
+        </nav>
       )}
       {(edit || creating) && (
         <Modal title={t(edit ? "edit" : createLabel)} onClose={closeCreate}>
@@ -363,7 +388,7 @@ export function ResourcePage({ resource }: { resource: string }) {
       )}
       {detail && (
         <Modal title={t("details")} onClose={() => setDetail(undefined)}>
-          <RecordDetails row={detail} />
+          <RecordDetails resource={resource} row={detail} />
         </Modal>
       )}
     </>
