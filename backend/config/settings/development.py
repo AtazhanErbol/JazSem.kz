@@ -1,8 +1,17 @@
 from .base import *  # noqa: F403
 
 DEBUG = True
-if not os.environ.get("CSRF_TRUSTED_ORIGINS"):  # noqa: F405
-    CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+# Both names address the local frontend. Keep explicit extra origins from .env,
+# even when it lists only one loopback name. Production retains its strict list.
+CSRF_TRUSTED_ORIGINS = list(
+    dict.fromkeys(
+        [
+            *CSRF_TRUSTED_ORIGINS,  # noqa: F405
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ]
+    )
+)
 if not os.environ.get("REDIS_URL"):  # noqa: F405
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 if not MAIL_ENCRYPTION_KEY:  # noqa: F405

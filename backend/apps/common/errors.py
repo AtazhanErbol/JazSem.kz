@@ -6,27 +6,33 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_handler
 
 from .translations import translate
 
 
+def csrf_error(request_id):
+    return {
+        "code": "csrf_failed",
+        "message": translate("Проверка безопасности не пройдена. Обновите страницу."),
+        "errors": {},
+        "request_id": request_id,
+    }
+
+
 def csrf_failure(request, reason=""):
-    return JsonResponse(
-        {
-            "code": "csrf_failed",
-            "message": translate("Проверка безопасности не пройдена. Обновите страницу."),
-            "errors": {},
-            "request_id": getattr(request, "request_id", ""),
-        },
-        status=403,
-    )
+    return JsonResponse(csrf_error(getattr(request, "request_id", "")), status=403)
 
 
 def exception_handler(exc, context):
     request_id = getattr(context.get("request"), "request_id", "")
+    # SessionAuthentication rejects CSRF before calling the action. Give it the
+    # same code as Django's CSRF middleware so the client can safely refresh once.
+    # Other permission failures must never be retried as CSRF failures.
+    if isinstance(exc, PermissionDenied) and str(exc.detail).startswith("CSRF Failed:"):
+        return Response(csrf_error(request_id), status=403)
     if isinstance(exc, (RedisConnectionError, RedisTimeoutError)):
         # A failed throttle/cache dependency must fail closed, without exposing
         # connection URLs or turning a temporary outage into an opaque 500.
