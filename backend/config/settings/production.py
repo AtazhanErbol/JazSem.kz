@@ -1,8 +1,15 @@
+import os
+
 from config.production_checks import validate_production
+from config.vercel_environment import configure_runtime
 
-from .base import *  # noqa: F403
+if os.environ.get("VERCEL") == "1":
+    # Vercel also imports settings directly while detecting the Django app.
+    configure_runtime(os.environ)
 
-validate_production(os.environ)  # noqa: F405
+from .base import *  # noqa: E402, F403
+
+validate_production(os.environ)
 SESSION_COOKIE_SECURE = True
 SECURE_REDIRECT_EXEMPT = [r"^(health|ready)/$"]
 CSRF_COOKIE_SECURE = True
