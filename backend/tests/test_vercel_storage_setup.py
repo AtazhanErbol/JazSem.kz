@@ -6,7 +6,8 @@ import pytest
 from config.vercel_storage_setup import verify_direct_upload
 
 
-def test_real_transport_probe_checks_cors_size_signed_download_and_privacy(monkeypatch):
+@pytest.mark.parametrize("cors", ["https://app.example.test", "*"])
+def test_real_transport_probe_checks_cors_size_signed_download_and_privacy(monkeypatch, cors):
     client = Mock()
     client.generate_presigned_post.return_value = {
         "url": "https://storage.example.test/",
@@ -29,7 +30,7 @@ def test_real_transport_probe_checks_cors_size_signed_download_and_privacy(monke
         if request.get_method() == "POST":
             assert request.data.count(b"a" * 1024) >= 25 * 1024
             assert request.data.rfind(b'name="file"') > request.data.find(b'name="policy"')
-            response.headers = {"Access-Control-Allow-Origin": "https://app.example.test"}
+            response.headers = {"Access-Control-Allow-Origin": cors}
             methods.append("post")
         else:
             assert request.headers["Range"] == "bytes=0-15"

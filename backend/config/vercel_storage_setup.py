@@ -68,7 +68,22 @@ def verify_direct_upload(client, bucket, origin):
             method="POST",
         )
         with urllib.request.urlopen(request, timeout=120) as response:
-            if response.headers.get("Access-Control-Allow-Origin") != origin:
+            cors = response.headers.get("Access-Control-Allow-Origin")
+            print(
+                "Upload CORS response: "
+                + (
+                    "credential-free wildcard"
+                    if cors == "*"
+                    else "exact origin"
+                    if cors == origin
+                    else "missing or unexpected"
+                ),
+                flush=True,
+            )
+            # Browser uploads deliberately omit cookies and HTTP credentials.
+            # A provider's wildcard response is valid for these signed grants;
+            # the object still requires its scoped signature and stays private.
+            if cors not in {origin, "*"}:
                 raise RuntimeError("Storage CORS verification failed")
         print("Direct POST and browser CORS verified.", flush=True)
         if client.head_object(Bucket=bucket, Key=key)["ContentLength"] != size:
