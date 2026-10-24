@@ -4,14 +4,16 @@
 
 The `vercel-deploy` branch contains the initial deployment configuration.
 `codex/vercel-deploy` contains the candidate full Vercel adaptation in
-draft PR #1; synchronize it to the deployment branch after configuring and
-verifying the runtime services. The main branch is unchanged.
+draft PR #1. The main branch is unchanged.
 
 - React and Django build successfully on Vercel after declaring the locked Python
   runtime dependencies in `backend/pyproject.toml`.
 - The landing page and login form render in the preview.
-- The backend is not operational until production environment variables and
-  external services are connected. Do not report the complete app as deployed.
+- The candidate has connected PostgreSQL, Redis, private storage, SMTP and both
+  queue roles. Cloud `/ready/` returned `{"status":"ready"}` after real queue
+  probes, embedded OCR initialization and the maintenance scheduler completed.
+- A real password-reset email reached the owner. The initial owner's password
+  still needs to be set personally through the email flow.
 - `jazsem.vercel.app` has no production deployment yet. Preview access is protected
   by Vercel Authentication. Public production promotion still needs authorization.
 
@@ -23,6 +25,12 @@ requires `VERCEL=1`, production settings, and the fixed in-process trusted peer
 header into the existing trusted-proxy contract. It rejects missing, ambiguous,
 or invalid edge headers before Django and ignores caller-supplied private-proxy
 headers. The standalone Docker deployment still uses `config.wsgi`.
+
+The backend service explicitly declares `entrypoint: "pyproject.toml"` so the
+Python builder includes both the declared web entrypoint and private Celery
+subscriber. Without this, Django framework discovery can omit the subscriber.
+The build wrapper configures strict production settings before static collection;
+Preview uses Vercel's validated exact `VERCEL_BRANCH_URL` for its origin and host.
 
 Production validation, HTTPS redirects, secure cookies, CSRF and explicit allowed
 hosts remain enabled. Do not set development settings to make the preview appear
@@ -45,8 +53,9 @@ for `jazsem.vercel.app` and the stable `vercel-deploy` preview alias.
 Separate application signing and mail encryption keys were generated and saved
 as write-only secrets for Production and Preview. Environment-specific frontend
 and CSRF origins were saved: the production domain for Production and the stable
-deployment-branch alias for Preview. SMTP configuration is still pending.
-Migrations have not been run. The storage adapter and proxy checks pass 26 tests.
+deployment-branch alias for Preview. Gmail SMTP is configured for both environments;
+the password was saved personally by the owner. Candidate migrations and the
+empty-database owner bootstrap have run successfully.
 
 Create a new isolated deployment database; do not connect previews to a live
 customer database. The requested budget is zero: select only confirmed free
@@ -89,6 +98,14 @@ before work and uses a database deployment fence to stop older timer chains.
 Successful API traffic or `/ready/` activates the runtime through its canonical
 alias. Readiness probes both queues end to end, including the actual OCR engine.
 
+Vercel's queue dispatcher invokes synchronous subscribers from an async loop.
+The Vercel-specific Django task base uses Celery's documented `Task.Strategy`
+extension to move the complete inline task lifecycle to one synchronous thread
+when such a loop is present. This includes Django's prerun/postrun database
+cleanup, keeps ACK/retry ordering and request context variables, and preserves
+serial solo-worker execution. Normal worker threads retain Celery's default
+strategy. Django's async safety guard remains enabled.
+
 Embedded OCR uses pinned Tesseract wheels and checksum-pinned official tessdata_fast
 assets for Russian, Kazakh and English, initialized in private storage. Long
 extraction yields between pages, retaining unpublished staging in PostgreSQL, then
@@ -113,14 +130,17 @@ static assets and initializes the readiness sentinel. Missing SMTP or other
 production settings still stop the build; development settings are never used.
 
 Free quotas still apply. No paid upgrade or unlimited free operation is promised.
-SMTP sender credentials, initial administrator access and any intended AI provider
-key/model/budget must be supplied and verified before a complete public release.
+Initial administrator access and any intended AI provider key/model/budget must
+be supplied and verified before reporting every feature as available. AI remains
+disabled; manual course creation and uploads remain available.
 
-Local validation: 305 backend tests passed;
-8 PostgreSQL-specific concurrency checks were skipped because no PostgreSQL server
-was available locally. All 43 frontend tests and the production frontend build
-passed. Actual embedded OCR recognized a combined Russian/Kazakh/English sample.
-Cloud deployment acceptance is pending.
+Validation before the final runtime fixes: GitHub CI passed all 322 backend tests,
+including PostgreSQL concurrency, all 43 frontend tests, browser acceptance,
+container checks and dependency audits. Actual embedded OCR recognized a combined
+Russian/Kazakh/English sample. Cloud build acceptance verified a real 25 MiB
+private upload, signed range download and anonymous object denial. The final
+template and synchronous-strategy fixes must pass their regression tests and
+cloud verification on the final candidate before publication.
 
 Acceptance must cover: health/readiness, admin/teacher/student login and roles,
 course creation and assignment, large-file upload and private download, tests and
