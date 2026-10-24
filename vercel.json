@@ -7,8 +7,7 @@
       "buildCommand": "python -m config.vercel_build",
       "functions": {
         "**/*.py": {
-          "maxDuration": 300,
-          "maxConcurrency": 1
+          "maxDuration": 300
         }
       }
     },
