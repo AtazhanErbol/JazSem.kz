@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from kombu import Queue
 
 if os.environ.get("E2E_ISOLATED") != "1":
     raise ImproperlyConfigured("E2E_ISOLATED=1 is required for synthetic browser acceptance")
@@ -61,6 +62,13 @@ if os.environ.get("E2E_REDIS_URL"):
     CELERY_TASK_DEFAULT_QUEUE = "acceptance-" + str(_database["NAME"])
     CELERY_TASK_DEFAULT_EXCHANGE = CELERY_TASK_DEFAULT_QUEUE
     CELERY_TASK_DEFAULT_ROUTING_KEY = CELERY_TASK_DEFAULT_QUEUE
+    CELERY_TASK_QUEUES = [
+        Queue(
+            CELERY_TASK_DEFAULT_QUEUE,
+            exchange=CELERY_TASK_DEFAULT_EXCHANGE,
+            routing_key=CELERY_TASK_DEFAULT_ROUTING_KEY,
+        )
+    ]
     CELERY_CONTROL_EXCHANGE = CELERY_TASK_DEFAULT_QUEUE + "-control"
     CACHES = {
         "default": {

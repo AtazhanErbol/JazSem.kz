@@ -1,11 +1,13 @@
 import os
 
 from config.production_checks import validate_production
-from config.vercel_environment import configure_runtime
+from config.vercel_environment import configure_settings
 
 if os.environ.get("VERCEL") == "1":
     # Vercel also imports settings directly while detecting the Django app.
-    configure_runtime(os.environ)
+    # Its generated collectstatic wrapper sets a different settings module.
+    # Runtime entrypoints separately enforce the production module identity.
+    configure_settings(os.environ)
 
 from .base import *  # noqa: E402, F403
 

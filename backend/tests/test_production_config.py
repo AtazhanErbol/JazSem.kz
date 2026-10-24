@@ -34,14 +34,17 @@ def test_production_requires_explicit_complete_configuration():
             validate_production(missing)
 
 
-def test_vercel_settings_detection_maps_integrations_before_loading_base():
+@pytest.mark.parametrize(
+    "settings_module", ["config.settings.production", "_vercel_collectstatic_settings"]
+)
+def test_vercel_settings_detection_maps_integrations_before_loading_base(settings_module):
     env = {
         **os.environ,
         **valid_env(),
         "VERCEL": "1",
         "VERCEL_ENV": "preview",
         "VERCEL_BRANCH_URL": "jazsem-git-topic-team.vercel.app",
-        "DJANGO_SETTINGS_MODULE": "config.settings.production",
+        "DJANGO_SETTINGS_MODULE": settings_module,
         "TRUSTED_PROXY_CIDRS": "127.0.0.1/32",
         "TIGRIS_STORAGE_BUCKET": "private-detection-test",
         "TIGRIS_STORAGE_ACCESS_KEY_ID": "synthetic-key",

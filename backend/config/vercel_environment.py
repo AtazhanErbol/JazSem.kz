@@ -34,12 +34,11 @@ def configure_storage(env):
     env.setdefault("S3_REGION", "auto")
 
 
-def configure_runtime(env):
+def configure_settings(env):
     if env.get("VERCEL") != "1":
         raise RuntimeError("The Vercel entrypoint requires the Vercel runtime")
     for key, value in {
         "TRUSTED_PROXY_CIDRS": "127.0.0.1/32",
-        "DJANGO_SETTINGS_MODULE": "config.settings.production",
         "BACKGROUND_MODE": "vercel",
         "OCR_ENGINE": "embedded",
         "DIRECT_UPLOADS_ENABLED": "true",
@@ -48,3 +47,11 @@ def configure_runtime(env):
             raise RuntimeError(f"Invalid Vercel runtime setting: {key}")
     configure_preview(env)
     configure_storage(env)
+
+
+def configure_runtime(env):
+    configure_settings(env)
+    if env.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production") != (
+        "config.settings.production"
+    ):
+        raise RuntimeError("Invalid Vercel runtime setting: DJANGO_SETTINGS_MODULE")
