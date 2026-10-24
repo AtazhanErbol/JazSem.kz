@@ -3,6 +3,7 @@
   "services": {
     "backend": {
       "root": "backend",
+      "entrypoint": "pyproject.toml",
       "framework": "django",
       "buildCommand": "python -m config.vercel_build",
       "functions": {
