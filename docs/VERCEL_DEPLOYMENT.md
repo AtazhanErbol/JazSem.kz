@@ -42,8 +42,11 @@ Common Vercel configuration was saved for Production and Preview:
 `DJANGO_SETTINGS_MODULE=config.settings.production`,
 `TRUSTED_PROXY_CIDRS=127.0.0.1/32`, `AI_ENABLED=false`, and exact allowed hosts
 for `jazsem.vercel.app` and the stable `vercel-deploy` preview alias.
-Application encryption keys, environment-specific frontend/CSRF origins and
-SMTP configuration are still pending. Migrations have not been run.
+Separate application signing and mail encryption keys were generated and saved
+as write-only secrets for Production and Preview. Environment-specific frontend
+and CSRF origins were saved: the production domain for Production and the stable
+deployment-branch alias for Preview. SMTP configuration is still pending.
+Migrations have not been run. The storage adapter and proxy checks pass 26 tests.
 
 Create a new isolated deployment database; do not connect previews to a live
 customer database. The requested budget is zero: select only confirmed free
