@@ -12,7 +12,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from config.ocr_assets import COMMIT, MODELS, PREFIX
-from config.vercel_environment import configure_storage
+from config.vercel_environment import configure_preview, configure_storage
 
 
 def initialize_models(client, bucket):
@@ -153,6 +153,7 @@ def safe_error(error):
 def main():
     if os.environ.get("VERCEL") != "1":
         raise RuntimeError("This setup command requires the Vercel deployment environment")
+    configure_preview(os.environ)
     configure_storage(os.environ)
     origins = list(
         dict.fromkeys(

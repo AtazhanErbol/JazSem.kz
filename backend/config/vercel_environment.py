@@ -1,5 +1,21 @@
 """Map provider-managed Vercel variables without copying credentials into code."""
 
+import re
+
+
+def configure_preview(env):
+    """Use the provider's stable branch alias for each isolated preview database."""
+    if env.get("VERCEL_ENV") != "preview":
+        return
+    host = env.get("VERCEL_BRANCH_URL", "")
+    if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.vercel\.app", host):
+        raise RuntimeError("Invalid Vercel preview branch identity")
+    origin = "https://" + host
+    env["FRONTEND_URL"] = origin
+    env["CSRF_TRUSTED_ORIGINS"] = origin
+    hosts = [item.strip() for item in env.get("DJANGO_ALLOWED_HOSTS", "").split(",")]
+    env["DJANGO_ALLOWED_HOSTS"] = ",".join(dict.fromkeys(item for item in [*hosts, host] if item))
+
 
 def configure_storage(env):
     if not env.get("TIGRIS_STORAGE_BUCKET"):
@@ -30,4 +46,5 @@ def configure_runtime(env):
     }.items():
         if env.setdefault(key, value) != value:
             raise RuntimeError(f"Invalid Vercel runtime setting: {key}")
+    configure_preview(env)
     configure_storage(env)

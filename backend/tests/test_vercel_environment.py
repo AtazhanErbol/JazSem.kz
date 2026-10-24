@@ -1,6 +1,42 @@
 import pytest
 
-from config.vercel_environment import configure_storage
+from config.vercel_environment import configure_preview, configure_storage
+
+
+def test_preview_uses_its_stable_branch_alias_for_login_and_activation():
+    env = {
+        "VERCEL_ENV": "preview",
+        "VERCEL_BRANCH_URL": "jazsem-git-topic-team.vercel.app",
+        "DJANGO_ALLOWED_HOSTS": "jazsem.vercel.app",
+        "FRONTEND_URL": "https://stale.vercel.app",
+        "CSRF_TRUSTED_ORIGINS": "https://stale.vercel.app",
+    }
+    configure_preview(env)
+    assert env["FRONTEND_URL"] == "https://jazsem-git-topic-team.vercel.app"
+    assert env["CSRF_TRUSTED_ORIGINS"] == env["FRONTEND_URL"]
+    assert env["DJANGO_ALLOWED_HOSTS"] == "jazsem.vercel.app,jazsem-git-topic-team.vercel.app"
+    original = env.copy()
+    configure_preview(env)
+    assert env == original
+
+
+@pytest.mark.parametrize("host", ["", "*.vercel.app", "evil.test", "x.vercel.app/path"])
+def test_invalid_preview_identity_fails_closed(host):
+    with pytest.raises(RuntimeError, match="Invalid Vercel preview branch identity"):
+        configure_preview({"VERCEL_ENV": "preview", "VERCEL_BRANCH_URL": host})
+
+
+def test_production_retains_explicit_domain_configuration():
+    env = {
+        "VERCEL_ENV": "production",
+        "VERCEL_BRANCH_URL": "preview.vercel.app",
+        "FRONTEND_URL": "https://jazsem.vercel.app",
+        "CSRF_TRUSTED_ORIGINS": "https://jazsem.vercel.app",
+        "DJANGO_ALLOWED_HOSTS": "jazsem.vercel.app",
+    }
+    original = env.copy()
+    configure_preview(env)
+    assert env == original
 
 
 def test_tigris_integration_uses_private_storage_settings():
