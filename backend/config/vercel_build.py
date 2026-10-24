@@ -6,6 +6,7 @@ import django
 
 from config.vercel_environment import configure_runtime
 from config.vercel_storage_setup import main as initialize_storage
+from config.vercel_storage_setup import safe_error
 
 
 def main():
@@ -13,8 +14,8 @@ def main():
     # before the strict production configuration validation stops an incomplete build.
     try:
         initialize_storage()
-    except Exception:
-        raise SystemExit("Private storage initialization or verification failed.") from None
+    except Exception as error:
+        raise SystemExit(safe_error(error)) from None
     configure_runtime(os.environ)
     django.setup()
     from django.core.management import call_command

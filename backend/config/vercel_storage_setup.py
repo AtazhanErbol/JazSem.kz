@@ -70,8 +70,10 @@ def verify_direct_upload(client, bucket, origin):
         with urllib.request.urlopen(request, timeout=120) as response:
             if response.headers.get("Access-Control-Allow-Origin") != origin:
                 raise RuntimeError("Storage CORS verification failed")
+        print("Direct POST and browser CORS verified.", flush=True)
         if client.head_object(Bucket=bucket, Key=key)["ContentLength"] != size:
             raise RuntimeError("25 MiB upload verification failed")
+        print("Stored object size verified: 25 MiB.", flush=True)
         signed_url = client.generate_presigned_url(
             "get_object",
             Params={
@@ -89,6 +91,7 @@ def verify_direct_upload(client, bucket, origin):
                 raise RuntimeError("Signed private download verification failed")
             if not response.headers.get("Content-Disposition", "").startswith("attachment;"):
                 raise RuntimeError("Signed download attachment verification failed")
+        print("Signed range download and attachment headers verified.", flush=True)
         signed = urlsplit(signed_url)
         anonymous = urlunsplit((signed.scheme, signed.netloc, signed.path, "", ""))
         try:
@@ -99,6 +102,37 @@ def verify_direct_upload(client, bucket, origin):
                 raise RuntimeError("Storage privacy verification was inconclusive") from None
     finally:
         client.delete_object(Bucket=bucket, Key=key)
+
+
+def safe_error(error):
+    """Never include signed URLs, provider messages, or credential values."""
+    if isinstance(error, urllib.error.HTTPError):
+        return f"Storage HTTP status {error.code}"
+    if isinstance(error, ClientError):
+        code = error.response.get("Error", {}).get("Code")
+        known = {
+            "AccessDenied",
+            "NoSuchBucket",
+            "NotImplemented",
+            "InvalidArgument",
+            "SignatureDoesNotMatch",
+            "InvalidPolicyDocument",
+        }
+        return "Storage API error: " + (code if code in known else "provider_error")
+    known = {
+        "Storage CORS verification failed",
+        "25 MiB upload verification failed",
+        "Signed private download verification failed",
+        "Signed download attachment verification failed",
+        "Storage privacy verification failed",
+        "Storage privacy verification was inconclusive",
+        "Existing OCR model failed integrity validation",
+        "Official OCR model failed integrity validation",
+        "Invalid storage CORS origins",
+    }
+    if isinstance(error, RuntimeError) and str(error) in known:
+        return str(error)
+    return "Storage preparation failed: " + type(error).__name__
 
 
 def main():
@@ -157,6 +191,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception:
+    except Exception as error:
         # Provider exceptions and signed request URLs can contain credentials.
-        raise SystemExit("Private storage initialization or verification failed.") from None
+        raise SystemExit(safe_error(error)) from None
