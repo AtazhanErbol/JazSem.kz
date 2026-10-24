@@ -30,6 +30,21 @@ functional. Keep AI disabled until separately configured and authorized.
 
 ## Required services and variables
 
+Provisioned on confirmed free tiers: Neon `jazsem-postgres` (Production and
+Preview, isolated database branches for Preview), Upstash `jazsem-redis`
+(Production and Preview), and the private Tigris bucket
+`jazsem-private-atazhan1`. All are connected only to `jazsem`. Provider-managed
+credentials are injected into Vercel; their values are not stored in this repo.
+The Vercel entrypoint maps `TIGRIS_STORAGE_*` to the existing S3 settings, using
+the global HTTPS endpoint and `auto` region. Explicit S3 settings take precedence.
+
+Common Vercel configuration was saved for Production and Preview:
+`DJANGO_SETTINGS_MODULE=config.settings.production`,
+`TRUSTED_PROXY_CIDRS=127.0.0.1/32`, `AI_ENABLED=false`, and exact allowed hosts
+for `jazsem.vercel.app` and the stable `vercel-deploy` preview alias.
+Application encryption keys, environment-specific frontend/CSRF origins and
+SMTP configuration are still pending. Migrations have not been run.
+
 Create a new isolated deployment database; do not connect previews to a live
 customer database. The requested budget is zero: select only confirmed free
 plans and do not enable paid upgrades or overage billing.

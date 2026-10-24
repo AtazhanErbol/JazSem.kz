@@ -2,6 +2,7 @@
 
 import os
 
+from config.vercel_environment import configure_storage
 from config.vercel_proxy import VercelProxy
 
 if os.environ.get("VERCEL") != "1":
@@ -15,6 +16,8 @@ if (
     != "config.settings.production"
 ):
     raise RuntimeError("The Vercel entrypoint requires production settings")
+
+configure_storage(os.environ)
 
 from config.wsgi import application as django_application  # noqa: E402
 
