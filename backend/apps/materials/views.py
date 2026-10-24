@@ -8,6 +8,7 @@ from apps.audit.services import record, selected_fields
 from apps.common.api import ScopedViewSet, private_response
 from apps.common.inputs import EmptyInput, validated
 from apps.common.serializers import serializer_for
+from apps.common.upload_parser import UPLOAD_PARSERS
 from apps.enrollments.models import Enrollment
 from apps.materials.models import Material
 from apps.progress.models import StudentProgress
@@ -15,6 +16,7 @@ from apps.progress.services import summary
 
 
 class MaterialViewSet(ScopedViewSet):
+    parser_classes = UPLOAD_PARSERS
     queryset = Material.objects.all()
     serializer_class = serializer_for(Material, ["original_filename", "mime_type", "size"])
     throttle_scope = "upload"

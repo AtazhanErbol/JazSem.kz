@@ -72,7 +72,11 @@ plans and do not enable paid upgrades or overage billing.
 After connecting the isolated database, inspect its migration state and apply
 forward migrations, run `release_preflight` and `check --deploy`, create a real
 administrator, and initialize the private sentinel using `storage_probe
---initialize`. Production must not use `seed_dev`.
+--initialize`. For an empty deployment, set `INITIAL_ADMIN_EMAIL` to the owner
+email: the build creates username `owner` with an unusable password. Activate it
+through the existing password-reset email flow. Existing administrators are left
+unchanged; a nonempty database without one requires manual administration.
+Production must not use `seed_dev`.
 
 The standalone Docker deployment retains its original Celery workers and beat
 scheduler. Vercel instead uses private queue-triggered Celery subscribers for both
@@ -112,7 +116,7 @@ Free quotas still apply. No paid upgrade or unlimited free operation is promised
 SMTP sender credentials, initial administrator access and any intended AI provider
 key/model/budget must be supplied and verified before a complete public release.
 
-Local validation: 301 backend tests passed;
+Local validation: 305 backend tests passed;
 8 PostgreSQL-specific concurrency checks were skipped because no PostgreSQL server
 was available locally. All 43 frontend tests and the production frontend build
 passed. Actual embedded OCR recognized a combined Russian/Kazakh/English sample.

@@ -16,6 +16,7 @@ from django.db import transaction
 from django.http import Http404, QueryDict
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
+from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import DataAndFiles
@@ -74,6 +75,16 @@ class UploadInput(serializers.Serializer):
     files = FileInput(many=True, allow_empty=False, max_length=5)
 
 
+class UploadGrantOutput(serializers.Serializer):
+    ticket = serializers.UUIDField()
+    url = serializers.URLField()
+    fields = serializers.DictField(child=serializers.CharField())
+
+
+class UploadOutput(serializers.Serializer):
+    uploads = UploadGrantOutput(many=True)
+
+
 def authorize_target(user, target, method, data, files):
     # Business permissions are checked again by the original endpoint when attaching.
     from apps.assignments.models import Assignment
@@ -118,6 +129,7 @@ class DirectUploadView(APIView):
     throttle_scope = "upload_grant"
     serializer_class = UploadInput
 
+    @extend_schema(request=UploadInput, responses={201: UploadOutput})
     @transaction.atomic
     def post(self, request):
         if not settings.DIRECT_UPLOADS_ENABLED:

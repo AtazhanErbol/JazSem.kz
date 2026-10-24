@@ -12,6 +12,7 @@ from apps.common.api import ReadOnlyScoped, lookup, private_response, representa
 from apps.common.background import require_worker, worker_available
 from apps.common.inputs import EmptyInput, validated
 from apps.common.permissions import is_teacher
+from apps.common.upload_parser import UPLOAD_PARSERS
 from apps.courses.models import Course
 from apps.materials.validation import validate_upload
 
@@ -77,6 +78,7 @@ class AIStatusView(APIView):
 
 
 class SourceViewSet(ReadOnlyScoped):
+    parser_classes = UPLOAD_PARSERS
     queryset = SourceDocument.objects.all()
     serializer_class = SourceOutput
     throttle_scope = "upload"

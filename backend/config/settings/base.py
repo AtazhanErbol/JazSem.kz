@@ -109,12 +109,6 @@ CELERY_BEAT_SCHEDULE = {
     "deadlines": {"task": "apps.notifications.tasks.deadline_reminders", "schedule": 3600.0},
 }
 REST_FRAMEWORK = {
-    "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser",
-        "rest_framework.parsers.FormParser",
-        "rest_framework.parsers.MultiPartParser",
-        "apps.common.upload_parser.DirectUploadParser",
-    ],
     "NUM_PROXIES": 0,  # REMOTE_ADDR is normalized only by TrustedProxyMiddleware.
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["apps.common.permissions.AccountReady"],

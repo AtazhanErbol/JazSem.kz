@@ -1,4 +1,4 @@
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 
 
 class DirectUploadParser(JSONParser):
@@ -10,3 +10,6 @@ class DirectUploadParser(JSONParser):
 
         body = super().parse(stream, media_type, parser_context)
         return consume_uploads(body, parser_context["request"])
+
+
+UPLOAD_PARSERS = [JSONParser, FormParser, MultiPartParser, DirectUploadParser]

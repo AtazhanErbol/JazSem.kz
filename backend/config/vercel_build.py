@@ -25,6 +25,8 @@ def main():
     call_command("check", deploy=True, fail_level="WARNING")
     call_command("collectstatic", interactive=False)
     call_command("storage_probe", initialize=True)
+    if os.environ.get("INITIAL_ADMIN_EMAIL"):
+        call_command("bootstrap_owner", email=os.environ["INITIAL_ADMIN_EMAIL"])
 
 
 if __name__ == "__main__":

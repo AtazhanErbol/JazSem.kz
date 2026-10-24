@@ -8,6 +8,7 @@ from apps.common.api import ReadOnlyScoped, ScopedViewSet, private_response, rep
 from apps.common.filters import AssignmentFilter, SubmissionFilter
 from apps.common.inputs import GradeInput, ReviewInput, RevisionInput, SubmissionInput, validated
 from apps.common.serializers import serializer_for
+from apps.common.upload_parser import UPLOAD_PARSERS
 
 
 class AssignmentDisplaySerializer(serializer_for(Assignment)):
@@ -21,7 +22,7 @@ class AssignmentViewSet(ScopedViewSet):
     filterset_class = AssignmentFilter
     ordering_fields = ["created_at", "deadline", "title", "order"]
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["post"], parser_classes=UPLOAD_PARSERS)
     def submit(self, request, pk=None):
         data = validated(request, SubmissionInput)
         obj = submit(
