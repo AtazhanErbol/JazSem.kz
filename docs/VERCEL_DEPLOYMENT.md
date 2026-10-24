@@ -139,8 +139,13 @@ including PostgreSQL concurrency, all 43 frontend tests, browser acceptance,
 container checks and dependency audits. Actual embedded OCR recognized a combined
 Russian/Kazakh/English sample. Cloud build acceptance verified a real 25 MiB
 private upload, signed range download and anonymous object denial. The final
-template and synchronous-strategy fixes must pass their regression tests and
-cloud verification on the final candidate before publication.
+template and synchronous-strategy fixes passed all 318 local backend tests
+(8 PostgreSQL-only checks skipped locally), including real ORM queries in Celery
+task signals under an async dispatcher. Cloud verification and CI on the final
+candidate remain release checks. The Docker scan exposed five fixable frontend
+findings and an expired review of known, unfixed Debian findings; the frontend
+packages and scoped native review were refreshed without changing the scan gate.
+See `SECURITY_REVIEW.md` for residual native-library limits and demo scope.
 
 Acceptance must cover: health/readiness, admin/teacher/student login and roles,
 course creation and assignment, large-file upload and private download, tests and
