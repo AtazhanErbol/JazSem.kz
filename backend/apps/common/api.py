@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.db import models, transaction
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.http import content_disposition_header
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
@@ -87,8 +89,33 @@ class ScopedViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
-def private_response(file, filename):
-    response = FileResponse(file.open("rb"), as_attachment=True, filename=filename or "download")
+def private_response(file, filename, *, as_attachment=True, content_type=None):
+    from storages.backends.s3 import S3Storage
+
+    filename = filename or "download"
+    if settings.DIRECT_UPLOADS_ENABLED and isinstance(file.storage, S3Storage):
+        # Callers have already authorized the object. A short-lived signed URL
+        # avoids proxying private file bytes through Vercel's response limit.
+        response = HttpResponseRedirect(
+            file.storage.url(
+                file.name,
+                parameters={
+                    "ResponseContentDisposition": content_disposition_header(
+                        as_attachment, filename
+                    ),
+                    "ResponseContentType": content_type or "application/octet-stream",
+                },
+                expire=60,
+            )
+        )
+        response["Referrer-Policy"] = "no-referrer"
+    else:
+        response = FileResponse(
+            file.open("rb"),
+            as_attachment=as_attachment,
+            filename=filename,
+            content_type=content_type,
+        )
     response["X-Content-Type-Options"] = "nosniff"
     response["Cache-Control"] = "private, no-store"
     return response

@@ -104,13 +104,16 @@ def reconcile():
 
 
 def dispatch():
+    from apps.common.serverless import enabled, schedule_next
+
     from .tasks import extract_document, generate_course
 
     reconcile()
     due = TaskDelivery.objects.filter(status="PENDING").filter(
         Q(next_retry_at=None) | Q(next_retry_at__lte=timezone.now())
     )
-    for pk in list(due.order_by("created_at", "pk").values_list("pk", flat=True)[:100]):
+    limit = 10 if enabled() else 100
+    for pk in list(due.order_by("created_at", "pk").values_list("pk", flat=True)[:limit]):
         with transaction.atomic():
             row = TaskDelivery.objects.select_for_update().get(pk=pk)
             if row.status != "PENDING" or (
@@ -155,6 +158,24 @@ def dispatch():
                 error_code="",
             )
             event(row, "delivery_sent")
+    if enabled():
+        from .tasks import dispatch_pending
+
+        pending = TaskDelivery.objects.filter(status="PENDING")
+        # A single delayed watchdog replaces the five-second polling loop.
+        # Immediate outbox creation kicks dispatch; retries keep their due time.
+        when = timezone.now() if pending.filter(next_retry_at=None).exists() else None
+        candidates = list(
+            pending.exclude(next_retry_at=None).values_list("next_retry_at", flat=True)
+        )
+        candidates += list(
+            TaskDelivery.objects.filter(status__in=["DISPATCHING", "SENT", "RUNNING"])
+            .exclude(lease_until=None)
+            .values_list("lease_until", flat=True)
+        )
+        if candidates:
+            when = min([when, *candidates]) if when else min(candidates)
+        schedule_next(dispatch_pending, when, prefix="dispatch")
 
 
 @transaction.atomic

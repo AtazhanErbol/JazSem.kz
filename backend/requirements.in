@@ -25,3 +25,6 @@ cryptography
 # Excel template import/export (also present in the locked dependency graph)
 lxml==6.1.3
 xlsxwriter==3.2.9
+
+# Embedded OCR for queue-triggered Python Functions; native Docker keeps CLI OCR.
+tesserocr==2.10.0

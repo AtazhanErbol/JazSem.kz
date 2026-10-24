@@ -1,6 +1,6 @@
 {
-  "reviewed": "2026-10-01",
-  "review_by": "2026-10-15",
+  "reviewed": "2026-10-24",
+  "review_by": "2026-11-07",
   "scope": "Exact current Debian package findings only; not a production risk approval or blanket ignore",
   "findings": [
     {
@@ -106,18 +106,7 @@
       "finding": {
         "id": "CVE-2026-12064",
         "package": "libcurl4t64",
-        "installed": "8.14.1-2+deb13u5",
-        "fixed": "",
-        "severity": "HIGH"
-      },
-      "classification": "no-native-remote-clients",
-      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
-    },
-    {
-      "finding": {
-        "id": "CVE-2026-8286",
-        "package": "libcurl4t64",
-        "installed": "8.14.1-2+deb13u5",
+        "installed": "8.14.1-2+deb13u7",
         "fixed": "",
         "severity": "HIGH"
       },
@@ -128,67 +117,12 @@
       "finding": {
         "id": "CVE-2026-8458",
         "package": "libcurl4t64",
-        "installed": "8.14.1-2+deb13u5",
+        "installed": "8.14.1-2+deb13u7",
         "fixed": "",
         "severity": "HIGH"
       },
       "classification": "no-native-remote-clients",
       "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
-    },
-    {
-      "finding": {
-        "id": "CVE-2026-8927",
-        "package": "libcurl4t64",
-        "installed": "8.14.1-2+deb13u5",
-        "fixed": "",
-        "severity": "HIGH"
-      },
-      "classification": "no-native-remote-clients",
-      "rationale": "Application HTTP/SMTP use Python TLS clients; no libcurl SFTP/SCP/proxy-auth reuse, X server, or display socket in app containers."
-    },
-    {
-      "finding": {
-        "id": "CVE-2026-66046",
-        "package": "libexpat1",
-        "installed": "2.8.3-1~deb13u1",
-        "fixed": "",
-        "severity": "HIGH"
-      },
-      "classification": "bounded-parsers",
-      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
-    },
-    {
-      "finding": {
-        "id": "CVE-2026-76956",
-        "package": "libexpat1",
-        "installed": "2.8.3-1~deb13u1",
-        "fixed": "",
-        "severity": "HIGH"
-      },
-      "classification": "bounded-parsers",
-      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
-    },
-    {
-      "finding": {
-        "id": "CVE-2026-76957",
-        "package": "libexpat1",
-        "installed": "2.8.3-1~deb13u1",
-        "fixed": "",
-        "severity": "HIGH"
-      },
-      "classification": "bounded-parsers",
-      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
-    },
-    {
-      "finding": {
-        "id": "CVE-2026-93990",
-        "package": "libexpat1",
-        "installed": "2.8.3-1~deb13u1",
-        "fixed": "",
-        "severity": "HIGH"
-      },
-      "classification": "bounded-parsers",
-      "rationale": "See SECURITY_REVIEW.md per-CVE analysis: system XML is not the OOXML parser; lxml bundles 2.14.6, entities disabled. TIFF uploads rejected, OCR uses decoded raster. No DTD validation/XInclude/XPointer/custom encoding handlers. Native memory/time/CPU limits remain required; no claim of universal exploit immunity."
     },
     {
       "finding": {

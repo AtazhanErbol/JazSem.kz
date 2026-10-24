@@ -7,6 +7,8 @@ from pathlib import Path
 from django.conf import settings
 from PIL import Image
 
+from .ocr import recognize
+
 MAX_PAGES = 300
 MAX_PIXELS = 20_000_000
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
@@ -31,9 +33,11 @@ def validate_archive(data):
             raise ValueError("Encrypted archive")
 
 
-def extract_pages(data, filename):
+def extract_pages(data, filename, *, start_page=0, elapsed=0):
     suffix = Path(filename).suffix.lower()
-    started = time.monotonic()
+    started = time.monotonic() - elapsed
+    if start_page and suffix not in {".pdf", ".pptx"}:
+        return
     if suffix == ".txt":
         yield 1, bounded_text([data.decode("utf-8")])
     elif suffix == ".docx":
@@ -60,6 +64,8 @@ def extract_pages(data, filename):
         if len(slides) > MAX_PAGES:
             raise ValueError("Slide limit")
         for number, slide in enumerate(slides, 1):
+            if number <= start_page:
+                continue
             yield number, bounded_text(shape.text for shape in slide.shapes if shape.has_text_frame)
     elif suffix == ".pdf":
         from pypdf import PdfReader
@@ -69,13 +75,13 @@ def extract_pages(data, filename):
             raise ValueError("Encrypted, empty or oversized PDF")
         with ExitStack() as stack:
             pdf = None
-            for index, page in enumerate(reader.pages):
+            for index in range(start_page, len(reader.pages)):
+                page = reader.pages[index]
                 if time.monotonic() - started > 420:
                     raise ValueError("Extraction deadline")
                 text = bounded_text([page.extract_text() or ""])
                 if len(text.strip()) < 40:
                     import pypdfium2 as pdfium
-                    import pytesseract
 
                     if pdf is None:
                         pdf = stack.enter_context(pdfium.PdfDocument(data))
@@ -85,21 +91,15 @@ def extract_pages(data, filename):
                             raise ValueError("Rendered page pixel limit")
                         with closing(rendered_page.render(scale=2)) as bitmap:
                             with bitmap.to_pil() as image:
-                                text = pytesseract.image_to_string(
-                                    image, lang=settings.OCR_LANGUAGES, timeout=60
-                                )
+                                text = recognize(image)
                 yield index + 1, bounded_text([text])
     elif suffix in [".png", ".jpg", ".jpeg"]:
-        import pytesseract
-
         with Image.open(io.BytesIO(data)) as image:
             if image.width * image.height > MAX_PIXELS or getattr(image, "n_frames", 1) != 1:
                 raise ValueError("Image pixel/frame limit")
             yield (
                 1,
-                bounded_text(
-                    [pytesseract.image_to_string(image, lang=settings.OCR_LANGUAGES, timeout=60)]
-                ),
+                bounded_text([recognize(image)]),
             )
     else:
         raise ValueError("Unsupported source")

@@ -20,6 +20,10 @@ class RequestIDMiddleware:
         finally:
             request_context.reset(token)
         response["X-Request-ID"] = request.request_id
+        if response.status_code < 400 and request.path.startswith("/api/v1/"):
+            from .serverless import maybe_activate_runtime
+
+            maybe_activate_runtime(request)
         from .observability import observe_http
 
         duration_ms = round((time.monotonic() - started) * 1000, 2)

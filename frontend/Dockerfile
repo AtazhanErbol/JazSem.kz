@@ -13,7 +13,7 @@ USER root
 RUN cp /etc/nginx/nginx.conf /tmp/nginx-unprivileged.conf \
     && apk del nginx-module-geoip nginx-module-image-filter nginx-module-njs nginx-module-xslt \
     && apk add --no-cache nginx=1.28.3-r7 \
-    && apk upgrade --no-cache c-ares curl libcrypto3 libcurl libexpat libpng libssl3 libuuid libxml2 libxpm musl musl-utils nghttp2-libs xz-libs zlib \
+    && apk upgrade --no-cache brotli-libs c-ares curl libcrypto3 libcurl libexpat libpng libssl3 libuuid libxml2 libxpm musl musl-utils nghttp2-libs pcre2 xz-libs zlib \
     && cp /tmp/nginx-unprivileged.conf /etc/nginx/nginx.conf \
     && rm /tmp/nginx-unprivileged.conf
 USER 101

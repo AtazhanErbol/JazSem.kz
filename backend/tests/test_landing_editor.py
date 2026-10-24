@@ -6,6 +6,24 @@ from apps.cms.models import ContentBlock
 pytestmark = pytest.mark.django_db
 
 
+def test_public_api_supports_browser_html_and_json():
+    client = APIClient()
+    html = client.get("/api/v1/landing/?language=ru", HTTP_ACCEPT="text/html")
+    assert html.status_code == 200
+    assert html["Content-Type"].startswith("text/html")
+    assert b"rest_framework" in html.content
+    json = client.get("/api/v1/landing/?language=ru", HTTP_ACCEPT="application/json")
+    assert json.status_code == 200
+    assert json["Content-Type"].startswith("application/json")
+    assert json.data["texts"] == {}
+
+
+def test_swagger_ui_template_renders():
+    response = APIClient().get("/api/docs/", HTTP_ACCEPT="text/html")
+    assert response.status_code == 200
+    assert b"SwaggerUIBundle" in response.content
+
+
 def test_draft_publish_and_language_isolation(world, client_for):
     admin = client_for(world["admin"])
     public = APIClient()
