@@ -54,7 +54,7 @@ def start(test, student):
     expires = now + timedelta(minutes=test.time_limit_minutes)
     if test.available_until:
         expires = min(expires, test.available_until)
-    return TestAttempt.objects.create(
+    attempt = TestAttempt.objects.create(
         test=test,
         student=student,
         attempt_number=count + 1,
@@ -62,6 +62,10 @@ def start(test, student):
         question_order=[str(q.pk) for q in questions],
         option_order=options,
     )
+    from apps.common.serverless import schedule_expiry
+
+    schedule_expiry(attempt)
+    return attempt
 
 
 @transaction.atomic

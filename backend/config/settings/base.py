@@ -1,7 +1,9 @@
+import hashlib
 import os
 from pathlib import Path
 
 import dj_database_url
+from kombu import Queue
 
 from config.redis_tls import redis_tls_options
 
@@ -75,19 +77,23 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL}
 }
-CELERY_BROKER_URL = REDIS_URL
+BACKGROUND_MODE = os.environ.get("BACKGROUND_MODE", "celery")
+CELERY_BROKER_URL = "vercel://" if BACKGROUND_MODE == "vercel" else REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 REDIS_TLS_OPTIONS = redis_tls_options(REDIS_URL, os.environ.get("REDIS_SSL_CA_CERTS", ""))
 if REDIS_TLS_OPTIONS:
-    CELERY_BROKER_USE_SSL = REDIS_TLS_OPTIONS.copy()
+    if BACKGROUND_MODE != "vercel":
+        CELERY_BROKER_USE_SSL = REDIS_TLS_OPTIONS.copy()
     CELERY_REDIS_BACKEND_USE_SSL = REDIS_TLS_OPTIONS.copy()
     CACHES["default"]["OPTIONS"] = REDIS_TLS_OPTIONS.copy()
 CELERY_TASK_SERIALIZER = "json"
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_ROUTES = {
     "apps.ai.tasks.extract_document": {"queue": "heavy"},
+    "apps.ai.tasks.extract_document_continuation": {"queue": "heavy"},
     "apps.ai.tasks.generate_course": {"queue": "heavy"},
 }
+CELERY_TASK_QUEUES = [Queue("celery"), Queue("heavy")]
 REQUIRED_WORKER_ROLES = [
     role for role in os.environ.get("REQUIRED_WORKER_ROLES", "").split(",") if role
 ]
@@ -103,6 +109,12 @@ CELERY_BEAT_SCHEDULE = {
     "deadlines": {"task": "apps.notifications.tasks.deadline_reminders", "schedule": 3600.0},
 }
 REST_FRAMEWORK = {
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+        "apps.common.upload_parser.DirectUploadParser",
+    ],
     "NUM_PROXIES": 0,  # REMOTE_ADDR is normalized only by TrustedProxyMiddleware.
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["apps.common.permissions.AccountReady"],
@@ -120,6 +132,7 @@ REST_FRAMEWORK = {
         "auth": "10/min",
         "reset": "5/hour",
         "upload": "30/hour",
+        "upload_grant": "30/hour",
         "ai": "6/hour",
     },
     "EXCEPTION_HANDLER": "apps.common.errors.exception_handler",
@@ -158,6 +171,15 @@ EMAIL_TIMEOUT = 15
 CELERY_TASK_PUBLISH_RETRY = False
 CELERY_BROKER_CONNECTION_TIMEOUT = 2
 CELERY_BROKER_TRANSPORT_OPTIONS = {"socket_connect_timeout": 1, "socket_timeout": 1}
+if BACKGROUND_MODE == "vercel":
+    CELERY_TASK_ACKS_LATE = True
+    CELERY_BROKER_TRANSPORT_OPTIONS = {"lease_duration": 300, "timeout": 10.0}
+    # Neon preview branches share the Redis integration. Namespace operational
+    # locks, throttles, and Celery results by database without exposing its URL.
+    _database_identity = DATABASES["default"]["HOST"] + DATABASES["default"]["NAME"]
+    _cache_prefix = "jazsem:" + hashlib.sha256(_database_identity.encode()).hexdigest()[:16]
+    CACHES["default"]["KEY_PREFIX"] = _cache_prefix
+    CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"global_keyprefix": _cache_prefix + ":"}
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@localhost")
 MAIL_ENCRYPTION_KEY = os.environ.get("MAIL_ENCRYPTION_KEY", "")
 MAIL_PREVIOUS_ENCRYPTION_KEYS = [
@@ -166,6 +188,7 @@ MAIL_PREVIOUS_ENCRYPTION_KEYS = [
 MAIL_MAX_ATTEMPTS = 5
 MAIL_LEASE_SECONDS = 120  # longer than EMAIL_TIMEOUT; uncertain SMTP may duplicate
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "25")) * 1024 * 1024
+DIRECT_UPLOADS_ENABLED = os.environ.get("DIRECT_UPLOADS_ENABLED", "false") == "true"
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_BYTES
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -180,6 +203,7 @@ AI_MAX_DAILY_JOBS = int(os.environ.get("AI_MAX_DAILY_JOBS", "20"))
 AI_INPUT_PRICE = os.environ.get("AI_INPUT_PRICE_PER_MILLION", "")
 AI_OUTPUT_PRICE = os.environ.get("AI_OUTPUT_PRICE_PER_MILLION", "")
 OCR_LANGUAGES = os.environ.get("OCR_LANGUAGES", "rus+kaz+eng")
+OCR_ENGINE = os.environ.get("OCR_ENGINE", "cli")
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},

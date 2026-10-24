@@ -3,7 +3,14 @@
   "services": {
     "backend": {
       "root": "backend",
-      "framework": "django"
+      "framework": "django",
+      "buildCommand": "python -m config.vercel_build",
+      "functions": {
+        "**/*.py": {
+          "maxDuration": 300,
+          "maxConcurrency": 1
+        }
+      }
     },
     "frontend": {
       "root": "frontend",
@@ -13,7 +20,8 @@
           "source": "/(.*)",
           "destination": "/index.html"
         }
-      ]
+      ],
+      "buildCommand": "VITE_DIRECT_UPLOADS=true npm run build"
     }
   },
   "rewrites": [

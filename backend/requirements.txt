@@ -209,3 +209,6 @@ xlsxwriter==3.2.9
     # via
     #   -r requirements.in
     #   python-pptx
+
+tesserocr==2.10.0
+cysignals==1.12.6

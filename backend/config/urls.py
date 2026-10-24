@@ -33,6 +33,7 @@ from apps.audit.views import AuditViewSet
 from apps.cms.landing import LandingView
 from apps.cms.views import ContentViewSet, PublicContentViewSet
 from apps.common.api import content_view
+from apps.common.direct_uploads import DirectUploadView
 from apps.common.observability import OperationsView, storage_ready, worker_freshness
 from apps.common.openapi import annotate_actions
 from apps.common.scope import visible
@@ -122,6 +123,23 @@ def ready(request):
         import redis
         from django.conf import settings
 
+        if settings.BACKGROUND_MODE == "vercel":
+            from apps.common.background import worker_available
+            from apps.common.serverless import ensure_runtime
+
+            ensure_runtime(request)
+            if not worker_available():
+                return JsonResponse({"status": "worker_unavailable"}, status=503)
+            from datetime import timedelta
+
+            from django.utils import timezone
+
+            from apps.common.models import RuntimeState
+
+            if not RuntimeState.objects.filter(
+                name="scheduler", last_tick__gte=timezone.now() - timedelta(minutes=75)
+            ).exists():
+                return JsonResponse({"status": "scheduler_unavailable"}, status=503)
         if settings.CELERY_BROKER_URL == "filesystem://":
             from apps.common.background import worker_available
 
@@ -145,6 +163,7 @@ def ready(request):
 
 
 urlpatterns = [
+    path("api/v1/uploads/", DirectUploadView.as_view()),
     path("api/v1/landing/", LandingView.as_view()),
     path("health/", health),
     path("ready/", ready),

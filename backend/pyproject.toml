@@ -4,6 +4,8 @@ version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 # Mirror the locked runtime requirements so Vercel installs the same package versions.
 dependencies = [
+    "tesserocr==2.10.0",
+    "cysignals==1.12.6",
     "amqp==5.4.0",
     "annotated-types==0.8.0",
     "anyio==4.15.1",
@@ -81,6 +83,10 @@ package = false
 
 [tool.vercel]
 entrypoint = "config.vercel_wsgi:application"
+
+[[tool.vercel.subscribers]]
+entrypoint = "config.vercel_worker:app"
+topics = ["celery-jazsem-celery", "celery-jazsem-heavy"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"

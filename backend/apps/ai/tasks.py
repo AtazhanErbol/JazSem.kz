@@ -13,13 +13,19 @@ from .provider import AIProvider, OpenAIProvider
 from .schema import CourseDraft, validate_citations
 
 
-@shared_task
+@shared_task(autoretry_for=(Exception,), retry_kwargs={"max_retries": 3}, retry_backoff=True)
 def dispatch_pending():
     delivery.dispatch()
 
 
 @shared_task(soft_time_limit=480, time_limit=540)
 def extract_document(pk):
+    from apps.common.serverless import enabled
+
+    if enabled():
+        from .serverless_extraction import extract_chunk
+
+        return extract_chunk(pk)
     document = SourceDocument.objects.get(pk=pk)
     lease = delivery.claim(source=document)
     if lease is None:
@@ -67,6 +73,13 @@ def extract_document(pk):
             delivery.complete(locked)
     except Exception:
         delivery.failed(lease, "EXTRACTION_FAILED")
+
+
+@shared_task
+def extract_document_continuation(pk, token, next_page):
+    from .serverless_extraction import extract_chunk
+
+    extract_chunk(pk, token, next_page)
 
 
 def usage_record(job, started, usage=None, status="FAILED"):

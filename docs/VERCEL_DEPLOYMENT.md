@@ -3,7 +3,7 @@
 ## Current state
 
 The `vercel-deploy` branch contains the initial deployment configuration.
-`codex/vercel-deploy` contains the candidate Vercel proxy adapter and tests in
+`codex/vercel-deploy` contains the candidate full Vercel adaptation in
 draft PR #1; synchronize it to the deployment branch after configuring and
 verifying the runtime services. The main branch is unchanged.
 
@@ -74,24 +74,49 @@ forward migrations, run `release_preflight` and `check --deploy`, create a real
 administrator, and initialize the private sentinel using `storage_probe
 --initialize`. Production must not use `seed_dev`.
 
-The existing application needs three persistent background processes: the short
-Celery worker, heavy Celery worker with OCR dependencies, and exactly one beat
-scheduler. Use the same backend source/image and production configuration as the
-API. Workers must set `WORKER_ROLE=short` / `heavy` for readiness heartbeats.
-Vercel Daemons can run these Docker processes; they have not yet been provisioned
-or enabled. Keep them stopped until their services and credentials are ready.
+The standalone Docker deployment retains its original Celery workers and beat
+scheduler. Vercel instead uses private queue-triggered Celery subscribers for both
+explicitly declared queues, with no persistent daemon. New outbox entries kick
+dispatch after commit; bounded batches continue until drained and native broker
+delay wakes retries and lease reconciliation without holding Functions open.
+Exam attempts schedule their expiry. Hourly maintenance retains deadline reminders,
+expiry fallback, orphan upload cleanup and outbox recovery. It queues its successor
+before work and uses a database deployment fence to stop older timer chains.
+Successful API traffic or `/ready/` activates the runtime through its canonical
+alias. Readiness probes both queues end to end, including the actual OCR engine.
 
-Two platform constraints need resolution before claiming full parity:
+Embedded OCR uses pinned Tesseract wheels and checksum-pinned official tessdata_fast
+assets for Russian, Kazakh and English, initialized in private storage. Long
+extraction yields between pages, retaining unpublished staging in PostgreSQL, then
+publishes all immutable citation chunks atomically. Existing page, byte, character,
+per-page OCR and total extraction limits remain in place.
 
-1. The existing upload API accepts files up to 25 MiB, whereas Vercel Functions
-   limit request bodies to 4.5 MB. Implement authorized, validated direct uploads
-   to private object storage, or choose a backend runtime that supports these
-   requests. Do not silently lower the application's stated limit or make the
-   bucket public.
-2. Hobby has finite daemon memory-hour allowances. Three always-running workers
-   cannot be assumed to remain within the free allowance for a full month.
-   Confirm a sustainable worker arrangement or demonstrate explicit on-demand
-   operation before promising a permanently available complete free deployment.
+Direct uploads retain the 25 MiB limit. Five-minute signed POST grants constrain a
+random quarantine key, exact length and MIME after user/target authorization.
+Single-use database tickets bind owner, endpoint, method, field and exact form
+context. Django reads a bounded private object, verifies actual metadata/content
+using the existing validators, then saves a new immutable private file. Original
+endpoint business permissions run again. Maintenance removes expired quarantine
+objects. XLSX imports and local/Docker multipart transport remain unchanged.
+
+Authorized downloads redirect to 60-second signed attachments or validated image
+previews. The bucket stays private. Backend build preparation configures exact
+CORS origins and tests a real 25 MiB POST, signed range download and denial of
+anonymous access, deleting the probe in all cases. The Vercel frontend build
+enables this transport. `config.vercel_build` then loads strict production settings,
+applies forward migrations, runs release preflight/deployment checks, collects
+static assets and initializes the readiness sentinel. Missing SMTP or other
+production settings still stop the build; development settings are never used.
+
+Free quotas still apply. No paid upgrade or unlimited free operation is promised.
+SMTP sender credentials, initial administrator access and any intended AI provider
+key/model/budget must be supplied and verified before a complete public release.
+
+Local validation: 301 backend tests passed;
+8 PostgreSQL-specific concurrency checks were skipped because no PostgreSQL server
+was available locally. All 43 frontend tests and the production frontend build
+passed. Actual embedded OCR recognized a combined Russian/Kazakh/English sample.
+Cloud deployment acceptance is pending.
 
 Acceptance must cover: health/readiness, admin/teacher/student login and roles,
 course creation and assignment, large-file upload and private download, tests and
