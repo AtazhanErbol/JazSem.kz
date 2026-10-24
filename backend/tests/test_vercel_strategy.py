@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import pytest
 from celery import Celery, signals
+from celery.concurrency.solo import TaskPool
 from celery.worker.state import task_ready
 from django.db import close_old_connections
 
@@ -48,10 +49,11 @@ def test_real_strategy_and_trace_keep_orm_and_task_signals_in_sync_context(async
     signals.task_prerun.connect(prerun, sender=task, weak=False)
     signals.task_postrun.connect(postrun, sender=task, weak=False)
     requests = []
+    pool = TaskPool()
 
     def execute(request):
         requests.append(request)
-        request.execute()
+        request.execute_using_pool(pool)
 
     consumer = SimpleNamespace(
         hostname="strategy-probe",
@@ -64,7 +66,7 @@ def test_real_strategy_and_trace_keep_orm_and_task_signals_in_sync_context(async
         on_task_request=execute,
         _limit_task=Mock(),
         _limit_post_eta=Mock(),
-        pool=Mock(),
+        pool=pool,
         controller=SimpleNamespace(state=SimpleNamespace(revoked=set())),
     )
     handler = task.start_strategy(app, consumer)

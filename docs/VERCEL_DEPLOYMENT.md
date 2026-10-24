@@ -105,6 +105,11 @@ when such a loop is present. This includes Django's prerun/postrun database
 cleanup, keeps ACK/retry ordering and request context variables, and preserves
 serial solo-worker execution. Normal worker threads retain Celery's default
 strategy. Django's async safety guard remains enabled.
+The worker entrypoint imports tesserocr before starting task discovery. Its
+cysignals dependency installs signal handlers on first import and therefore must
+initialize on the entrypoint's main thread, before OCR tasks use the sync thread.
+The cold-start regression imports the actual native module after worker startup
+from a task thread; strategy tests use the real Celery solo pool and task signals.
 
 Embedded OCR uses pinned Tesseract wheels and checksum-pinned official tessdata_fast
 assets for Russian, Kazakh and English, initialized in private storage. Long

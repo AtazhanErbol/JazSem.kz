@@ -34,6 +34,36 @@ def test_production_requires_explicit_complete_configuration():
             validate_production(missing)
 
 
+def test_cold_vercel_worker_loads_native_ocr_before_task_threads():
+    env = {
+        **os.environ,
+        **valid_env(),
+        "VERCEL": "1",
+        "VERCEL_ENV": "production",
+        "DJANGO_SETTINGS_MODULE": "config.settings.production",
+        "TRUSTED_PROXY_CIDRS": "127.0.0.1/32",
+    }
+    for key in ("BACKGROUND_MODE", "OCR_ENGINE", "DIRECT_UPLOADS_ENABLED"):
+        env.pop(key, None)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from config.vercel_worker import app; "
+            "from concurrent.futures import ThreadPoolExecutor; "
+            "assert app.tasks['apps.common.tasks.queue_health'].Strategy "
+            "== 'config.vercel_strategy:sync_strategy'; "
+            "pool = ThreadPoolExecutor(max_workers=1); "
+            "pool.submit(__import__, 'tesserocr').result(timeout=5); pool.shutdown()",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert result.returncode == 0, result.stderr
+
+
 @pytest.mark.parametrize(
     "settings_module", ["config.settings.production", "_vercel_collectstatic_settings"]
 )
