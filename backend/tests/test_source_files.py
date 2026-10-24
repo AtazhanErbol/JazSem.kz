@@ -27,7 +27,10 @@ def test_private_preview_and_text(world, client_for):
     assert response["Content-Type"] == "image/png"
     assert response["Cache-Control"] == "private, no-store"
     assert b"".join(response.streaming_content) == b"test"
-    response.close()
+    # The test client's iterator closes the response safely. Closing it again
+    # emits request_finished outside that wrapper and closes the PostgreSQL
+    # connection backing this test's transaction before the next request.
+    assert response.closed
     assert client_for(world["other"]).get(f"/api/v1/sources/{obj.pk}/preview/").status_code == 404
     assert client_for(world["student"]).get(f"/api/v1/sources/{obj.pk}/chunks/").status_code == 404
     assert client.get(f"/api/v1/sources/{obj.pk}/chunks/").data["results"][0]["content"] == "Text"
