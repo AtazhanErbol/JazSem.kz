@@ -170,6 +170,12 @@ function Journey({ compact = false }: { compact?: boolean }) {
       {[
         ["prepare", "/app/disciplines", "workspace.openDisciplines"],
         ["build", "/app/courses?create=1", "createCourse"],
+        ...(!compact
+          ? [
+              ["files", "/app/courses", "workspace.courses"],
+              ["grading", "/app/courses", "workspace.courses"],
+            ]
+          : []),
         ["share", "/app/courses", "workspace.courses"],
         ...(!compact ? [["results", "/app/submissions", "submissions"]] : []),
       ].map(([step, to, label], index) => (
@@ -205,7 +211,20 @@ export function WorkspaceGuide() {
         <Journey />
       </section>
       <section className="panel">
-        <h2>{t("workspace.glossaryTitle")}</h2>
+        <h2>{t("workspace.quickAnswers")}</h2>
+        <dl className="workspace-glossary">
+          {["access", "changes", "assistant"].map((question) => (
+            <div key={question}>
+              <dt>{t(`workspace.${question}Question`)}</dt>
+              <dd>{t(`workspace.${question}Answer`)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      <details className="panel">
+        <summary>
+          <strong>{t("workspace.glossaryTitle")}</strong>
+        </summary>
         <dl className="workspace-glossary">
           {(
             [
@@ -222,7 +241,7 @@ export function WorkspaceGuide() {
             </div>
           ))}
         </dl>
-      </section>
+      </details>
     </div>
   );
 }
