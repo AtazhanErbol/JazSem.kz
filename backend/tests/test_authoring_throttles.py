@@ -46,9 +46,7 @@ def test_course_authors_can_upload_a_semester_but_remain_rate_limited(role, scop
 @pytest.mark.parametrize("role", ["STUDENT", "UNKNOWN", "TEACHER"])
 @pytest.mark.parametrize("scope", ["upload", "upload_grant"])
 def test_students_and_unauthenticated_roles_keep_the_original_budget(role, scope):
-    user = SimpleNamespace(
-        pk=2, role=role, is_authenticated=role != "TEACHER", is_staff=True
-    )
+    user = SimpleNamespace(pk=2, role=role, is_authenticated=role != "TEACHER", is_staff=True)
     assert all(allowed(user, scope) for _ in range(30))
     assert not allowed(user, scope)
 

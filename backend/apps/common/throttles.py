@@ -7,9 +7,7 @@ class AuthoringScopedRateThrottle(ScopedRateThrottle):
     def allow_request(self, request, view):
         user = getattr(request, "user", None)
         self.authoring_staff = bool(
-            user
-            and user.is_authenticated
-            and getattr(user, "role", None) in {"ADMIN", "TEACHER"}
+            user and user.is_authenticated and getattr(user, "role", None) in {"ADMIN", "TEACHER"}
         )
         return super().allow_request(request, view)
 
