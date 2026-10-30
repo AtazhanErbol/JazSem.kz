@@ -11,6 +11,8 @@ import { useAction } from "../../hooks/useAction";
 import { queryKeys } from "../../services/queryKeys";
 import { Pagination } from "../../components/Pagination";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
+import { Attachments } from "../authoring/Attachments";
+import { LearningContent } from "../authoring/LearningContent";
 
 export function TestPage() {
   const { id } = useParams();
@@ -171,6 +173,7 @@ function TestScreen({ id }: { id: string }) {
       </Link>
       <div className="page-heading">
         <h1>{String(info.data.title)}</h1>
+        <Attachments owner="test" ownerId={id!} />
         {query.data?.status === "IN_PROGRESS" && (
           <Badge>
             {t("remaining")}: {Math.floor(remaining / 60)}:
@@ -242,7 +245,7 @@ function TestScreen({ id }: { id: string }) {
       )}
       {!attemptId ? (
         <section className="panel">
-          <p>{String(info.data.description)}</p>
+          <LearningContent content={String(info.data.description || "")} />
           <p>
             {t("time_limit_minutes")}: {String(info.data.time_limit_minutes)} ·{" "}
             {t("max_attempts")}: {String(info.data.max_attempts)}
@@ -278,6 +281,7 @@ function TestScreen({ id }: { id: string }) {
               <legend>
                 {index + 1}. {question.text}
               </legend>
+              <Attachments owner="question" ownerId={question.id} />
               {question.options.map((option) => (
                 <label className="answer-option" key={option.id}>
                   <input

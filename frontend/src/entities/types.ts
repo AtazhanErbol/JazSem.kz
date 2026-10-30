@@ -37,6 +37,7 @@ export interface Activity extends Row {
   questions?: Question[];
 }
 export interface Topic extends Row {
+  has_attachment_content?: boolean;
   title: string;
   content: string;
   materials: Activity[];

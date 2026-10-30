@@ -52,11 +52,19 @@ try {
   results.method="Seven cold navigations. Event Timing from two real language-toggle clicks per sample; long tasks include navigation. This is lab interaction evidence, not field INP.";
   // Headroom over measured route payloads, with auth's required form libraries
   // accounted separately. No wall-clock threshold on shared CI hardware.
-  // Two requested bilingual landing sections add ~6–8 KB of route code after
-  // excluding editor-only field metadata. Keep transfer and whole-build caps.
-  const budgets={routes:{"/":{raw:535000,gzip:170000},"/login":{raw:660000,gzip:210000}},total_js_raw:800000};
+  // Main 009864f itself measures ~539 KB landing / ~666 KB login and 806 KB
+  // whole build with the pinned toolchain, slightly over the stale old caps.
+  // Keep gzip limits, calibrate raw-route headroom to that measured baseline.
+  // The requested Markdown/GFM/KaTeX
+  // reader (~460 KB raw / 140 KB gzip) and authoring controls are private,
+  // intentional additions to the previous 800 KB whole-build allowance.
+  const budgets={routes:{"/":{raw:540000,gzip:170000},"/login":{raw:670000,gzip:210000}},existing_build_raw:810000,authoring_workflow_raw:50000,reader:{raw:500000,gzip:160000}};
+  budgets.total_js_raw=budgets.existing_build_raw+budgets.authoring_workflow_raw+budgets.reader.raw;
   results.budgets=budgets;
-  const overBudget = results.build.total_js_raw>budgets.total_js_raw || Object.entries(results.routes).some(([path,route])=>route.samples.some(s=>s.script_raw>budgets.routes[path].raw || s.script_gzip>budgets.routes[path].gzip));
+  const readerChunks=chunks.filter(chunk=>chunk.name.startsWith('LearningContent-'));
+  const reader={raw:readerChunks.reduce((sum,c)=>sum+c.raw,0),gzip:readerChunks.reduce((sum,c)=>sum+c.gzip,0)};
+  results.build.reader=reader;
+  const overBudget = !readerChunks.length || reader.raw>budgets.reader.raw || reader.gzip>budgets.reader.gzip || results.build.total_js_raw>budgets.total_js_raw || Object.entries(results.routes).some(([path,route])=>route.samples.some(s=>s.script_raw>budgets.routes[path].raw || s.script_gzip>budgets.routes[path].gzip || s.request_paths.some(p=>/\/(?:LearningContent|registerAuthoring)-[^/]+\.js$/.test(p))));
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, JSON.stringify(results, null, 2));
   if(overBudget) throw new Error('Route/build byte budget exceeded; inspect saved measurements');

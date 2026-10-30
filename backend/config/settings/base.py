@@ -163,6 +163,12 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "COMPONENT_SPLIT_REQUEST": True,
     "ENUM_NAME_OVERRIDES": {
+        "KindEnum": [("ASSIGNMENTS", "Assignments"), ("TESTS", "Tests"), ("FINAL", "Final")],
+        "AttachmentKindEnum": [
+            ("FILE", "Document"),
+            ("VIDEO", "Uploaded video"),
+            ("YOUTUBE", "YouTube"),
+        ],
         "LanguageEnum": [("ru", "RU"), ("kk", "KZ")],
         **{
             name + "Enum": "apps.common.states." + name + ".choices"
@@ -206,6 +212,13 @@ MAIL_PREVIOUS_ENCRYPTION_KEYS = [
 MAIL_MAX_ATTEMPTS = 5
 MAIL_LEASE_SECONDS = 120  # longer than EMAIL_TIMEOUT; uncertain SMTP may duplicate
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "25")) * 1024 * 1024
+MAX_VIDEO_UPLOAD_BYTES = min(
+    int(os.environ.get("MAX_VIDEO_UPLOAD_MB", "250")) * 1024 * 1024, 5_000_000_000
+)
+PRIVATE_MEDIA_URL_SECONDS = int(os.environ.get("PRIVATE_MEDIA_URL_SECONDS", "900"))
+ATTACHMENT_UPLOAD_TICKET_SECONDS = min(
+    int(os.environ.get("ATTACHMENT_UPLOAD_TICKET_SECONDS", "7200")), 86400
+)
 DIRECT_UPLOADS_ENABLED = os.environ.get("DIRECT_UPLOADS_ENABLED", "false") == "true"
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_BYTES
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
@@ -222,6 +235,7 @@ GEMINI_INPUT_PRICE = os.environ.get("GEMINI_INPUT_PRICE_PER_MILLION", "0.25")
 GEMINI_OUTPUT_PRICE = os.environ.get("GEMINI_OUTPUT_PRICE_PER_MILLION", "1.50")
 AI_ENABLED = os.environ.get("AI_ENABLED", "false") == "true"
 AI_MAX_OUTPUT_TOKENS = int(os.environ.get("AI_MAX_OUTPUT_TOKENS", "8000"))
+AI_LECTURE_OUTPUT_TOKENS = int(os.environ.get("AI_LECTURE_OUTPUT_TOKENS", "16000"))
 AI_REGENERATE_OUTPUT_TOKENS = int(os.environ.get("AI_REGENERATE_OUTPUT_TOKENS", "4000"))
 OPENAI_REASONING_EFFORT = os.environ.get("OPENAI_REASONING_EFFORT", "low")
 AI_DAILY_BUDGET_USD = os.environ.get("AI_DAILY_BUDGET_USD", "0.25")

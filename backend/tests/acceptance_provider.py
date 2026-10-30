@@ -49,14 +49,26 @@ class SyntheticOpenAI:
 
         payload = json.loads(kwargs["input"][-1]["content"])
         chunks = payload["sources"]
-        course = SourceDocument.objects.values_list("course_id", flat=True).get(
-            pk=chunks[0]["document"]
+        course = (
+            SourceDocument.objects.values_list("course_id", flat=True).get(pk=chunks[0]["document"])
+            if "document" in chunks[0]
+            else chunks[0]["course"]
         )
         gate(course, "provider")
         if mode(course).get("failure") == "timeout":
             raise TimeoutError("Synthetic uncertain provider response")
         references = [chunks[0]["id"]]
-        if "topic" in payload:
+        if kwargs["text_format"].__name__ == "LectureDraft":
+            from tests.lecture_fixture import lecture_data
+
+            data = lecture_data()
+        elif kwargs["text_format"].__name__ == "LectureSection":
+            data = {
+                "content": "### Synthetic expanded section\n\n"
+                + "Explain the next operation carefully. " * 40,
+                "source_gaps": [],
+            }
+        elif "topic" in payload:
             data = payload["topic"]
             data["title"] = "Обновлённая тема / Жаңартылған тақырып"
         else:

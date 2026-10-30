@@ -42,6 +42,7 @@ from apps.courses.views import CourseViewSet, TopicViewSet
 from apps.enrollments.models import Enrollment
 from apps.enrollments.views import EnrollmentViewSet
 from apps.grading.models import GradingComponent, GradingScheme
+from apps.materials.attachments import AttachmentViewSet
 from apps.materials.views import MaterialViewSet
 from apps.notifications.views import MailOutboxViewSet, NotificationViewSet
 from apps.testing.models import AnswerOption, Question
@@ -57,6 +58,7 @@ for prefix, view in [
     ("weeks", content_view(Week)),
     ("topics", TopicViewSet),
     ("materials", MaterialViewSet),
+    ("attachments", AttachmentViewSet),
     ("assignments", AssignmentViewSet),
     ("submissions", SubmissionViewSet),
     ("submission-files", SubmissionFileViewSet),

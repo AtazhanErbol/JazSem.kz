@@ -237,6 +237,19 @@ paths:
           * `COMPLETED` - Completed
           * `FAILED` - Failed
           * `CANCELLED` - Cancelled
+      - in: query
+        name: type
+        schema:
+          type: string
+      - in: query
+        name: type__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Несколько значений могут быть разделены запятыми.
+        explode: false
+        style: form
       tags:
       - v1
       security:
@@ -344,6 +357,32 @@ paths:
       operationId: v1_ai_jobs_append_context_retrieve
       tags:
       - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobOutput'
+          description: ''
+  /api/v1/ai-jobs/lecture/:
+    post:
+      operationId: v1_ai_jobs_lecture_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LectureInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LectureInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LectureInputRequest'
+        required: true
       security:
       - cookieAuth: []
       responses:
@@ -618,6 +657,267 @@ paths:
               schema:
                 $ref: '#/components/schemas/Submission'
           description: ''
+  /api/v1/attachments/:
+    get:
+      operationId: v1_attachments_list
+      parameters:
+      - in: query
+        name: assignment
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - FILE
+          - VIDEO
+          - YOUTUBE
+        description: |-
+          * `FILE` - Document
+          * `VIDEO` - Uploaded video
+          * `YOUTUBE` - YouTube
+      - in: query
+        name: kind__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Несколько значений могут быть разделены запятыми.
+        explode: false
+        style: form
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: question
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: test
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: topic
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAttachmentList'
+          description: ''
+    post:
+      operationId: v1_attachments_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AttachmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttachmentRequest'
+          application/vnd.jazsem.upload+json:
+            schema:
+              $ref: '#/components/schemas/AttachmentRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+  /api/v1/attachments/{id}/:
+    get:
+      operationId: v1_attachments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this learning attachment.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+    patch:
+      operationId: v1_attachments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this learning attachment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAttachmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAttachmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAttachmentRequest'
+          application/vnd.jazsem.upload+json:
+            schema:
+              $ref: '#/components/schemas/PatchedAttachmentRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+    delete:
+      operationId: v1_attachments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this learning attachment.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/attachments/{id}/download/:
+    get:
+      operationId: v1_attachments_download_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this learning attachment.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/attachments/{id}/preview/:
+    get:
+      operationId: v1_attachments_preview_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this learning attachment.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/attachments/config/:
+    get:
+      operationId: v1_attachments_config_retrieve
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentConfigOutput'
+          description: ''
+  /api/v1/attachments/reorder/:
+    post:
+      operationId: v1_attachments_reorder_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReorderInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReorderInputRequest'
+          application/vnd.jazsem.upload+json:
+            schema:
+              $ref: '#/components/schemas/ReorderInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/attempts/:
     get:
       operationId: v1_attempts_list
@@ -5378,6 +5678,160 @@ components:
       required:
       - title
       - topic
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        topic:
+          type: string
+          format: uuid
+          nullable: true
+        assignment:
+          type: string
+          format: uuid
+          nullable: true
+        test:
+          type: string
+          format: uuid
+          nullable: true
+        question:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          maxLength: 240
+        description:
+          type: string
+          maxLength: 4000
+        kind:
+          $ref: '#/components/schemas/AttachmentKindEnum'
+        file:
+          type: string
+          format: uri
+          nullable: true
+        external_url:
+          type: string
+          maxLength: 2048
+        original_filename:
+          type: string
+          readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+          nullable: true
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        uploaded_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        embed_url:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - embed_url
+      - id
+      - mime_type
+      - original_filename
+      - size
+      - title
+      - updated_at
+      - uploaded_at
+    AttachmentConfigOutput:
+      type: object
+      properties:
+        max_document_bytes:
+          type: integer
+        max_video_bytes:
+          type: integer
+        document_types:
+          type: object
+          additionalProperties:
+            type: string
+        video_types:
+          type: object
+          additionalProperties:
+            type: string
+        direct_uploads:
+          type: boolean
+      required:
+      - direct_uploads
+      - document_types
+      - max_document_bytes
+      - max_video_bytes
+      - video_types
+    AttachmentKindEnum:
+      enum:
+      - FILE
+      - VIDEO
+      - YOUTUBE
+      type: string
+      description: |-
+        * `FILE` - Document
+        * `VIDEO` - Uploaded video
+        * `YOUTUBE` - YouTube
+    AttachmentRequest:
+      type: object
+      properties:
+        topic:
+          type: string
+          format: uuid
+          nullable: true
+        assignment:
+          type: string
+          format: uuid
+          nullable: true
+        test:
+          type: string
+          format: uuid
+          nullable: true
+        question:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          minLength: 1
+          maxLength: 240
+        description:
+          type: string
+          maxLength: 4000
+        kind:
+          $ref: '#/components/schemas/AttachmentKindEnum'
+        file:
+          type: string
+          format: binary
+        external_url:
+          type: string
+          maxLength: 2048
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        upload_ticket:
+          type: string
+          format: uuid
+          writeOnly: true
+      required:
+      - title
     AttemptDetailOutput:
       type: object
       properties:
@@ -5664,6 +6118,10 @@ components:
           type: string
           format: uuid
           readOnly: true
+        has_attachment_content:
+          type: boolean
+          readOnly: true
+          default: false
         materials:
           type: array
           items:
@@ -5704,6 +6162,7 @@ components:
       required:
       - assignments
       - created_at
+      - has_attachment_content
       - id
       - materials
       - tests
@@ -5827,16 +6286,6 @@ components:
       - document
       - id
       - page_number
-    ComplexityEnum:
-      enum:
-      - basic
-      - intermediate
-      - advanced
-      type: string
-      description: |-
-        * `basic` - basic
-        * `intermediate` - intermediate
-        * `advanced` - advanced
     ContentBlock:
       type: object
       properties:
@@ -6072,6 +6521,24 @@ components:
       required:
       - confirmation
       - version
+    DetailEnum:
+      enum:
+      - standard
+      - detailed
+      - comprehensive
+      type: string
+      description: |-
+        * `standard` - standard
+        * `detailed` - detailed
+        * `comprehensive` - comprehensive
+    DirectionEnum:
+      enum:
+      - UP
+      - DOWN
+      type: string
+      description: |-
+        * `UP` - UP
+        * `DOWN` - DOWN
     Discipline:
       type: object
       properties:
@@ -6555,6 +7022,16 @@ components:
       - size
       - submission
       - updated_at
+    GenerationInputComplexityEnum:
+      enum:
+      - basic
+      - intermediate
+      - advanced
+      type: string
+      description: |-
+        * `basic` - basic
+        * `intermediate` - intermediate
+        * `advanced` - advanced
     GenerationInputRequest:
       type: object
       properties:
@@ -6593,7 +7070,7 @@ components:
           $ref: '#/components/schemas/LanguageEnum'
         complexity:
           allOf:
-          - $ref: '#/components/schemas/ComplexityEnum'
+          - $ref: '#/components/schemas/GenerationInputComplexityEnum'
           default: intermediate
         assignments:
           type: boolean
@@ -7027,6 +7504,84 @@ components:
       description: |-
         * `ru` - RU
         * `kk` - KZ
+    LectureInputComplexityEnum:
+      enum:
+      - beginner
+      - intermediate
+      - advanced
+      type: string
+      description: |-
+        * `beginner` - beginner
+        * `intermediate` - intermediate
+        * `advanced` - advanced
+    LectureInputLanguageEnum:
+      enum:
+      - ru
+      - kk
+      - en
+      type: string
+      description: |-
+        * `ru` - ru
+        * `kk` - kk
+        * `en` - en
+    LectureInputRequest:
+      type: object
+      properties:
+        topic:
+          type: string
+          format: uuid
+        title:
+          type: string
+          default: ''
+          maxLength: 240
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LectureInputLanguageEnum'
+          default: ru
+        audience:
+          type: string
+          minLength: 1
+          default: University students
+          maxLength: 1000
+        complexity:
+          allOf:
+          - $ref: '#/components/schemas/LectureInputComplexityEnum'
+          default: intermediate
+        objective:
+          type: string
+          default: ''
+          maxLength: 3000
+        outcomes:
+          type: string
+          default: ''
+          maxLength: 4000
+        detail:
+          allOf:
+          - $ref: '#/components/schemas/DetailEnum'
+          default: detailed
+        instruction:
+          type: string
+          default: ''
+          maxLength: 4000
+        operation:
+          allOf:
+          - $ref: '#/components/schemas/OperationEnum'
+          default: GENERATE
+        existing_content:
+          type: string
+          default: ''
+          maxLength: 200000
+        section_index:
+          type: integer
+          minimum: 0
+        sources:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 25
+      required:
+      - topic
     LoginRequest:
       type: object
       properties:
@@ -7393,6 +7948,18 @@ components:
       - title
       - type
       - updated_at
+    OperationEnum:
+      enum:
+      - GENERATE
+      - IMPROVE
+      - EXPAND
+      - REGENERATE_SECTION
+      type: string
+      description: |-
+        * `GENERATE` - GENERATE
+        * `IMPROVE` - IMPROVE
+        * `EXPAND` - EXPAND
+        * `REGENERATE_SECTION` - REGENERATE_SECTION
     OperationsOutput:
       type: object
       properties:
@@ -7495,6 +8062,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AssignmentDisplay'
+    PaginatedAttachmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
     PaginatedAuditLogList:
       type: object
       required:
@@ -8120,6 +8710,48 @@ components:
         topic:
           type: string
           format: uuid
+    PatchedAttachmentRequest:
+      type: object
+      properties:
+        topic:
+          type: string
+          format: uuid
+          nullable: true
+        assignment:
+          type: string
+          format: uuid
+          nullable: true
+        test:
+          type: string
+          format: uuid
+          nullable: true
+        question:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          minLength: 1
+          maxLength: 240
+        description:
+          type: string
+          maxLength: 4000
+        kind:
+          $ref: '#/components/schemas/AttachmentKindEnum'
+        file:
+          type: string
+          format: binary
+        external_url:
+          type: string
+          maxLength: 2048
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        upload_ticket:
+          type: string
+          format: uuid
+          writeOnly: true
     PatchedContentBlockRequest:
       type: object
       properties:
@@ -8338,6 +8970,10 @@ components:
     PatchedTopicRequest:
       type: object
       properties:
+        expected_updated_at:
+          type: string
+          format: date-time
+          writeOnly: true
         title:
           type: string
           minLength: 1
@@ -8545,6 +9181,19 @@ components:
       - instruction
       - topic_index
       - week_index
+    ReorderInputRequest:
+      type: object
+      properties:
+        first:
+          type: string
+          format: uuid
+        second:
+          type: string
+          format: uuid
+        direction:
+          $ref: '#/components/schemas/DirectionEnum'
+      required:
+      - first
     ResetPasswordInputRequest:
       type: object
       properties:
@@ -8746,6 +9395,10 @@ components:
           type: string
           format: uuid
           readOnly: true
+        has_attachment_content:
+          type: boolean
+          readOnly: true
+          default: false
         materials:
           type: array
           items:
@@ -8785,6 +9438,7 @@ components:
       required:
       - assignments
       - created_at
+      - has_attachment_content
       - id
       - materials
       - tests
@@ -9429,6 +10083,10 @@ components:
     TopicRequest:
       type: object
       properties:
+        expected_updated_at:
+          type: string
+          format: date-time
+          writeOnly: true
         title:
           type: string
           minLength: 1

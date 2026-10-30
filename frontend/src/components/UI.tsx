@@ -105,9 +105,9 @@ export function Modal({
   const ref = useRef<HTMLDialogElement>(null);
   const { t } = useTranslation();
   const close = () => {
-    if (ref.current?.querySelector('form[data-pending="true"]')) return;
+    if (ref.current?.querySelector('[data-pending="true"]')) return;
     if (
-      ref.current?.querySelector('form[data-dirty="true"]') &&
+      ref.current?.querySelector('[data-dirty="true"]') &&
       !window.confirm(t("ux.unsavedConfirm"))
     )
       return;

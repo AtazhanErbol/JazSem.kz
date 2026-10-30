@@ -377,40 +377,43 @@ def heavy_isolation():
 
 
 def extraction(stage):
+    def upload_source(session, data, files):
+        # A reconnected worker control channel may reject admission before a row
+        # exists. Retry only that explicit rejection, never an ambiguous result.
+        for retry in range(4):
+            response = session.post(base + "/api/v1/sources/", data=data, files=files, timeout=15)
+            if (
+                response.status_code != 503
+                or response.json().get("code") != "background_unavailable"
+            ):
+                return response, retry
+            time.sleep(1)
+        return response, retry
+
     if stage == "prepare-extraction":
         course = Course.objects.get(pk=state["broker"]["course"])
         session = client()
         # A just-reconnected control channel can report temporary unavailability.
         # Retry only the explicit pre-admission worker failure: no business row
         # exists yet. Do not retry ambiguous HTTP failures or a paid operation.
-        for retry in range(4):
-            response = session.post(
-                base + "/api/v1/sources/",
-                data={"course": str(course.pk)},
-                files={
-                    "file": (
-                        "storage-outage.txt",
-                        b"Synthetic source survives storage outage.",
-                        "text/plain",
-                    )
-                },
-                timeout=15,
-            )
-            if (
-                response.status_code != 503
-                or response.json().get("code") != "background_unavailable"
-            ):
-                break
-            time.sleep(1)
-        assert response.status_code == 201
+        response, retry = upload_source(
+            session,
+            {"course": str(course.pk)},
+            {
+                "file": (
+                    "storage-outage.txt",
+                    b"Synthetic source survives storage outage.",
+                    "text/plain",
+                )
+            },
+        )
+        assert response.status_code == 201, f"Source admission HTTP {response.status_code}"
         state["extraction"] = {
             "source": response.json()["id"],
             "course": str(course.pk),
         }
         assert (
-            SourceDocument.objects.get(
-                pk=state["extraction"]["source"]
-            ).processing_status
+            SourceDocument.objects.get(pk=state["extraction"]["source"]).processing_status
             == "QUEUED"
         )
         return {
@@ -428,10 +431,8 @@ def extraction(stage):
         assert document.error == "EXTRACTION_FAILED" and not document.chunks.exists()
         return {"storage_outage_extraction": "FAILED", "partial_chunks": 0}
     session = client()
-    response = session.post(
-        base + f"/api/v1/sources/{row['source']}/retry/", json={}, timeout=15
-    )
-    assert response.status_code == 200
+    response = session.post(base + f"/api/v1/sources/{row['source']}/retry/", json={}, timeout=15)
+    assert response.status_code == 200, f"Extraction retry HTTP {response.status_code}"
     wait(
         lambda: SourceDocument.objects.filter(
             pk=row["source"], processing_status="COMPLETED"
@@ -439,10 +440,8 @@ def extraction(stage):
     )
     document = SourceDocument.objects.get(pk=row["source"])
     chunks = list(document.chunks.values_list("pk", flat=True))
-    response = session.post(
-        base + f"/api/v1/sources/{row['source']}/retry/", json={}, timeout=15
-    )
-    assert response.status_code == 400
+    response = session.post(base + f"/api/v1/sources/{row['source']}/retry/", json={}, timeout=15)
+    assert response.status_code == 400, f"Completed extraction retry HTTP {response.status_code}"
     assert (
         session.post(
             base + f"/api/v1/sources/{row['source']}/exclude/", json={}, timeout=15
@@ -451,18 +450,15 @@ def extraction(stage):
     )
     assert list(document.chunks.values_list("pk", flat=True)) == chunks
     assert (
-        session.get(
-            base + f"/api/v1/sources/{row['source']}/download/", timeout=15
-        ).status_code
+        session.get(base + f"/api/v1/sources/{row['source']}/download/", timeout=15).status_code
         == 200
     )
-    corrupt = session.post(
-        base + "/api/v1/sources/",
-        data={"course": row["course"]},
-        files={"file": ("corrupt.pdf", b"%PDF-1.7\n", "application/pdf")},
-        timeout=15,
+    corrupt, _ = upload_source(
+        session,
+        {"course": row["course"]},
+        {"file": ("corrupt.pdf", b"%PDF-1.7\n", "application/pdf")},
     )
-    assert corrupt.status_code == 201
+    assert corrupt.status_code == 201, f"Corrupt source admission HTTP {corrupt.status_code}"
     wait(
         lambda: SourceDocument.objects.filter(
             pk=corrupt.json()["id"], processing_status="FAILED"

@@ -48,6 +48,20 @@ def visible(qs, user):
                 status="PUBLISHED",
             ).distinct()
         )
+    if label == "materials.learningattachment":
+        from apps.assignments.models import Assignment
+        from apps.courses.models import Topic
+        from apps.testing.models import Question, Test
+
+        questions = visible(Question.objects.all(), user)
+        if not is_teacher(user):
+            questions = questions.filter(test__attempts__student=user)
+        return qs.filter(
+            Q(topic__in=visible(Topic.objects.all(), user))
+            | Q(assignment__in=visible(Assignment.objects.all(), user))
+            | Q(test__in=visible(Test.objects.all(), user))
+            | Q(question__in=questions)
+        ).distinct()
     if label in CONTENT_PATHS:
         path = CONTENT_PATHS[label]
         if is_teacher(user):
@@ -119,6 +133,8 @@ def require_visible(obj, user):
 
 def version_of(obj):
     label = obj._meta.label_lower
+    if label == "materials.learningattachment":
+        return version_of(obj.parent)
     if label not in CONTENT_PATHS:
         return None
     if label == "courses.courseversion":

@@ -47,6 +47,9 @@ test("teacher authors assignments and tests manually, publishes and assigns a co
     .getByLabel("Название", { exact: true })
     .fill("Manual assignment");
   await dialog
+    .getByRole("button", { name: "Содержание и инструкция", exact: true })
+    .click();
+  await dialog
     .getByLabel("Инструкция", { exact: true })
     .fill("Solve x + 1 = 2 and explain your answer.");
   await save();

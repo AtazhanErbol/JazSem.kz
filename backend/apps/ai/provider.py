@@ -13,9 +13,32 @@ from .schema import CourseDraft, TopicDraft
 class AIProvider(Protocol):
     def generate_course(self, chunks: list[dict], parameters: dict): ...
     def regenerate_topic(self, chunks: list[dict], topic: dict, instruction: str): ...
+    def generate_lecture(self, chunks: list[dict], parameters: dict): ...
 
 
 class OpenAIProvider:
+    def generate_lecture(self, chunks, parameters):
+        from .lectures import LECTURE_SYSTEM, lecture_output_type
+
+        if not settings.OPENAI_API_KEY or not settings.OPENAI_MODEL:
+            raise GenerationFailure("AI_NOT_CONFIGURED")
+        output = lecture_output_type(parameters)
+        payload = {"settings": parameters, "sources": chunks}
+        limit = settings.AI_LECTURE_OUTPUT_TOKENS
+        reservation = reserve_budget(payload, output.model_json_schema(), limit)
+        return self._parse(
+            reservation,
+            model=settings.OPENAI_MODEL,
+            store=False,
+            max_output_tokens=limit,
+            reasoning={"effort": settings.OPENAI_REASONING_EFFORT},
+            text_format=output,
+            input=[
+                {"role": "system", "content": LECTURE_SYSTEM},
+                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+            ],
+        )
+
     def _parse(self, reservation, **request):
         try:
             response = OpenAI(

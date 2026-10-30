@@ -53,8 +53,11 @@ test("real server pagination/search, Back/Forward, remote options and keyboard m
   await expect
     .poll(() => new URL(page.url()).searchParams.get("page"))
     .toBeNull();
-  await expect(page.locator(".record-row")).toHaveCount(1);
-  await expect(page.locator(".record-row")).toContainText(rows[0].name);
+  // Back/Forward can briefly show cached page-2 rows while the new search resolves.
+  // Check the count and new content together instead of accepting that stale row.
+  await expect
+    .poll(() => page.locator(".record-row").allTextContents())
+    .toEqual([expect.stringContaining(rows[0].name)]);
   await page.goto("/app/courses?create=1");
   const dialog = page.getByRole("dialog");
   const selector = dialog.locator(".remote-select").first();

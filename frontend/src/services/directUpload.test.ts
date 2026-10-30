@@ -8,6 +8,112 @@ afterEach(() => {
 });
 
 describe("private direct uploads", () => {
+  it("reports storage progress without sending session credentials or file bytes to Django", async () => {
+    const sent: { credentials: boolean; url: string; body: FormData }[] = [];
+    class StorageRequest {
+      withCredentials = true;
+      status = 204;
+      url = "";
+      upload: {
+        onprogress?: (event: {
+          lengthComputable: boolean;
+          loaded: number;
+          total: number;
+        }) => void;
+      } = {};
+      onload?: () => void;
+      onerror?: () => void;
+      onabort?: () => void;
+      open(_method: string, url: URL) {
+        this.url = String(url);
+      }
+      send(body: FormData) {
+        sent.push({ credentials: this.withCredentials, url: this.url, body });
+        this.upload.onprogress?.({
+          lengthComputable: true,
+          loaded: 50,
+          total: 100,
+        });
+        this.onload?.();
+      }
+      abort() {
+        this.onabort?.();
+      }
+    }
+    vi.stubGlobal("XMLHttpRequest", StorageRequest);
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    const prepare = vi.fn().mockResolvedValue({
+      uploads: [
+        {
+          ticket: "ticket",
+          url: "https://storage.example.test/",
+          fields: { key: "private/quarantine/test" },
+        },
+      ],
+    });
+    const form = new FormData();
+    form.append("kind", "VIDEO");
+    form.append(
+      "file",
+      new File(["video bytes"], "video.mp4", { type: "video/mp4" }),
+    );
+    const progress = vi.fn();
+    const result = await directUpload(
+      "attachments/",
+      "POST",
+      form,
+      prepare,
+      undefined,
+      progress,
+    );
+    expect(progress).toHaveBeenCalledWith(50);
+    expect(sent[0].credentials).toBe(false);
+    expect(sent[0].url).toBe("https://storage.example.test/");
+    expect(result).toEqual({ data: { kind: "VIDEO" }, tickets: ["ticket"] });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("aborts an in-flight storage transfer before finalization", async () => {
+    let aborted = false;
+    class StorageRequest {
+      withCredentials = true;
+      upload = {};
+      status = 0;
+      onabort?: () => void;
+      open() {}
+      send() {}
+      abort() {
+        aborted = true;
+        this.onabort?.();
+      }
+    }
+    vi.stubGlobal("XMLHttpRequest", StorageRequest);
+    const form = new FormData();
+    form.append("file", new File(["video"], "video.webm"));
+    const prepare = vi.fn().mockResolvedValue({
+      uploads: [
+        {
+          ticket: "ticket",
+          url: "https://storage.example.test/",
+          fields: {},
+        },
+      ],
+    });
+    const controller = new AbortController();
+    const pending = directUpload(
+      "attachments/",
+      "POST",
+      form,
+      prepare,
+      controller.signal,
+      vi.fn(),
+    );
+    await Promise.resolve();
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    expect(aborted).toBe(true);
+  });
   it("sends a 25 MiB file only to storage, with no session credentials", async () => {
     const file = new File([new Uint8Array(25 * 1024 * 1024)], "notes.txt", {
       type: "text/plain",

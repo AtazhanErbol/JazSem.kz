@@ -6,7 +6,6 @@ import logging
 import re
 import uuid
 from datetime import timedelta
-from pathlib import Path
 
 from botocore.exceptions import BotoCoreError, ClientError
 from django.conf import settings
@@ -26,7 +25,7 @@ from storages.backends.s3 import S3Storage
 
 from apps.common.models import UploadTicket
 from apps.common.permissions import is_teacher
-from apps.materials.validation import MIMES, validate_upload
+from apps.materials.validation import VIDEO_MIMES, validate_metadata, validate_upload
 
 MEDIA_TYPE = "application/vnd.jazsem.upload+json"
 log = logging.getLogger("uploads")
@@ -53,16 +52,7 @@ class FileInput(serializers.Serializer):
 
     def validate(self, data):
         name = data["name"]
-        suffix = Path(name).suffix.lower()
-        if (
-            "/" in name
-            or "\\" in name
-            or any(ord(char) < 32 for char in name)
-            or suffix not in MIMES
-            or data["type"] != MIMES[suffix]
-            or data["size"] > settings.MAX_UPLOAD_BYTES
-        ):
-            raise ValidationError("Недопустимое имя, тип или размер файла.")
+        validate_metadata(name, data["type"], data["size"], allow_video=True)
         return data
 
 
@@ -93,6 +83,26 @@ def authorize_target(user, target, method, data, files):
     from apps.courses.models import Course, Topic
     from apps.materials.models import Material
 
+    if target == "attachments/" and method == "POST":
+        from apps.materials.attachments import attachment_parent
+
+        attachment_parent(data, user)
+        if len(files) != 1 or files[0]["field"] != "file" or data.get("kind") == "YOUTUBE":
+            raise ValidationError("Ожидается один файл вложения.")
+        return
+    if re.fullmatch(rf"attachments/({UUID})/", target) and method == "PATCH":
+        from apps.materials.models import LearningAttachment
+
+        if not is_teacher(user):
+            raise PermissionDenied()
+        pk = serializers.UUIDField().run_validation(target.split("/")[1])
+        attachment = lookup(LearningAttachment, pk, user)
+        editable(attachment, user)
+        if len(files) != 1 or files[0]["field"] != "file" or data.get("kind") == "YOUTUBE":
+            raise ValidationError("Ожидается один файл вложения.")
+        return
+    if any(file["type"] in VIDEO_MIMES.values() for file in files):
+        raise ValidationError("Загружайте видео через прикреплённые материалы.")
     if target == "materials/" and method == "POST":
         if not is_teacher(user):
             raise PermissionDenied()
@@ -152,7 +162,14 @@ class DirectUploadView(APIView):
                     mime_type=file["type"],
                     size=file["size"],
                     key=f"private/quarantine/{uuid.uuid4().hex}",
-                    expires_at=timezone.now() + timedelta(minutes=15),
+                    expires_at=timezone.now()
+                    + timedelta(
+                        seconds=(
+                            settings.ATTACHMENT_UPLOAD_TICKET_SECONDS
+                            if params["target"].startswith("attachments/")
+                            else 900
+                        )
+                    ),
                 )
                 try:
                     grant = client.generate_presigned_post(

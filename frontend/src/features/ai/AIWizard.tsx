@@ -113,7 +113,9 @@ function AIWorkspace({ course }: { course: string }) {
   const jobs = useQuery({
     queryKey: ["jobs", course, jobPage],
     queryFn: () =>
-      api<Page<AIJob>>(`ai-jobs/?course=${course}&page=${jobPage}`),
+      api<Page<AIJob>>(
+        `ai-jobs/?course=${course}&type__in=COURSE,REGENERATE_TOPIC&page=${jobPage}`,
+      ),
     enabled: !!course,
     refetchInterval: (q) =>
       !q.state.error &&

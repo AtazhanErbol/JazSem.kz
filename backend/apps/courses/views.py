@@ -1,9 +1,11 @@
 from django.db import transaction
+from django.db.models import Exists, OuterRef, Prefetch
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
+from rest_framework import serializers
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from apps.accounts.models import User
@@ -28,6 +30,7 @@ from apps.courses.services import duplicate, new_version, publish
 from apps.enrollments.models import Enrollment, GroupCourseAssignment
 from apps.enrollments.services import enroll
 from apps.grading.models import GradingComponent, GradingScheme
+from apps.materials.models import LearningAttachment
 from apps.progress.models import TopicProgress
 from apps.progress.services import summary
 
@@ -408,7 +411,19 @@ class CourseViewSet(ScopedViewSet):
             relations.append("topics__tests__questions__options")
         week_output = AuthorWeekOutput if author else StudentWeekOutput
         weeks = week_output(
-            version.weeks.prefetch_related(*relations), many=True, context={"request": request}
+            version.weeks.prefetch_related(
+                Prefetch(
+                    "topics",
+                    queryset=Topic.objects.annotate(
+                        has_attachment_content=Exists(
+                            LearningAttachment.objects.filter(topic_id=OuterRef("pk"))
+                        )
+                    ),
+                ),
+                *relations,
+            ),
+            many=True,
+            context={"request": request},
         ).data
         scheme = GradingScheme.objects.filter(course_version=version).first()
         return Response(
@@ -424,10 +439,31 @@ class CourseViewSet(ScopedViewSet):
         )
 
 
+class TopicEditConflict(APIException):
+    status_code = 409
+    default_detail = (
+        "Лекция изменена в другом окне. Скопируйте свой текст и загрузите актуальную версию."
+    )
+    default_code = "topic_edit_conflict"
+
+
+class TopicSerializer(serializer_for(Topic)):
+    expected_updated_at = serializers.DateTimeField(required=False, write_only=True)
+
+
 class TopicViewSet(ScopedViewSet):
     queryset = Topic.objects.all()
-    serializer_class = serializer_for(Topic)
+    serializer_class = TopicSerializer
     filterset_fields = ["week"]
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        editable(serializer.instance, self.request.user)
+        locked = Topic.objects.select_for_update().get(pk=serializer.instance.pk)
+        expected = serializer.validated_data.pop("expected_updated_at", None)
+        if expected is not None and locked.updated_at != expected:
+            raise TopicEditConflict()
+        super().perform_update(serializer)
 
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):

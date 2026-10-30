@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -25,8 +26,12 @@ def command(args, timeout=180):
     if result.returncode:
         # Only the final exception type/line; never export arbitrary service logs.
         lines = result.stderr.strip().splitlines()
+        frames = re.findall(
+            r'File "/acceptance/acceptance_fault_state.py", line (\d+)', result.stderr
+        )
         raise RuntimeError(
             "Synthetic phase failed: "
+            + ("acceptance_fault_state.py:" + frames[-1] + " " if frames else "")
             + (lines[-1] if lines else str(result.returncode))
         )
     return result.stdout

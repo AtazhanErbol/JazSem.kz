@@ -103,10 +103,11 @@ class JobOutput(serializers.ModelSerializer):
     source_count = serializers.SerializerMethodField()
 
     def get_parameters(self, obj) -> dict:
-        return {key: value for key, value in obj.parameters.items() if key != "draft_data"}
+        hidden = {"draft_data", "existing_content", "selected_section"}
+        return {key: value for key, value in obj.parameters.items() if key not in hidden}
 
     def get_source_count(self, obj) -> int:
-        return len({chunk["document"] for chunk in obj.source_snapshot})
+        return len({chunk["document"] for chunk in obj.source_snapshot if "document" in chunk})
 
     class Meta:
         model = AIJob

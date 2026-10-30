@@ -30,6 +30,7 @@ from .contracts import (
     UsageOutput,
 )
 from .jobs import create_job
+from .lectures import LectureInput, LectureReview, prepare_lecture
 from .models import AICourseDraft, AIJob, AIUsageLog, DocumentChunk, SourceDocument, TaskDelivery
 from .services import append_context, import_draft, validated_draft
 
@@ -185,7 +186,33 @@ class JobViewSet(ReadOnlyScoped):
     queryset = AIJob.objects.select_related("usage")
     serializer_class = JobOutput
     throttle_scope = "ai"
-    filterset_fields = ["course", "status"]
+    filterset_fields = {"course": ["exact"], "status": ["exact"], "type": ["exact", "in"]}
+
+    def get_queryset(self):
+        result = super().get_queryset()
+        if self.request.query_params.get("topic"):
+            identity = serializers.UUIDField().run_validation(self.request.query_params["topic"])
+            result = result.filter(type="LECTURE", parameters__topic_id=str(identity))
+        return result
+
+    @action(detail=False, methods=["post"])
+    @transaction.atomic
+    def lecture(self, request):
+        if not is_teacher(request.user):
+            raise PermissionDenied()
+        require_generation()
+        params = validated(request, LectureInput)
+        course, chunks = prepare_lecture(params, request.user)
+        job = create_job(
+            request.user, course, params, request.request_id, source_snapshot=chunks, kind="LECTURE"
+        )
+        record(
+            request.user,
+            "ai.lecture",
+            job,
+            new={"topic": params["topic_id"], "operation": params["operation"]},
+        )
+        return Response(self.get_serializer(job).data, status=202)
 
     @action(detail=False, methods=["get"], url_path="append-context")
     def append_info(self, request):
@@ -201,7 +228,7 @@ class JobViewSet(ReadOnlyScoped):
     def get_throttles(self):
         return (
             super().get_throttles()
-            if self.action == "create" and provider_configuration().limits_enabled
+            if self.action in {"create", "lecture"} and provider_configuration().limits_enabled
             else []
         )
 
@@ -262,6 +289,8 @@ class DraftViewSet(ReadOnlyScoped):
     def regenerate(self, request, pk=None):
         require_generation()
         draft = self.get_object()
+        if draft.job.type == "LECTURE":
+            raise ValidationError("Используйте ИИ-ассистента в редакторе лекции.")
         Course.objects.select_for_update().get(pk=draft.job.course_id)
         draft = AICourseDraft.objects.select_for_update().get(pk=draft.pk)
         if draft.imported_version:
@@ -300,8 +329,19 @@ class DraftViewSet(ReadOnlyScoped):
         draft = AICourseDraft.objects.select_for_update().get(pk=draft.pk)
         if draft.imported_version:
             raise ValidationError("Черновик уже импортирован. Редактируйте версию курса.")
-        allowed = {chunk["id"] for chunk in draft.job.source_snapshot} or None
-        data = validated_draft(validated(request, DraftInput)["data"], draft.job.course, allowed)
+        raw = validated(request, DraftInput)["data"]
+        if draft.job.type == "LECTURE":
+            from pydantic import ValidationError as SchemaError
+
+            try:
+                data = LectureReview.model_validate(raw)
+            except SchemaError:
+                raise ValidationError(
+                    {"data": "Проверьте структуру лекции и безопасную разметку."}
+                ) from None
+        else:
+            allowed = {chunk["id"] for chunk in draft.job.source_snapshot} or None
+            data = validated_draft(raw, draft.job.course, allowed)
         draft.data = data.model_dump()
         draft.save()
         return Response(DraftOutput(draft).data)
@@ -309,7 +349,10 @@ class DraftViewSet(ReadOnlyScoped):
     @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
         validated(request, EmptyInput)
-        return Response(representation(import_draft(self.get_object(), request.user), request))
+        draft = self.get_object()
+        if draft.job.type == "LECTURE":
+            raise ValidationError("Откройте лекцию, проверьте текст и сохраните его в редакторе.")
+        return Response(representation(import_draft(draft, request.user), request))
 
 
 class UsageViewSet(ReadOnlyScoped):
