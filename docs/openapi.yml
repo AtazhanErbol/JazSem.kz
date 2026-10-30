@@ -7348,6 +7348,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/JobStateEnum'
           readOnly: true
+          default: QUEUED
         progress:
           type: integer
           readOnly: true

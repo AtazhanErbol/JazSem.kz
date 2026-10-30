@@ -63,8 +63,9 @@ AI draft сохраняется и доступен после перезагр�
 | Django check; makemigrations --check --dry-run | passed |
 | OpenAPI validate --fail-on-warn | passed |
 | pip check; pip-audit обоих lock-файлов | passed, известных уязвимостей не найдено |
-| Полный Playwright | финальный прогон выполняется; результат обновится перед завершением PR |
+| Playwright | 22 сценария проверены: 21 в полном прогоне + последний после исправления ожидания пагинации; полный CI — в Checks PR |
 | Gitleaks working sources | passed, no leaks |
+| Vercel runtime manifest | все 73 pinned packages совпадают с requirements.txt |
 
 Новый браузерный сценарий создаёт лекцию с несколькими файлами, редактирует/сохраняет/отменяет AI draft, загружает настоящий браузерный WebM, добавляет YouTube, создаёт тест с вложениями, публикует и проверяет просмотр/скачивание студентом без утечки ответов. Backend дополнительно проверяет роли/чужие файлы, старые версии/попытки, сохранность вложений, форматы/размер, прерывание/подмену, провайдерские ошибки и конфликт редактирования. В CI добавлен отдельный opt-in прогон на MinIO.
 
@@ -146,6 +147,7 @@ Vercel build вызывает storage setup и миграции. Поэтому 
 - `frontend/e2e/authoring.spec.ts`
 - `frontend/e2e/learning-materials.spec.ts`
 - `frontend/e2e/manual-course.ts`
+- `frontend/e2e/url-state.spec.ts`
 - `frontend/package-lock.json`
 - `frontend/package.json`
 - `frontend/src/components/UI.tsx`
