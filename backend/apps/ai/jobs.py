@@ -89,4 +89,7 @@ def create_job(
         request_id=request_id,
     )
     TaskDelivery.objects.create(job=job, request_id=job.request_id)
+    from apps.common.serverless import kick
+
+    kick("ai")
     return job

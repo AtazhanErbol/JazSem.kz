@@ -330,3 +330,31 @@ def test_disabling_gemini_limits_does_not_disable_openai_limits(world, settings)
     settings.AI_MAX_DAILY_JOBS = 0
     with pytest.raises(Throttled):
         create_job(world["teacher"], world["course"], {}, "limited", sources=[document.pk])
+
+
+@pytest.mark.parametrize("limited, expected", [(True, 429), (False, 202)])
+def test_gemini_hourly_request_limit_follows_application_setting(
+    world, settings, client_for, limited, expected
+):
+    from rest_framework.throttling import ScopedRateThrottle
+
+    from apps.ai.models import AIJob
+
+    configure(settings)
+    settings.GEMINI_APP_LIMITS_ENABLED = limited
+    document = source(world)
+    client = client_for(world["teacher"])
+    params = {
+        "course": str(world["course"].pk),
+        "weeks": 1,
+        "language": "ru",
+        "sources": [str(document.pk)],
+    }
+    with (
+        patch("apps.ai.views.require_worker"),
+        patch.dict(ScopedRateThrottle.THROTTLE_RATES, {"ai": "1/hour"}),
+    ):
+        first = client.post("/api/v1/ai-jobs/", params, format="json")
+        assert first.status_code == 202
+        AIJob.objects.filter(pk=first.data["id"]).update(status="FAILED")
+        assert client.post("/api/v1/ai-jobs/", params, format="json").status_code == expected

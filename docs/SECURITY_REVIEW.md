@@ -1,4 +1,4 @@
-# Image/dependency review — 2026-10-01
+# Image/dependency review — 2026-10-24
 
 This is a scoped engineering review, **not production release approval and not a clean backend image claim**. Fresh raw Trivy JSON is retained in safe artifacts; condensed findings/digests are in measurements/image-scans.json after final verification. No `.trivyignore` or blanket `--ignore-unfixed` is used. Python runtime/development and npm scans are separate from OS/container scans.
 
@@ -19,7 +19,43 @@ Exact package/version/CVE entries and rationale are in [native-image-review.json
 - **CVE-2026-88806, 88807 (X11/Xrender):** no X server/display socket or connection in the headless services.
 - **CVE-2025-69720; CVE-2026-16742, 54369, 76642, 78408, 78409, 78410, 9538:** local terminal/privileged mount/nsenter/homed/ACL or Perl archive tools, absent from request/worker code. No privileged processes/capabilities or writable application image are granted.
 
-**Enforced review:** `scan_acceptance_images.py` fails for new/unreviewed or fixable production HIGH/CRITICAL entries, changed versions or expired review (2026-10-15). Only exact current tuples are eligible, and all findings remain visible. Re-review after dependency/configuration changes; never extend expiry without analysis. Owner/security acceptance of residual native risk is required before handling real documents. No exploitable application path was reproduced in these tests; this does not replace target security review or native fuzzing.
+## Reassessment on 2026-10-24
+
+The raw scan from GitHub run 40132536582 (artifact 12575254880, source
+e542f15's PR merge tree) reported 71 backend HIGH/CRITICAL findings without
+available Debian fixes. All are previously assessed CVE/package pairs: 69 exact
+tuples are unchanged; two curl tuples now contain Debian security-update version
+8.14.1-2+deb13u7. Obsolete tuples were removed rather than retained as exemptions.
+The five fixable frontend findings are addressed by upgrading `brotli-libs` and
+`pcre2`; they are not added to the review list. A fresh rebuilt image scan is
+required to verify those fixes.
+
+Rechecked the application paths and controls against the current source:
+
+- Docker still runs non-root/read-only with capabilities dropped,
+  no-new-privileges and bounded resources. The completed runtime acceptance
+  phases covered OCR, short-worker availability, outage recovery and proxies.
+- python-docx/python-pptx still disable entity resolution; installed lxml 6.1.3
+  reports bundled libxml2 2.14.6. The remaining bounded-parser caveat above
+  therefore continues to apply. No new XML/DTD/XInclude endpoint was added.
+- The new embedded OCR transport accepts only configured language names and
+  checksum-pinned official traineddata; it does not accept user model files.
+  Its temporary model cache is distinct from private uploaded documents.
+- Native curl is not used for application HTTP/SMTP. The upstream
+  [12064 advisory](https://curl.se/docs/CVE-2026-12064.html) concerns SSH host
+  verification with protocol defaults; [8458](https://curl.se/docs/CVE-2026-8458.html)
+  concerns Negotiate service-name connection reuse. Neither path was introduced.
+- The [Debian 6653 tracker](https://security-tracker.debian.org/tracker/CVE-2026-6653)
+  still marks this system libxml2 branch vulnerable. This review does not relabel
+  it fixed or claim that the static library in a Python wheel is clean.
+
+These observations renew the exact technical reachability review for 14 days.
+They do not authorize production use of untrusted real documents or transfer
+Docker isolation guarantees to Vercel's managed Functions. Vercel does not deploy
+these Docker images; provider OS packages and bundled wheel native libraries
+require their own assessment before sensitive or hostile-document workloads.
+
+**Enforced review:** `scan_acceptance_images.py` fails for new/unreviewed or fixable production HIGH/CRITICAL entries, changed versions or expired review (2026-11-07). Only exact current tuples are eligible, and all findings remain visible. Re-review after dependency/configuration changes; never extend expiry without analysis. Owner/security acceptance of residual native risk is required before handling real documents. No exploitable application path was reproduced in these tests; this does not replace target security review or native fuzzing.
 
 ## Dependency containers
 

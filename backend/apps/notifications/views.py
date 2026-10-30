@@ -71,6 +71,9 @@ class MailOutboxViewSet(viewsets.ReadOnlyModelViewSet):
         mail.next_retry_at = timezone.now()
         mail.error_code = ""
         mail.save()
+        from apps.common.serverless import kick
+
+        kick("mail")
         record(request.user, "mail.retry", mail, {"status": previous}, {"status": mail.status})
         return Response(self.get_serializer(mail).data)
 

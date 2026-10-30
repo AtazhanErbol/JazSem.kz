@@ -42,6 +42,18 @@ class DocumentChunk(Entity):
         ]
 
 
+class SourceExtractionState(models.Model):
+    """Unpublished OCR staging; citations are created atomically on completion."""
+
+    source = models.OneToOneField(SourceDocument, on_delete=models.CASCADE, primary_key=True)
+    lease_token = models.UUIDField()
+    step_token = models.UUIDField(null=True)
+    next_page = models.PositiveIntegerField(default=0)
+    chars = models.PositiveIntegerField(default=0)
+    elapsed = models.FloatField(default=0)
+    chunks = models.JSONField(default=list)
+
+
 class AIJob(Entity):
     type = models.CharField(max_length=40, default="COURSE")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)

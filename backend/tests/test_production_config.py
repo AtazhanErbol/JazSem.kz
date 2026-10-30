@@ -1,4 +1,7 @@
 import base64
+import os
+import subprocess
+import sys
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
@@ -29,6 +32,72 @@ def test_production_requires_explicit_complete_configuration():
         missing = {name: value for name, value in env.items() if name != key}
         with pytest.raises(ImproperlyConfigured):
             validate_production(missing)
+
+
+def test_cold_vercel_worker_loads_native_ocr_before_task_threads():
+    env = {
+        **os.environ,
+        **valid_env(),
+        "VERCEL": "1",
+        "VERCEL_ENV": "production",
+        "DJANGO_SETTINGS_MODULE": "config.settings.production",
+        "TRUSTED_PROXY_CIDRS": "127.0.0.1/32",
+    }
+    for key in ("BACKGROUND_MODE", "OCR_ENGINE", "DIRECT_UPLOADS_ENABLED"):
+        env.pop(key, None)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from config.vercel_worker import app; "
+            "from concurrent.futures import ThreadPoolExecutor; "
+            "assert app.tasks['apps.common.tasks.queue_health'].Strategy "
+            "== 'config.vercel_strategy:sync_strategy'; "
+            "pool = ThreadPoolExecutor(max_workers=1); "
+            "pool.submit(__import__, 'tesserocr').result(timeout=5); pool.shutdown()",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize(
+    "settings_module", ["config.settings.production", "_vercel_collectstatic_settings"]
+)
+def test_vercel_settings_detection_maps_integrations_before_loading_base(settings_module):
+    env = {
+        **os.environ,
+        **valid_env(),
+        "VERCEL": "1",
+        "VERCEL_ENV": "preview",
+        "VERCEL_BRANCH_URL": "jazsem-git-topic-team.vercel.app",
+        "DJANGO_SETTINGS_MODULE": settings_module,
+        "TRUSTED_PROXY_CIDRS": "127.0.0.1/32",
+        "TIGRIS_STORAGE_BUCKET": "private-detection-test",
+        "TIGRIS_STORAGE_ACCESS_KEY_ID": "synthetic-key",
+        "TIGRIS_STORAGE_SECRET_ACCESS_KEY": "synthetic-secret",
+    }
+    for key in ("S3_BUCKET", "S3_ACCESS_KEY", "S3_SECRET_KEY", "BACKGROUND_MODE"):
+        env.pop(key, None)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import os; import config.settings.production as s; "
+            "assert os.environ['S3_BUCKET'] == 'private-detection-test'; "
+            "assert s.FRONTEND_URL == 'https://jazsem-git-topic-team.vercel.app'; "
+            "assert s.FRONTEND_URL in s.CSRF_TRUSTED_ORIGINS; "
+            "assert s.CELERY_BROKER_URL == 'vercel://'",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 @pytest.mark.parametrize(

@@ -12,6 +12,7 @@ from apps.common.api import ReadOnlyScoped, lookup, private_response, representa
 from apps.common.background import require_worker, worker_available
 from apps.common.inputs import EmptyInput, validated
 from apps.common.permissions import is_teacher
+from apps.common.upload_parser import UPLOAD_PARSERS
 from apps.courses.models import Course
 from apps.materials.validation import validate_upload
 
@@ -69,6 +70,7 @@ class AIStatusView(APIView):
 
 
 class SourceViewSet(ReadOnlyScoped):
+    parser_classes = UPLOAD_PARSERS
     queryset = SourceDocument.objects.all()
     serializer_class = SourceOutput
     throttle_scope = "upload"
@@ -95,6 +97,9 @@ class SourceViewSet(ReadOnlyScoped):
                 size=file.size,
             )
             TaskDelivery.objects.create(source=source, request_id=request.request_id)
+            from apps.common.serverless import kick
+
+            kick("ai")
         return Response(self.get_serializer(source).data, status=201)
 
     @action(detail=True, methods=["post"])
@@ -122,6 +127,9 @@ class SourceViewSet(ReadOnlyScoped):
                 "error_code": "",
             },
         )
+        from apps.common.serverless import kick
+
+        kick("ai")
         record(request.user, "source.retry", source)
         return Response(self.get_serializer(source).data)
 
@@ -154,8 +162,6 @@ class SourceViewSet(ReadOnlyScoped):
     def preview(self, request, pk=None):
         from pathlib import Path
 
-        from django.http import FileResponse
-
         source = self.get_object()
         content_type = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(
             Path(source.filename).suffix.lower()
@@ -164,10 +170,9 @@ class SourceViewSet(ReadOnlyScoped):
             raise ValidationError(
                 "Для документа доступен просмотр распознанного текста и скачивание оригинала."
             )
-        response = FileResponse(source.file.open("rb"), content_type=content_type)
-        response["X-Content-Type-Options"] = "nosniff"
-        response["Cache-Control"] = "private, no-store"
-        return response
+        return private_response(
+            source.file, source.filename, as_attachment=False, content_type=content_type
+        )
 
     @action(detail=True, methods=["get"])
     def chunks(self, request, pk=None):
@@ -194,7 +199,11 @@ class JobViewSet(ReadOnlyScoped):
         return Response(append_context(course, version_id, request.user))
 
     def get_throttles(self):
-        return super().get_throttles() if self.action == "create" else []
+        return (
+            super().get_throttles()
+            if self.action == "create" and provider_configuration().limits_enabled
+            else []
+        )
 
     @transaction.atomic
     def create(self, request):
@@ -242,7 +251,11 @@ class DraftViewSet(ReadOnlyScoped):
     throttle_scope = "ai"
 
     def get_throttles(self):
-        return super().get_throttles() if self.action == "regenerate" else []
+        return (
+            super().get_throttles()
+            if self.action == "regenerate" and provider_configuration().limits_enabled
+            else []
+        )
 
     @action(detail=True, methods=["post"])
     @transaction.atomic

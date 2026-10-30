@@ -339,6 +339,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/DraftOutput'
           description: ''
+  /api/v1/ai-jobs/append-context/:
+    get:
+      operationId: v1_ai_jobs_append_context_retrieve
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobOutput'
+          description: ''
   /api/v1/ai-status/:
     get:
       operationId: v1_ai_status_retrieve
@@ -590,6 +604,9 @@ paths:
             schema:
               $ref: '#/components/schemas/SubmissionInputRequest'
           multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmissionInputRequest'
+          application/vnd.jazsem.upload+json:
             schema:
               $ref: '#/components/schemas/SubmissionInputRequest'
       security:
@@ -1376,9 +1393,112 @@ paths:
               schema:
                 $ref: '#/components/schemas/Enrollment'
           description: ''
+  /api/v1/courses/{id}/delete-draft/:
+    post:
+      operationId: v1_courses_delete_draft_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteDraftInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeleteDraftInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DeleteDraftInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/courses/{id}/delete-published/:
+    post:
+      operationId: v1_courses_delete_published_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteDraftInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeleteDraftInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DeleteDraftInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseWrite'
+          description: ''
   /api/v1/courses/{id}/duplicate/:
     post:
       operationId: v1_courses_duplicate_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseVersion'
+          description: ''
+  /api/v1/courses/{id}/edit-draft/:
+    post:
+      operationId: v1_courses_edit_draft_create
       parameters:
       - in: path
         name: id
@@ -1489,6 +1609,40 @@ paths:
                 items:
                   $ref: '#/components/schemas/GradingComponent'
           description: ''
+  /api/v1/courses/{id}/grading-weights/:
+    post:
+      operationId: v1_courses_grading_weights_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradingWeightsInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GradingWeightsInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GradingWeightsInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseWrite'
+          description: ''
   /api/v1/courses/{id}/publish/:
     post:
       operationId: v1_courses_publish_create
@@ -1523,6 +1677,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/CourseVersion'
           description: ''
+  /api/v1/courses/{id}/recipients/:
+    get:
+      operationId: v1_courses_recipients_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/courses/{id}/restore/:
+    post:
+      operationId: v1_courses_restore_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CourseWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CourseWriteRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseWrite'
+          description: ''
   /api/v1/courses/{id}/tree/:
     get:
       operationId: v1_courses_tree_retrieve
@@ -1544,6 +1755,74 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CourseTree'
+          description: ''
+  /api/v1/courses/{id}/update-students/:
+    post:
+      operationId: v1_courses_update_students_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpgradeStudentsInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpgradeStudentsInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpgradeStudentsInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseWrite'
+          description: ''
+  /api/v1/courses/{id}/update-students-preview/:
+    post:
+      operationId: v1_courses_update_students_preview_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this course.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseWrite'
           description: ''
   /api/v1/courses/{id}/versions/:
     get:
@@ -1790,6 +2069,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/Discipline'
           description: ''
+  /api/v1/disciplines/{id}/restore/:
+    post:
+      operationId: v1_disciplines_restore_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this discipline.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DisciplineWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DisciplineWriteRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineWrite'
+          description: ''
   /api/v1/enrollments/:
     get:
       operationId: v1_enrollments_list
@@ -1881,6 +2194,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnrollmentDisplay'
           description: ''
+  /api/v1/enrollments/{id}/close-access/:
+    post:
+      operationId: v1_enrollments_close_access_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentDisplay'
+          description: ''
   /api/v1/enrollments/{id}/grades/:
     get:
       operationId: v1_enrollments_grades_retrieve
@@ -1924,6 +2259,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgressOutput'
+          description: ''
+  /api/v1/enrollments/{id}/restore-access/:
+    post:
+      operationId: v1_enrollments_restore_access_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentDisplay'
           description: ''
   /api/v1/enrollments/summaries/:
     get:
@@ -2564,6 +2921,111 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/groups/{id}/restore/:
+    post:
+      operationId: v1_groups_restore_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this study group.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudyGroupRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudyGroupRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudyGroupRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyGroup'
+          description: ''
+  /api/v1/groups/{id}/unassign-course/:
+    post:
+      operationId: v1_groups_unassign_course_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this study group.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CourseInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CourseInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/landing/:
+    get:
+      operationId: v1_landing_retrieve
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LandingInput'
+          description: ''
+    post:
+      operationId: v1_landing_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LandingInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LandingInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LandingInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LandingInput'
+          description: ''
   /api/v1/mail-outbox/:
     get:
       operationId: v1_mail_outbox_list
@@ -2719,6 +3181,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/MaterialWriteRequest'
+          application/vnd.jazsem.upload+json:
+            schema:
+              $ref: '#/components/schemas/MaterialWriteRequest'
         required: true
       security:
       - cookieAuth: []
@@ -2772,6 +3237,9 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMaterialWriteRequest'
           multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialWriteRequest'
+          application/vnd.jazsem.upload+json:
             schema:
               $ref: '#/components/schemas/PatchedMaterialWriteRequest'
       security:
@@ -3330,6 +3798,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/SourceInputRequest'
+          application/vnd.jazsem.upload+json:
+            schema:
+              $ref: '#/components/schemas/SourceInputRequest'
         required: true
       security:
       - cookieAuth: []
@@ -3407,6 +3878,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedChunkOutputList'
           description: ''
+  /api/v1/sources/{id}/delete-file/:
+    post:
+      operationId: v1_sources_delete_file_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this source document.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceOutput'
+          description: ''
   /api/v1/sources/{id}/download/:
     get:
       operationId: v1_sources_download_retrieve
@@ -3433,6 +3926,28 @@ paths:
   /api/v1/sources/{id}/exclude/:
     post:
       operationId: v1_sources_exclude_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this source document.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceOutput'
+          description: ''
+  /api/v1/sources/{id}/preview/:
+    get:
+      operationId: v1_sources_preview_retrieve
       parameters:
       - in: path
         name: id
@@ -3972,6 +4487,96 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/tests/{id}/import-preview/:
+    post:
+      operationId: v1_tests_import_preview_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this test.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestDisplayRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TestDisplayRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TestDisplayRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDisplay'
+          description: ''
+  /api/v1/tests/{id}/import-questions/:
+    post:
+      operationId: v1_tests_import_questions_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this test.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestDisplayRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TestDisplayRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TestDisplayRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDisplay'
+          description: ''
+  /api/v1/tests/{id}/import-template/:
+    get:
+      operationId: v1_tests_import_template_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this test.
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDisplay'
+          description: ''
   /api/v1/tests/{id}/start/:
     post:
       operationId: v1_tests_start_create
@@ -4150,6 +4755,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProgressOutput'
           description: ''
+  /api/v1/uploads/:
+    post:
+      operationId: v1_uploads_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UploadInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadInputRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadOutput'
+          description: ''
   /api/v1/users/:
     get:
       operationId: v1_users_list
@@ -4311,6 +4942,72 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/users/import-preview/:
+    post:
+      operationId: v1_users_import_preview_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/import-template/:
+    get:
+      operationId: v1_users_import_template_retrieve
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/import-users/:
+    post:
+      operationId: v1_users_import_users_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
   /api/v1/weeks/:
     get:
       operationId: v1_weeks_list
@@ -5362,6 +6059,19 @@ components:
       - discipline
       - teacher
       - title
+    DeleteDraftInputRequest:
+      type: object
+      properties:
+        version:
+          type: string
+          format: uuid
+        confirmation:
+          type: string
+          minLength: 1
+          maxLength: 300
+      required:
+      - confirmation
+      - version
     Discipline:
       type: object
       properties:
@@ -5573,7 +6283,11 @@ components:
           allOf:
           - $ref: '#/components/schemas/EnrollmentStateEnum'
           readOnly: true
+        access_revoked:
+          type: boolean
+          readOnly: true
       required:
+      - access_revoked
       - assigned_at
       - assigned_by
       - assigned_group
@@ -5644,6 +6358,9 @@ components:
           allOf:
           - $ref: '#/components/schemas/EnrollmentStateEnum'
           readOnly: true
+        access_revoked:
+          type: boolean
+          readOnly: true
         course_title:
           type: string
           readOnly: true
@@ -5651,6 +6368,7 @@ components:
           type: string
           readOnly: true
       required:
+      - access_revoked
       - assigned_at
       - assigned_by
       - assigned_group
@@ -5737,6 +6455,9 @@ components:
           allOf:
           - $ref: '#/components/schemas/EnrollmentStateEnum'
           readOnly: true
+        access_revoked:
+          type: boolean
+          readOnly: true
         course_title:
           type: string
           readOnly: true
@@ -5748,6 +6469,7 @@ components:
         grades:
           $ref: '#/components/schemas/GradesOutput'
       required:
+      - access_revoked
       - assigned_at
       - assigned_by
       - assigned_group
@@ -5765,6 +6487,35 @@ components:
       - student
       - student_name
       - updated_at
+    FieldEnum:
+      enum:
+      - file
+      - files
+      type: string
+      description: |-
+        * `file` - file
+        * `files` - files
+    FileInputRequest:
+      type: object
+      properties:
+        field:
+          $ref: '#/components/schemas/FieldEnum'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          type: string
+          minLength: 1
+          maxLength: 150
+        size:
+          type: integer
+          minimum: 1
+      required:
+      - field
+      - name
+      - size
+      - type
     FileOutput:
       type: object
       properties:
@@ -5807,6 +6558,23 @@ components:
     GenerationInputRequest:
       type: object
       properties:
+        instruction:
+          type: string
+          default: ''
+          maxLength: 2000
+        page_from:
+          type: integer
+          minimum: 1
+        page_to:
+          type: integer
+          minimum: 1
+        mode:
+          allOf:
+          - $ref: '#/components/schemas/ModeEnum'
+          default: NEW
+        base_version:
+          type: string
+          format: uuid
         course:
           type: string
           format: uuid
@@ -5963,6 +6731,21 @@ components:
           format: uuid
       required:
       - course_version
+    GradingWeightsInputRequest:
+      type: object
+      properties:
+        version:
+          type: string
+          format: uuid
+        weights:
+          type: object
+          additionalProperties:
+            type: integer
+            maximum: 100
+            minimum: 0
+      required:
+      - version
+      - weights
     GroupCourseAssignment:
       type: object
       properties:
@@ -6046,6 +6829,26 @@ components:
       - joined_at
       - student
       - updated_at
+    HiddenEnum:
+      enum:
+      - about
+      - features
+      - learning
+      - creation
+      - how
+      - teachers
+      - faq
+      - final
+      type: string
+      description: |-
+        * `about` - about
+        * `features` - features
+        * `learning` - learning
+        * `creation` - creation
+        * `how` - how
+        * `teachers` - teachers
+        * `faq` - faq
+        * `final` - final
     JobOutput:
       type: object
       properties:
@@ -6068,6 +6871,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/JobStateEnum'
           readOnly: true
+          default: QUEUED
         progress:
           type: integer
           readOnly: true
@@ -6151,6 +6955,70 @@ components:
         * `ASSIGNMENTS` - Assignments
         * `TESTS` - Tests
         * `FINAL` - Final
+    LandingInput:
+      type: object
+      properties:
+        language:
+          $ref: '#/components/schemas/LandingInputLanguageEnum'
+        texts:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 4000
+        hidden:
+          type: array
+          items:
+            $ref: '#/components/schemas/HiddenEnum'
+          maxItems: 8
+        image:
+          oneOf:
+          - type: string
+            format: uri
+            default: ''
+            maxLength: 2000
+          - type: string
+            maxLength: 0
+        publish:
+          type: boolean
+          default: false
+      required:
+      - language
+    LandingInputLanguageEnum:
+      enum:
+      - ru
+      - kk
+      type: string
+      description: |-
+        * `ru` - ru
+        * `kk` - kk
+    LandingInputRequest:
+      type: object
+      properties:
+        language:
+          $ref: '#/components/schemas/LandingInputLanguageEnum'
+        texts:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 4000
+        hidden:
+          type: array
+          items:
+            $ref: '#/components/schemas/HiddenEnum'
+          maxItems: 8
+        image:
+          oneOf:
+          - type: string
+            format: uri
+            default: ''
+            maxLength: 2000
+          - type: string
+            maxLength: 0
+        publish:
+          type: boolean
+          default: false
+      required:
+      - language
     LanguageEnum:
       enum:
       - ru
@@ -6467,6 +7335,22 @@ components:
           type: string
       required:
       - message
+    MethodEnum:
+      enum:
+      - POST
+      - PATCH
+      type: string
+      description: |-
+        * `POST` - POST
+        * `PATCH` - PATCH
+    ModeEnum:
+      enum:
+      - NEW
+      - APPEND
+      type: string
+      description: |-
+        * `NEW` - NEW
+        * `APPEND` - APPEND
     Notification:
       type: object
       properties:
@@ -8574,6 +9458,66 @@ components:
       description: |-
         * `SINGLE_CHOICE` - Single
         * `MULTIPLE_CHOICE` - Multiple
+    UpgradeStudentsInputRequest:
+      type: object
+      properties:
+        version:
+          type: string
+          format: uuid
+        confirm_grading_change:
+          type: boolean
+          default: false
+      required:
+      - version
+    UploadGrantOutput:
+      type: object
+      properties:
+        ticket:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+      - fields
+      - ticket
+      - url
+    UploadInputRequest:
+      type: object
+      properties:
+        target:
+          type: string
+          minLength: 1
+          maxLength: 255
+        method:
+          $ref: '#/components/schemas/MethodEnum'
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 100000
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileInputRequest'
+      required:
+      - data
+      - files
+      - method
+      - target
+    UploadOutput:
+      type: object
+      properties:
+        uploads:
+          type: array
+          items:
+            $ref: '#/components/schemas/UploadGrantOutput'
+      required:
+      - uploads
     UsageOutput:
       type: object
       properties:

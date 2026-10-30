@@ -72,15 +72,18 @@ def delivery_error(exc):
     return "DELIVERY_FAILED"
 
 
-@shared_task
+@shared_task(autoretry_for=(Exception,), retry_kwargs={"max_retries": 3}, retry_backoff=True)
 def flush_mail():
+    from apps.common.serverless import enabled, schedule_next
+
     recover_mail_leases()
     due = (
         MailOutbox.objects.filter(status__in=["PENDING", "RETRY"])
         .filter(Q(next_retry_at=None) | Q(next_retry_at__lte=timezone.now()))
         .order_by("created_at", "pk")
     )
-    for pk in list(due.values_list("pk", flat=True)[:100]):
+    limit = 5 if enabled() else 100
+    for pk in list(due.values_list("pk", flat=True)[:limit]):
         mail = claim_mail(pk)
         if mail is None:
             continue
@@ -128,6 +131,21 @@ def flush_mail():
                 lease_until=None,
                 updated_at=timezone.now(),
             )
+
+    if enabled():
+        pending = MailOutbox.objects.filter(status__in=["PENDING", "RETRY"])
+        when = timezone.now() if pending.filter(next_retry_at=None).exists() else None
+        candidates = list(
+            pending.exclude(next_retry_at=None).values_list("next_retry_at", flat=True)
+        )
+        candidates += list(
+            MailOutbox.objects.filter(status="SENDING")
+            .exclude(lease_until=None)
+            .values_list("lease_until", flat=True)
+        )
+        if candidates:
+            when = min([when, *candidates]) if when else min(candidates)
+        schedule_next(flush_mail, when, prefix="mail")
 
 
 @shared_task

@@ -39,6 +39,9 @@ def queue_mail(user, subject, message):
     }
     encrypted = mail_cipher().encrypt(json.dumps(payload).encode()).decode()
     MailOutbox.objects.create(recipient=user.email, encrypted_payload=encrypted)
+    from apps.common.serverless import kick
+
+    kick("mail")
 
 
 def notify(user, kind, title, message="", link="", email=False, key=None):

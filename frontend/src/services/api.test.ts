@@ -10,7 +10,50 @@ function json(body: unknown, status = 200) {
 beforeEach(() => {
   vi.resetModules();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   document.cookie = "csrftoken=; Max-Age=0; path=/";
+});
+
+it("retries only attachment after CSRF rejection, without uploading the file twice", async () => {
+  vi.stubEnv("VITE_DIRECT_UPLOADS", "true");
+  const { api } = await import("./api");
+  const body = new FormData();
+  body.append("title", "Original title");
+  body.append("file", new Blob(["notes"], { type: "text/plain" }), "notes.txt");
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(json({ csrfToken: "old" }))
+    .mockResolvedValueOnce(
+      json({
+        uploads: [
+          {
+            ticket: "ticket",
+            url: "https://storage.example.test/",
+            fields: {},
+          },
+        ],
+      }),
+    )
+    .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    .mockResolvedValueOnce(json({ code: "csrf_failed" }, 403))
+    .mockResolvedValueOnce(json({ csrfToken: "fresh" }))
+    .mockResolvedValueOnce(json({ id: "saved" }));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(api("materials/", "POST", body)).resolves.toEqual({
+    id: "saved",
+  });
+  expect(fetcher.mock.calls[2][1].credentials).toBe("omit");
+  const rejected = fetcher.mock.calls[3][1];
+  const retried = fetcher.mock.calls[5][1];
+  expect(retried.body).toBe(rejected.body);
+  expect(JSON.parse(retried.body)).toEqual({
+    data: { title: "Original title" },
+    tickets: ["ticket"],
+  });
+  expect(retried.headers["Content-Type"]).toBe(
+    "application/vnd.jazsem.upload+json",
+  );
+  expect(fetcher).toHaveBeenCalledTimes(6);
 });
 
 it("explains network and proxy failures without exposing raw HTML", async () => {

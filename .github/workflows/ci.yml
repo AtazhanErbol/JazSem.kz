@@ -63,7 +63,7 @@ jobs:
       redis:
         image: redis:7-alpine
         ports: ['6379:6379']
-        options: --health-cmd 'redis-cli ping' --health-interval 3s --health-timeout 2s --health-retries 20
+        options: --health-cmd "redis-cli ping" --health-interval 3s --health-timeout 2s --health-retries 20
     env:
       DATABASE_URL: postgresql://acceptance:synthetic-only@127.0.0.1:5432/jazsem_rc_browser
       E2E_REDIS_URL: redis://127.0.0.1:6379/0

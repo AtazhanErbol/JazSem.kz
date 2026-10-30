@@ -1,4 +1,5 @@
 import i18n from "../i18n";
+import { directUpload, usesDirectUpload } from "./directUpload";
 
 export class ApiError extends Error {
   constructor(
@@ -108,7 +109,27 @@ export async function api<T>(
   method = method.toUpperCase();
   const mutation = !["GET", "HEAD", "OPTIONS"].includes(method);
   signal?.throwIfAborted();
-  const form = body instanceof FormData;
+  let direct = false;
+  if (mutation && usesDirectUpload(path, body)) {
+    try {
+      body = await directUpload(
+        path,
+        method,
+        body,
+        (metadata) => api("uploads/", "POST", metadata, signal),
+        signal,
+      );
+      direct = true;
+    } catch (error) {
+      if (
+        error instanceof ApiError ||
+        (error instanceof DOMException && error.name === "AbortError")
+      )
+        throw error;
+      throw new ApiError(0, i18n.t("networkError"));
+    }
+  }
+  const form = body instanceof FormData ? body : undefined;
   for (let attempt = 0; ; attempt++) {
     const token = mutation ? await csrfToken(attempt > 0) : "";
     signal?.throwIfAborted();
@@ -118,10 +139,16 @@ export async function api<T>(
       credentials: "same-origin",
       headers: {
         "Accept-Language": i18n.language || "ru",
-        ...(form ? {} : { "Content-Type": "application/json" }),
+        ...(form
+          ? {}
+          : {
+              "Content-Type": direct
+                ? "application/vnd.jazsem.upload+json"
+                : "application/json",
+            }),
         ...(mutation ? { "X-CSRFToken": token } : {}),
       },
-      body: body === undefined ? undefined : form ? body : JSON.stringify(body),
+      body: body === undefined ? undefined : form || JSON.stringify(body),
     });
     if (path.startsWith("auth/") && mutation && response.ok) {
       csrf = "";

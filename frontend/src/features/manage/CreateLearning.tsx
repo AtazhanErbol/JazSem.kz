@@ -256,7 +256,7 @@ function ActivityLocation({
             </label>
           )}
           <RecordForm
-            key={`${structure}-${weekId}`}
+            key={structure === "weeks" ? "weeks" : `topics-${weekId}`}
             resource={structure}
             fixed={
               structure === "weeks"

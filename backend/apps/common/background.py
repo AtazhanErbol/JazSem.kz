@@ -11,6 +11,25 @@ class BackgroundUnavailable(APIException):
 def worker_available():
     if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
         return True
+    if settings.BACKGROUND_MODE == "vercel":
+        from django.core.cache import cache
+
+        from apps.common.serverless import publish
+        from apps.common.tasks import queue_health
+
+        try:
+            if cache.get("ops:vercel-workers-ready"):
+                return True
+            pending = [
+                publish(queue_health, [role], queue=queue)
+                for role, queue in [("short", "celery"), ("heavy", "heavy")]
+            ]
+            if [result.get(timeout=12, interval=0.2) for result in pending] != ["short", "heavy"]:
+                return False
+            cache.set("ops:vercel-workers-ready", True, timeout=20)
+            return True
+        except Exception:
+            return False
     from config.celery import app
 
     try:
