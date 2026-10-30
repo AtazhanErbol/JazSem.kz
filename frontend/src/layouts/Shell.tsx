@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import "../i18n/registerAuthoring";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";

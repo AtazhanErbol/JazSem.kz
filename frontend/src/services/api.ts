@@ -1,5 +1,4 @@
 import i18n from "../i18n";
-import { directUpload, usesDirectUpload } from "./directUpload";
 
 export class ApiError extends Error {
   constructor(
@@ -110,16 +109,19 @@ export async function api<T>(
   const mutation = !["GET", "HEAD", "OPTIONS"].includes(method);
   signal?.throwIfAborted();
   let direct = false;
-  if (mutation && usesDirectUpload(path, body)) {
+  if (mutation && body instanceof FormData) {
     try {
-      body = await directUpload(
-        path,
-        method,
-        body,
-        (metadata) => api("uploads/", "POST", metadata, signal),
-        signal,
-      );
-      direct = true;
+      const { directUpload, usesDirectUpload } = await import("./directUpload");
+      if (usesDirectUpload(path, body)) {
+        body = await directUpload(
+          path,
+          method,
+          body,
+          (metadata) => api("uploads/", "POST", metadata, signal),
+          signal,
+        );
+        direct = true;
+      }
     } catch (error) {
       if (
         error instanceof ApiError ||

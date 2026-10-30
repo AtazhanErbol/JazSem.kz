@@ -63,11 +63,26 @@ AI draft сохраняется и доступен после перезагр�
 | Django check; makemigrations --check --dry-run | passed |
 | OpenAPI validate --fail-on-warn | passed |
 | pip check; pip-audit обоих lock-файлов | passed, известных уязвимостей не найдено |
-| Playwright | 22 сценария проверены: 21 в полном прогоне + последний после исправления ожидания пагинации; полный CI — в Checks PR |
+| Полный Playwright в CI на 8f5206c | 22 passed, 0 skipped, 0 flaky; финальные Checks PR повторяют весь набор |
 | Gitleaks working sources | passed, no leaks |
 | Vercel runtime manifest | все 73 pinned packages совпадают с requirements.txt |
 
 Новый браузерный сценарий создаёт лекцию с несколькими файлами, редактирует/сохраняет/отменяет AI draft, загружает настоящий браузерный WebM, добавляет YouTube, создаёт тест с вложениями, публикует и проверяет просмотр/скачивание студентом без утечки ответов. Backend дополнительно проверяет роли/чужие файлы, старые версии/попытки, сохранность вложений, форматы/размер, прерывание/подмену, провайдерские ошибки и конфликт редактирования. В CI добавлен отдельный opt-in прогон на MinIO.
+
+## Измерения размера frontend
+
+Контрольная сборка исходной main 009864f с теми же pinned frontend dependencies уже превышала старые raw-лимиты: главная 538 811 bytes при cap 535 000, вход 665 830 при cap 660 000, вся сборка 806 404 при cap 800 000. После отделения ресурсов кабинета от публичных страниц и загрузчика файлов по требованию:
+
+| JavaScript bytes | Main baseline | Эта ветка |
+| --- | --- | --- |
+| Холодная главная, raw / gzip | 538 811 / 167 278 | 539 514 / 167 611 |
+| Холодный вход, raw / gzip | 665 830 / 206 938 | 666 533 / 207 273 |
+| Весь build, raw | 806 404 | 1 293 834 |
+| Отдельный Markdown/GFM/KaTeX reader, raw / gzip | отсутствует | 457 602 / 139 166 |
+
+Семь холодных навигаций на каждый публичный маршрут, 4x CPU и ограничение сети. Публичные gzip-caps 170/210 KB сохранены; raw-caps откалиброваны до 540/670 KB по измеренной исходной main. Whole-build cap составлен из 810 KB исходного приложения, 50 KB новых workflow controls и 500 KB reader. Для reader дополнительно проверяется gzip cap 160 KB. Проверка явно запрещает загрузку reader/authoring translations на публичных страницах. Лимиты не выключались; общий объём новой функциональности выделен отдельно. Переводы и стили кабинета загружаются с приватными маршрутами.
+
+В fault-injection стенде запрос добавления источника после восстановления воркера повторяется только при явном pre-admission 503 background_unavailable (до создания записи). Неопределённые запросы и платная генерация не повторяются; добавлены безопасные номера строк/HTTP-статусы для диагностики.
 
 ## Env и preview
 
@@ -147,6 +162,7 @@ Vercel build вызывает storage setup и миграции. Поэтому 
 - `frontend/e2e/authoring.spec.ts`
 - `frontend/e2e/learning-materials.spec.ts`
 - `frontend/e2e/manual-course.ts`
+- `frontend/e2e/measure.mjs`
 - `frontend/e2e/url-state.spec.ts`
 - `frontend/package-lock.json`
 - `frontend/package.json`
@@ -165,10 +181,12 @@ Vercel build вызывает storage setup и миграции. Поэтому 
 - `frontend/src/features/manage/CreateLearning.test.tsx`
 - `frontend/src/features/manage/RecordForm.tsx`
 - `frontend/src/i18n/authoring.ts`
-- `frontend/src/i18n/index.ts`
+- `frontend/src/i18n/registerAuthoring.ts`
 - `frontend/src/layouts/Shell.test.tsx`
 - `frontend/src/layouts/Shell.tsx`
-- `frontend/src/main.tsx`
+- `frontend/src/services/api.ts`
 - `frontend/src/services/directUpload.test.ts`
 - `frontend/src/services/directUpload.ts`
 - `frontend/src/styles/authoring.css`
+- `scripts/acceptance_fault_state.py`
+- `scripts/acceptance_faults.py`

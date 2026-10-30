@@ -13,7 +13,6 @@ import "./i18n";
 import "./styles/main.css";
 import "./styles/workspace.css";
 import "./styles/refinements.css";
-import "./styles/authoring.css";
 import { Protected, RoleGate } from "./app/Auth";
 import { Loading } from "./components/UI";
 import { RouteBoundary } from "./app/RouteBoundary";

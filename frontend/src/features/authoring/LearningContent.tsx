@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from "react";
+import "../../i18n/registerAuthoring";
 import { useTranslation } from "react-i18next";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
