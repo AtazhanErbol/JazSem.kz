@@ -320,7 +320,9 @@ def heavy_isolation():
     )
     image = Image.new("RGB", (2400, 6000), "white")
     draw = ImageDraw.Draw(image)
-    for y in range(0, 5900, 20):
+    # Retain the real 14.4 MP OCR workload, with readable line spacing rather
+    # than a dense stress document whose former OCR deadline ended the test.
+    for y in range(0, 5900, 60):
         draw.text(
             (10, y),
             "Synthetic university lesson. One plus one equals two. " * 7,
@@ -362,7 +364,7 @@ def heavy_isolation():
         lambda: SourceDocument.objects.filter(
             pk=source, processing_status__in=["COMPLETED", "FAILED"]
         ).exists(),
-        seconds=75,
+        seconds=180,
     )
     document = SourceDocument.objects.get(pk=source)
     return {

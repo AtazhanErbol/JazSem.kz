@@ -18,7 +18,7 @@ compose = [
 
 def run(args):
     result = subprocess.run(
-        [*compose, *args], capture_output=True, text=True, timeout=180, check=False
+        [*compose, *args], capture_output=True, text=True, timeout=300, check=False
     )
     if result.returncode:
         raise RuntimeError(

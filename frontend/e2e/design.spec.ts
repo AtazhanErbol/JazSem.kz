@@ -47,6 +47,7 @@ test("book follows the pointer and respects reduced motion", async ({
   const scene = page.locator(".book-scene");
   const book = page.locator(".book-turntable");
   await expect(book).toBeVisible();
+  await expect(scene).toHaveAttribute("data-paused", "true");
   const initial = await book.evaluate((el) => getComputedStyle(el).transform);
   await page.mouse.move(1100, 400);
   expect(await book.evaluate((el) => getComputedStyle(el).transform)).toBe(
@@ -58,6 +59,7 @@ test("book follows the pointer and respects reduced motion", async ({
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(scene).toHaveAttribute("data-paused", "false");
   const box = (await scene.boundingBox())!;
   await page.mouse.move(box.x + box.width * 0.85, box.y + box.height * 0.3);
   await expect
@@ -68,6 +70,7 @@ test("book follows the pointer and respects reduced motion", async ({
     )
     .toBeGreaterThan(0.2);
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(scene).toHaveAttribute("data-paused", "true");
   await expect
     .poll(() => book.evaluate((el) => getComputedStyle(el).transform))
     .toBe(initial);
