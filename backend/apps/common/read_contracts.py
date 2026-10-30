@@ -60,6 +60,7 @@ class StudentAssignmentOutput(serializer_for(Assignment)):
 
 
 class StudentTopicOutput(serializer_for(Topic)):
+    has_attachment_content = serializers.BooleanField(read_only=True, default=False)
     materials = MaterialOutput(many=True)
     assignments = StudentAssignmentOutput(many=True)
     tests = serializer_for(Test)(many=True)
@@ -70,6 +71,7 @@ class StudentTopicOutput(serializer_for(Topic)):
 
 
 class AuthorTopicOutput(serializer_for(Topic)):
+    has_attachment_content = serializers.BooleanField(read_only=True, default=False)
     materials = MaterialOutput(many=True)
     assignments = serializer_for(Assignment)(many=True)
     tests = AuthorTestOutput(many=True)

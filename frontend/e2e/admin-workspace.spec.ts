@@ -57,6 +57,9 @@ test("admin creates course, assignment and test from quick actions without AI", 
     .getByLabel("Название", { exact: true })
     .fill("Самостоятельная работа");
   await dialog
+    .getByRole("button", { name: "Содержание и инструкция", exact: true })
+    .click();
+  await dialog
     .getByLabel("Инструкция", { exact: true })
     .fill("Решите x + 1 = 2 и объясните ответ.");
   await dialog

@@ -92,21 +92,20 @@ it("continues from a new week to its topic when tree refetch renders before muta
   fireEvent.change(screen.getByLabelText("Название"), {
     target: { value: "Basics" },
   });
-  fireEvent.click(
-    screen.getByRole("button", { name: "Сохранить" }),
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
   fireEvent.click(await screen.findByRole("button", { name: /Добавить тему/ }));
   fireEvent.change(screen.getByLabelText("Название"), {
     target: { value: "Equations" },
   });
-  fireEvent.click(
-    screen.getByRole("button", { name: "Сохранить" }),
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
   const next = screen.getByRole("button", {
     name: "Далее: содержание и настройки",
   });
   await waitFor(() => expect(next).toBeEnabled());
   fireEvent.click(next);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Содержание и инструкция" }),
+  );
   expect(screen.getByLabelText("Инструкция")).toBeInTheDocument();
   cache.clear();
 });

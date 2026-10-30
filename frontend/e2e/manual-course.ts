@@ -33,6 +33,9 @@ export async function manualCourse(
   await page.getByRole("button", { name: "Добавить тему" }).first().click();
   await dialog.getByLabel("Название", { exact: true }).fill("First topic");
   await dialog
+    .getByRole("button", { name: "Содержание и инструкция", exact: true })
+    .click();
+  await dialog
     .getByLabel("Контент", { exact: true })
     .fill("Synthetic introduction to equations.");
   await save();
@@ -49,6 +52,9 @@ export async function manualCourse(
   await dialog
     .getByLabel("Название", { exact: true })
     .fill("Manual assignment");
+  await dialog
+    .getByRole("button", { name: "Содержание и инструкция", exact: true })
+    .click();
   await dialog
     .getByLabel("Инструкция", { exact: true })
     .fill("Solve x + 1 = 2 and explain your answer.");

@@ -104,6 +104,8 @@ jobs:
       - run: docker compose -f infra/compose.acceptance.yml run --rm backend python manage.py migrate --noinput
       - run: python scripts/acceptance_phase.py init
       - run: docker compose -f infra/compose.acceptance.yml up -d backend short heavy beat web edge
+      - name: Real private attachment storage and conditional-copy integration
+        run: docker compose -f infra/compose.acceptance.yml run --rm -e DJANGO_SETTINGS_MODULE=config.settings.test -e DJANGO_ALLOWED_HOSTS=testserver -e JAZSEM_STORAGE_INTEGRATION=1 -e E2E_ISOLATED_STORAGE=1 -e S3_BUCKET=jazsem-attachment-integration mail pytest -q /app/tests/test_learning_storage_integration.py
       - run: python scripts/acceptance_phase.py tls
       - run: python scripts/acceptance_phase.py http
       - run: python scripts/acceptance_infrastructure.py

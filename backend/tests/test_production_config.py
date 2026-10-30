@@ -73,6 +73,7 @@ def test_vercel_settings_detection_maps_integrations_before_loading_base(setting
         **valid_env(),
         "VERCEL": "1",
         "VERCEL_ENV": "preview",
+        "PREVIEW_ISOLATED_RESOURCES": "true",
         "VERCEL_BRANCH_URL": "jazsem-git-topic-team.vercel.app",
         "DJANGO_SETTINGS_MODULE": settings_module,
         "TRUSTED_PROXY_CIDRS": "127.0.0.1/32",

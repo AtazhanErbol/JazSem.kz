@@ -89,7 +89,7 @@ class ScopedViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
-def private_response(file, filename, *, as_attachment=True, content_type=None):
+def private_response(file, filename, *, as_attachment=True, content_type=None, expires=60):
     from storages.backends.s3 import S3Storage
 
     filename = filename or "download"
@@ -105,7 +105,7 @@ def private_response(file, filename, *, as_attachment=True, content_type=None):
                     ),
                     "ResponseContentType": content_type or "application/octet-stream",
                 },
-                expire=60,
+                expire=expires,
             )
         )
         response["Referrer-Policy"] = "no-referrer"

@@ -10,6 +10,7 @@ redis
 django-storages
 boto3
 openai
+olefile==0.47
 pydantic
 pypdf
 python-docx

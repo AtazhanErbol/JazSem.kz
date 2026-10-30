@@ -1,6 +1,10 @@
 import pytest
 
-from config.vercel_environment import configure_preview, configure_storage
+from config.vercel_environment import (
+    configure_preview,
+    configure_storage,
+    require_preview_isolation,
+)
 
 
 def test_preview_uses_its_stable_branch_alias_for_login_and_activation():
@@ -18,6 +22,13 @@ def test_preview_uses_its_stable_branch_alias_for_login_and_activation():
     original = env.copy()
     configure_preview(env)
     assert env == original
+
+
+def test_preview_requires_explicitly_isolated_resources_before_any_storage_or_database_work():
+    with pytest.raises(RuntimeError, match="isolated database"):
+        require_preview_isolation({"VERCEL_ENV": "preview"})
+    require_preview_isolation({"VERCEL_ENV": "preview", "PREVIEW_ISOLATED_RESOURCES": "true"})
+    require_preview_isolation({"VERCEL_ENV": "production"})
 
 
 @pytest.mark.parametrize("host", ["", "*.vercel.app", "evil.test", "x.vercel.app/path"])

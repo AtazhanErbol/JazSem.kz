@@ -54,6 +54,16 @@ def rejection_code(error):
 
 
 class GeminiProvider:
+    def generate_lecture(self, chunks, parameters):
+        from .lectures import LECTURE_SYSTEM, lecture_output_type
+
+        return self._parse(
+            {"settings": parameters, "sources": chunks},
+            lecture_output_type(parameters),
+            settings.AI_LECTURE_OUTPUT_TOKENS,
+            LECTURE_SYSTEM,
+        )
+
     def _parse(self, payload, output_type, output_limit, system):
         config = provider_configuration()
         if config.name != "gemini" or not config.configured:

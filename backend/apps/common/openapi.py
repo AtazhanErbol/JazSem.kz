@@ -8,6 +8,7 @@ def annotate_actions():
     from apps.accounts import serializers as auth
     from apps.accounts import views as account
     from apps.ai import contracts as ai
+    from apps.ai.lectures import LectureInput
     from apps.ai.views import DraftViewSet, JobViewSet, SourceViewSet
     from apps.assignments.models import Submission
     from apps.assignments.views import AssignmentViewSet, SubmissionFileViewSet, SubmissionViewSet
@@ -19,6 +20,7 @@ def annotate_actions():
     from apps.enrollments.models import Enrollment, GroupCourseAssignment
     from apps.enrollments.views import EnrollmentViewSet
     from apps.grading.models import GradingComponent
+    from apps.materials.attachments import AttachmentViewSet
     from apps.materials.views import MaterialViewSet
     from apps.notifications.models import Notification
     from apps.notifications.views import (
@@ -35,6 +37,8 @@ def annotate_actions():
             method,
             extend_schema(request=request, responses=response, **kwargs)(getattr(view, method)),
         )
+
+    mark(JobViewSet, "lecture", LectureInput, ai.JobOutput)
 
     for method in ["publish", "duplicate", "edit_draft"]:
         mark(CourseViewSet, method, inp.VersionInput, serializer_for(CourseVersion))
@@ -105,8 +109,9 @@ def annotate_actions():
     mark(account.ResetView, "post", auth.ResetPasswordInput, out.MessageOutput)
     mark(account.LogoutView, "post", inp.EmptyInput, {204: None})
     mark(account.UserViewSet, "deactivate", inp.EmptyInput, {204: None})
-    for view in [MaterialViewSet, SubmissionFileViewSet, SourceViewSet]:
+    for view in [MaterialViewSet, SubmissionFileViewSet, SourceViewSet, AttachmentViewSet]:
         mark(view, "download", None, OpenApiTypes.BINARY)
+    mark(AttachmentViewSet, "preview", None, OpenApiTypes.BINARY)
     for view, method in [
         (CourseViewSet, "versions"),
         (CourseViewSet, "grading_preset"),

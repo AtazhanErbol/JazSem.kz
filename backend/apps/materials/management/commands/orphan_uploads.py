@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.ai.models import SourceDocument
 from apps.assignments.models import SubmissionFile
-from apps.materials.models import Material
+from apps.materials.models import LearningAttachment, Material
 
 
 def referenced(key):
@@ -16,7 +16,7 @@ def referenced(key):
         return True
     return any(
         model.objects.filter(file=key).exists()
-        for model in [Material, SubmissionFile, SourceDocument]
+        for model in [Material, LearningAttachment, SubmissionFile, SourceDocument]
     )
 
 

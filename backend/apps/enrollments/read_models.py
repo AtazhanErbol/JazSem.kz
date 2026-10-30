@@ -2,11 +2,12 @@
 
 from collections import defaultdict
 
-from django.db.models import Max
+from django.db.models import Exists, Max, OuterRef
 
 from apps.assignments.models import Submission
 from apps.courses.models import Topic
 from apps.grading.models import GradingComponent
+from apps.materials.models import LearningAttachment
 from apps.progress.models import StudentProgress, TopicProgress
 from apps.testing.models import TestAttempt
 
@@ -22,6 +23,11 @@ class LearningReadModel:
         self.assignment_scores, self.test_scores = defaultdict(dict), defaultdict(dict)
         for topic in (
             Topic.objects.filter(week__course_version_id__in=versions)
+            .annotate(
+                has_attachment_content=Exists(
+                    LearningAttachment.objects.filter(topic_id=OuterRef("pk"))
+                )
+            )
             .select_related("week")
             .prefetch_related(*(["materials"] if mode != "grades" else []), "assignments", "tests")
         ):

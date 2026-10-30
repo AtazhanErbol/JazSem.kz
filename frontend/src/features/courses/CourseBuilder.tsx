@@ -25,6 +25,8 @@ import { api } from "../../services/api";
 import { Badge, Empty, ErrorState, Loading, Modal } from "../../components/UI";
 import { useAction } from "../../hooks/useAction";
 import { RecordForm } from "../manage/RecordForm";
+import { LearningContent } from "../authoring/LearningContent";
+import { ActivityAttachments } from "../authoring/Attachments";
 
 type GradingChange = {
   from_version: number;
@@ -635,11 +637,14 @@ export function CourseBuilder() {
               </p>
               <span className="eyebrow">{t(selected.type)}</span>
               <h2>{selected.item.title}</h2>
-              <div className="prose">
-                {selected.item.content ||
+              <LearningContent
+                content={
+                  selected.item.content ||
                   selected.item.instructions ||
-                  String(selected.item.description || "")}
-              </div>
+                  String(selected.item.description || "")
+                }
+              />
+              <ActivityAttachments type={selected.type} id={selected.item.id} />
               {editable && selected.type === "topic" && (
                 <div className="topic-create">
                   <h3>{t("workspace.topicEmptyTitle")}</h3>
@@ -860,6 +865,11 @@ export function CourseBuilder() {
           onClose={() => setEditor(undefined)}
         >
           <RecordForm
+            key={`${editor.resource}-${editor.initial?.id || "new"}`}
+            course={id}
+            onRelatedEdit={(resource, initial, fixed) =>
+              setEditor({ resource, initial, fixed })
+            }
             resource={editor.resource}
             initial={editor.initial}
             fixed={editor.fixed}

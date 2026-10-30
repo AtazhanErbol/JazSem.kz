@@ -152,7 +152,9 @@ def _generate_course(job, lease):
         delivery.event(lease, "provider_started")
         config = provider_configuration()
         provider: AIProvider = GeminiProvider() if config.name == "gemini" else OpenAIProvider()
-        if job.type == "REGENERATE_TOPIC":
+        if job.type == "LECTURE":
+            draft, usage = provider.generate_lecture(sources, job.parameters)
+        elif job.type == "REGENERATE_TOPIC":
             draft = CourseDraft.model_validate(job.parameters["draft_data"])
             wi, ti = job.parameters["week_index"], job.parameters["topic_index"]
             topic, usage = provider.regenerate_topic(
@@ -164,15 +166,23 @@ def _generate_course(job, lease):
         # Account for a response even if cancellation won while the call ran.
         responded = True
         usage_record(job, started, usage, "COMPLETED")
-        validate_citations(draft, {c["id"] for c in sources})
-        if len(draft.weeks) != job.parameters["weeks"]:
-            raise ValueError("Week count mismatch")
-        if not job.parameters["assignments"] and any(
-            t.assignments for w in draft.weeks for t in w.topics
-        ):
-            raise ValueError("Unexpected assignments")
-        if not job.parameters["tests"] and any(t.questions for w in draft.weeks for t in w.topics):
-            raise ValueError("Unexpected tests")
+        if job.type == "LECTURE":
+            from .lectures import reviewed_lecture
+
+            draft_data = reviewed_lecture(draft, job.parameters, usage)
+        else:
+            validate_citations(draft, {c["id"] for c in sources})
+            if len(draft.weeks) != job.parameters["weeks"]:
+                raise ValueError("Week count mismatch")
+            if not job.parameters["assignments"] and any(
+                t.assignments for w in draft.weeks for t in w.topics
+            ):
+                raise ValueError("Unexpected assignments")
+            if not job.parameters["tests"] and any(
+                t.questions for w in draft.weeks for t in w.topics
+            ):
+                raise ValueError("Unexpected tests")
+            draft_data = draft.model_dump()
         with transaction.atomic():
             delivery.lock_course(lease)
             locked = delivery.owned(lease)
@@ -181,7 +191,7 @@ def _generate_course(job, lease):
             job = AIJob.objects.select_for_update().get(pk=pk)
             if job.status != "PROCESSING":
                 return
-            AICourseDraft.objects.get_or_create(job=job, defaults={"data": draft.model_dump()})
+            AICourseDraft.objects.get_or_create(job=job, defaults={"data": draft_data})
             job.status, job.progress, job.current_step, job.finished_at = (
                 "COMPLETED",
                 100,

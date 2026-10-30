@@ -8,6 +8,18 @@ const types: Record<string, string> = {
   jpeg: "image/jpeg",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  doc: "application/msword",
+  ppt: "application/vnd.ms-powerpoint",
+  xls: "application/vnd.ms-excel",
+  csv: "text/csv",
+  webp: "image/webp",
+  gif: "image/gif",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  odt: "application/vnd.oasis.opendocument.text",
+  odp: "application/vnd.oasis.opendocument.presentation",
+  ods: "application/vnd.oasis.opendocument.spreadsheet",
 };
 
 type Grant = { ticket: string; url: string; fields: Record<string, string> };
@@ -31,6 +43,7 @@ export async function directUpload(
   form: FormData,
   prepare: Prepare,
   signal?: AbortSignal,
+  onProgress?: (percent: number) => void,
 ) {
   const data: Record<string, string> = {};
   const files: { field: string; file: File }[] = [];
@@ -67,6 +80,40 @@ export async function directUpload(
     );
     // S3 POST requires the file to be the final multipart field.
     payload.append("file", files[i].file);
+    if (onProgress) {
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const abort = () => xhr.abort();
+        const finish = () => signal?.removeEventListener("abort", abort);
+        xhr.open("POST", url);
+        xhr.withCredentials = false;
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable)
+            onProgress(Math.round((event.loaded / event.total) * 100));
+        };
+        xhr.onload = () => {
+          finish();
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error("Private upload failed"));
+        };
+        xhr.onerror = () => {
+          finish();
+          reject(new Error("Private upload failed"));
+        };
+        xhr.onabort = () => {
+          finish();
+          reject(new DOMException("Upload cancelled", "AbortError"));
+        };
+        signal?.addEventListener("abort", abort, { once: true });
+        if (signal?.aborted) {
+          finish();
+          reject(new DOMException("Upload cancelled", "AbortError"));
+          return;
+        }
+        xhr.send(payload);
+      });
+      continue;
+    }
     const response = await fetch(url, {
       method: "POST",
       body: payload,

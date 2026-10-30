@@ -8,6 +8,8 @@ import type {
 } from "../../entities/learning";
 import { api } from "../../services/api";
 import { Badge, ErrorState, Loading } from "../../components/UI";
+import { Attachments } from "../authoring/Attachments";
+import { LearningContent } from "../authoring/LearningContent";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAction } from "../../hooks/useAction";
 import { useUser } from "../../app/Auth";
@@ -87,7 +89,9 @@ function AssignmentScreen({ id }: { id: string }) {
       )}
       <h1>{String(assignment.data.title)}</h1>
       <section className="panel">
-        <p className="prose">{String(assignment.data.instructions)}</p>
+        <LearningContent content={String(assignment.data.instructions)} />
+        <Attachments owner="assignment" ownerId={id!} mode="videos" />
+        <Attachments owner="assignment" ownerId={id!} />
         {assignment.data.deadline != null && (
           <p>
             {t("deadline")}:{" "}

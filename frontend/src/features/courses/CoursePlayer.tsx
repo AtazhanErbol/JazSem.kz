@@ -10,6 +10,8 @@ import { queryKeys } from "../../services/queryKeys";
 import type { Activity, Page, Tree } from "../../entities/types";
 import type { EnrollmentSummary } from "../../entities/learning";
 import { Empty, ErrorState, Loading, ProgressBar } from "../../components/UI";
+import { LearningContent } from "../authoring/LearningContent";
+import { ActivityAttachments } from "../authoring/Attachments";
 
 export function CoursePlayer() {
   const { id = "" } = useParams();
@@ -67,7 +69,9 @@ export function CoursePlayer() {
   const entries: { type: string; item: Activity }[] = data.weeks.flatMap(
     (week) =>
       week.topics.flatMap((topic) => [
-        ...(topic.content.trim() ? [{ type: "topic", item: topic }] : []),
+        ...(topic.content.trim() || topic.has_attachment_content
+          ? [{ type: "topic", item: topic }]
+          : []),
         ...(["materials", "assignments", "tests"] as const).flatMap((type) =>
           topic[type].map((item) => ({ type, item })),
         ),
@@ -178,11 +182,14 @@ export function CoursePlayer() {
             <>
               <span className="eyebrow">{t(selected.type)}</span>
               <h2>{selected.item.title}</h2>
-              <div className="prose">
-                {selected.item.content ||
+              <LearningContent
+                content={
+                  selected.item.content ||
                   selected.item.instructions ||
-                  String(selected.item.description || "")}
-              </div>
+                  String(selected.item.description || "")
+                }
+              />
+              <ActivityAttachments type={selected.type} id={selected.item.id} />
               <div className="row-actions">
                 {selected.item.file && (
                   <a

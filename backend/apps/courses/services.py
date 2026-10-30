@@ -25,7 +25,7 @@ def publish(version, user):
     topics = [
         topic
         for week in version.weeks.prefetch_related(
-            "topics__materials", "topics__assignments", "topics__tests"
+            "topics__materials", "topics__assignments", "topics__tests", "topics__attachments"
         )
         for topic in week.topics.all()
     ]
@@ -36,6 +36,7 @@ def publish(version, user):
         and not t.materials.exists()
         and not t.assignments.exists()
         and not t.tests.exists()
+        and not t.attachments.exists()
         for t in topics
     ):
         raise ValidationError("Каждая тема должна содержать учебный материал или активность.")
@@ -83,6 +84,7 @@ def publish(version, user):
         t.is_required
         and (
             t.content.strip()
+            or t.attachments.exists()
             or any(m.is_required for m in t.materials.all())
             or any(a.is_required for a in t.assignments.all())
             or any(test.is_required for test in t.tests.all())
@@ -126,21 +128,35 @@ def duplicate(version, user):
             copied.save()
         return copied
 
+    def copy_attachments(source, destination, field):
+        for attachment in source.attachments.all():
+            copy(attachment, **{field: destination})
+
     options = []
     for week in version.weeks.prefetch_related(
-        "topics__materials", "topics__assignments", "topics__tests__questions__options"
+        "topics__materials",
+        "topics__assignments",
+        "topics__tests__questions__options",
+        "topics__attachments",
+        "topics__assignments__attachments",
+        "topics__tests__attachments",
+        "topics__tests__questions__attachments",
     ):
         new_week = copy(week, course_version=target)
         for topic in week.topics.all():
             new_topic = copy(topic, week=new_week)
+            copy_attachments(topic, new_topic, "topic")
             for material in topic.materials.all():
                 copy(material, topic=new_topic)
             for assignment in topic.assignments.all():
-                copy(assignment, topic=new_topic, status="DRAFT")
+                new_assignment = copy(assignment, topic=new_topic, status="DRAFT")
+                copy_attachments(assignment, new_assignment, "assignment")
             for test in topic.tests.all():
                 new_test = copy(test, topic=new_topic, status="DRAFT")
+                copy_attachments(test, new_test, "test")
                 for question in test.questions.all():
                     new_question = copy(question, test=new_test)
+                    copy_attachments(question, new_question, "question")
                     for option in question.options.all():
                         options.append(copy(option, question=new_question, persist=False))
     # UUIDs are assigned on construction, and these plain models have no save

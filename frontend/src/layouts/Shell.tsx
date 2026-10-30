@@ -119,29 +119,34 @@ export function Shell() {
         ]
       : []),
   ] as [string, string, LucideIcon][];
-  const groups =
-    user.role === "ADMIN"
+  const groups = (
+    user.role !== "STUDENT"
       ? [
           { title: "", paths: [""] },
           {
-            title: "workspace.learning",
-            paths: [
-              "courses",
-              "disciplines",
-              "assignments",
-              "tests",
-              "submissions",
-              "grades",
-              "progress",
-            ],
+            title: "authoring.learning",
+            paths: ["courses", "disciplines", "progress"],
+          },
+          {
+            title: "authoring.knowledge",
+            paths: ["assignments", "tests", "submissions", "grades"],
           },
           { title: "workspace.people", paths: ["users", "groups"] },
+          { title: "authoring.tools", paths: ["ai", "ai-usage"] },
           {
             title: "workspace.management",
-            paths: ["ai", "content", "audit", "ai-usage", "mail-outbox"],
+            paths: ["content", "audit", "mail-outbox"],
           },
         ]
-      : [{ title: "", paths: links.map(([path]) => path) }];
+      : [{ title: "", paths: links.map(([path]) => path) }]
+  )
+    .map((group) => ({
+      ...group,
+      paths: group.paths.filter((path) =>
+        links.some(([allowed]) => allowed === path),
+      ),
+    }))
+    .filter((group) => group.paths.length > 0);
   const currentLabel =
     location.pathname === "/app/guide"
       ? "workspace.guide"

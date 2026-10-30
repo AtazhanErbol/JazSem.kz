@@ -3,6 +3,15 @@
 import re
 
 
+def require_preview_isolation(env):
+    # Build hooks run migrations and modify bucket configuration. A feature-branch
+    # preview must never silently inherit the production database/storage/queues.
+    if env.get("VERCEL_ENV") == "preview" and env.get("PREVIEW_ISOLATED_RESOURCES") != "true":
+        raise RuntimeError(
+            "Preview requires isolated database, storage and queue resources; set PREVIEW_ISOLATED_RESOURCES=true only after configuring them."
+        )
+
+
 def configure_preview(env):
     """Use the provider's stable branch alias for each isolated preview database."""
     if env.get("VERCEL_ENV") != "preview":
@@ -35,6 +44,7 @@ def configure_storage(env):
 
 
 def configure_settings(env):
+    require_preview_isolation(env)
     if env.get("VERCEL") != "1":
         raise RuntimeError("The Vercel entrypoint requires the Vercel runtime")
     for key, value in {

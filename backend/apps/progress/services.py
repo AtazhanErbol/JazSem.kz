@@ -17,7 +17,7 @@ def summary(enrollment, persist=False, data=None):
         checks = [m.pk in materials_done for m in topic.materials.all() if m.is_required]
         checks += [a.pk in assignments_done for a in topic.assignments.all() if a.is_required]
         checks += [t.pk in tests_done for t in topic.tests.all() if t.is_required]
-        if topic.content.strip():
+        if topic.content.strip() or topic.has_attachment_content:
             checks.append(topic.pk in topic_reads)
         if checks and all(checks):
             completed_topics.append(str(topic.pk))

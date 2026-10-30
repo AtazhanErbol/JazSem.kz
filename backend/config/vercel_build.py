@@ -4,12 +4,13 @@ import os
 
 import django
 
-from config.vercel_environment import configure_runtime
+from config.vercel_environment import configure_runtime, require_preview_isolation
 from config.vercel_storage_setup import main as initialize_storage
 from config.vercel_storage_setup import safe_error
 
 
 def main():
+    require_preview_isolation(os.environ)
     # Storage preparation is independent of SMTP and can prove the upload path
     # before the strict production configuration validation stops an incomplete build.
     try:
