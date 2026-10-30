@@ -7,7 +7,10 @@ from django.db import transaction
 from django.utils import timezone
 
 from . import delivery
+from .configuration import provider_configuration, source_size_exceeded
+from .errors import GenerationFailure
 from .extraction import extract_pages
+from .gemini import GeminiProvider
 from .models import AICourseDraft, AIJob, AIUsageLog, DocumentChunk, SourceDocument
 from .provider import AIProvider, OpenAIProvider
 from .schema import CourseDraft, validate_citations
@@ -18,12 +21,18 @@ def dispatch_pending():
     delivery.dispatch()
 
 
-@shared_task(soft_time_limit=480, time_limit=540)
+@shared_task(soft_time_limit=0, time_limit=0)
 def extract_document(pk):
     document = SourceDocument.objects.get(pk=pk)
     lease = delivery.claim(source=document)
     if lease is None:
         return
+    with delivery.keep_alive(lease):
+        _extract_document(document, lease)
+
+
+def _extract_document(document, lease):
+    pk = document.pk
     try:
         chunks, chars = [], 0
         with document.file.open("rb") as file:
@@ -32,7 +41,7 @@ def extract_document(pk):
             raise ValueError("Source byte limit")
         for page, text in extract_pages(data, document.filename):
             chars += len(text)
-            if chars > settings.AI_MAX_SOURCE_CHARS * 5:
+            if source_size_exceeded(chars, multiplier=5):
                 raise ValueError("Source character limit")
             if not delivery.heartbeat(lease):
                 return
@@ -70,18 +79,19 @@ def extract_document(pk):
 
 
 def usage_record(job, started, usage=None, status="FAILED"):
-    cost = None
-    if usage and settings.AI_INPUT_PRICE and settings.AI_OUTPUT_PRICE:
+    config = provider_configuration()
+    cost = Decimal(0) if status == "REJECTED" else None
+    if usage and config.input_price and config.output_price:
         cost = (
-            Decimal(usage.input_tokens) * Decimal(settings.AI_INPUT_PRICE)
-            + Decimal(usage.output_tokens) * Decimal(settings.AI_OUTPUT_PRICE)
+            Decimal(usage.input_tokens) * Decimal(config.input_price)
+            + Decimal(usage.output_tokens) * Decimal(config.output_price)
         ) / 1000000
     AIUsageLog.objects.update_or_create(
         job=job,
         defaults={
             "user": job.user,
             "operation": job.type,
-            "model": settings.OPENAI_MODEL,
+            "model": config.model,
             "input_tokens": usage.input_tokens if usage else 0,
             "output_tokens": usage.output_tokens if usage else 0,
             "estimated_cost": cost,
@@ -91,12 +101,18 @@ def usage_record(job, started, usage=None, status="FAILED"):
     )
 
 
-@shared_task(soft_time_limit=480, time_limit=540)
+@shared_task(soft_time_limit=0, time_limit=0)
 def generate_course(pk):
     job = AIJob.objects.get(pk=pk)
     lease = delivery.claim(job=job)
     if lease is None:
         return
+    with delivery.keep_alive(lease):
+        _generate_course(job, lease)
+
+
+def _generate_course(job, lease):
+    pk = job.pk
     started = time.monotonic()
     provider_called = False
     responded = False
@@ -105,7 +121,7 @@ def generate_course(pk):
             delivery.failed(lease, "AI_DISABLED")
             return
         sources = job.source_snapshot
-        if not sources or sum(len(c["text"]) for c in sources) > settings.AI_MAX_SOURCE_CHARS:
+        if not sources or source_size_exceeded(sum(len(c["text"]) for c in sources)):
             raise ValueError("Sources missing or context limit")
         # Persist the possible paid-call boundary before network IO. After this
         # point a timeout/kill is uncertain and must never trigger automatic replay.
@@ -121,7 +137,8 @@ def generate_course(pk):
                 return
         provider_called = True
         delivery.event(lease, "provider_started")
-        provider: AIProvider = OpenAIProvider()
+        config = provider_configuration()
+        provider: AIProvider = GeminiProvider() if config.name == "gemini" else OpenAIProvider()
         if job.type == "REGENERATE_TOPIC":
             draft = CourseDraft.model_validate(job.parameters["draft_data"])
             wi, ti = job.parameters["week_index"], job.parameters["topic_index"]
@@ -160,6 +177,19 @@ def generate_course(pk):
             )
             job.save()
             delivery.complete(locked)
+    except GenerationFailure as error:
+        delivery.failed(lease, error.code)
+        if not AIUsageLog.objects.filter(job=job).exists():
+            usage_record(
+                job,
+                started,
+                error.usage,
+                status="FAILED"
+                if error.usage is not None
+                or error.code.startswith("AI_OUTPUT_")
+                or error.code in {"OUTPUT_VALIDATION_FAILED", "AI_CONTENT_BLOCKED"}
+                else "REJECTED",
+            )
     except Exception:
         code = (
             "OUTPUT_VALIDATION_FAILED"

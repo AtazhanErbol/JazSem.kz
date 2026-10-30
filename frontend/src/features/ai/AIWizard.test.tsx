@@ -11,7 +11,7 @@ import { MemoryRouter } from "react-router-dom";
 import { AIWizard } from "./AIWizard";
 import i18n from "../../i18n";
 
-const mocks = vi.hoisted(() => ({ run: vi.fn() }));
+const mocks = vi.hoisted(() => ({ run: vi.fn(), budget: "0.25" }));
 vi.mock("../../hooks/useUnsavedChanges", () => ({
   useUnsavedChanges: () => () => {},
 }));
@@ -26,7 +26,7 @@ vi.mock("../../services/api", () => ({
         enabled: true,
         configured: true,
         worker_available: true,
-        daily_budget: "0.25",
+        daily_budget: mocks.budget,
         model: "fake",
       };
     if (path.includes("/versions/"))
@@ -47,7 +47,10 @@ vi.mock("../../services/api", () => ({
     return { results: [], count: 0 };
   },
 }));
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  mocks.budget = "0.25";
+});
 it("sends append target, teacher instruction and PDF range only after required selections", async () => {
   await i18n.changeLanguage("ru");
   mocks.run.mockResolvedValue({ ok: false });
@@ -96,5 +99,23 @@ it("sends append target, teacher instruction and PDF range only after required s
       }),
     ),
   );
+  cache.clear();
+});
+
+it.each(["ru", "kk"])("shows disabled application budget in %s", async (language) => {
+  await i18n.changeLanguage(language);
+  mocks.budget = "unlimited";
+  const cache = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  render(
+    <QueryClientProvider client={cache}>
+      <MemoryRouter initialEntries={["/app/ai?course=course"]}>
+        <AIWizard />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+  expect(await screen.findByText(i18n.t("aiBudgetUnlimited"))).toBeVisible();
+  expect(screen.queryByText(/\$unlimited|\$0\.25/)).not.toBeInTheDocument();
   cache.clear();
 });

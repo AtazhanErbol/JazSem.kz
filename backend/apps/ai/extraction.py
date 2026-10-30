@@ -1,11 +1,12 @@
 import io
-import time
 import zipfile
 from contextlib import ExitStack, closing
 from pathlib import Path
 
 from django.conf import settings
 from PIL import Image
+
+from .configuration import source_size_exceeded
 
 MAX_PAGES = 300
 MAX_PIXELS = 20_000_000
@@ -16,7 +17,7 @@ def bounded_text(parts):
     output, size = [], 0
     for part in parts:
         size += len(part) + 1
-        if size > settings.AI_MAX_SOURCE_CHARS * 5:
+        if source_size_exceeded(size, multiplier=5):
             raise ValueError("Text limit exceeded")
         output.append(part)
     return "\n".join(output)
@@ -33,7 +34,6 @@ def validate_archive(data):
 
 def extract_pages(data, filename):
     suffix = Path(filename).suffix.lower()
-    started = time.monotonic()
     if suffix == ".txt":
         yield 1, bounded_text([data.decode("utf-8")])
     elif suffix == ".docx":
@@ -70,8 +70,6 @@ def extract_pages(data, filename):
         with ExitStack() as stack:
             pdf = None
             for index, page in enumerate(reader.pages):
-                if time.monotonic() - started > 420:
-                    raise ValueError("Extraction deadline")
                 text = bounded_text([page.extract_text() or ""])
                 if len(text.strip()) < 40:
                     import pypdfium2 as pdfium
@@ -86,7 +84,7 @@ def extract_pages(data, filename):
                         with closing(rendered_page.render(scale=2)) as bitmap:
                             with bitmap.to_pil() as image:
                                 text = pytesseract.image_to_string(
-                                    image, lang=settings.OCR_LANGUAGES, timeout=60
+                                    image, lang=settings.OCR_LANGUAGES
                                 )
                 yield index + 1, bounded_text([text])
     elif suffix in [".png", ".jpg", ".jpeg"]:
@@ -97,9 +95,7 @@ def extract_pages(data, filename):
                 raise ValueError("Image pixel/frame limit")
             yield (
                 1,
-                bounded_text(
-                    [pytesseract.image_to_string(image, lang=settings.OCR_LANGUAGES, timeout=60)]
-                ),
+                bounded_text([pytesseract.image_to_string(image, lang=settings.OCR_LANGUAGES)]),
             )
     else:
         raise ValueError("Unsupported source")

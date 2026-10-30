@@ -1,4 +1,5 @@
 import io
+from itertools import count
 from unittest.mock import patch
 
 import pytest
@@ -38,6 +39,29 @@ def test_pdf_ocr_opens_document_once_and_preserves_languages(settings):
     assert result == [(1, text), (2, text)]
     assert opened.call_count == 1 and ocr.call_count == 2
     assert ocr.call_args.kwargs["lang"] == settings.OCR_LANGUAGES
+    assert "timeout" not in ocr.call_args.kwargs
+
+
+def test_slow_pdf_extraction_has_no_elapsed_time_deadline():
+    with (
+        patch("time.monotonic", side_effect=count(0, 1000)),
+        patch("pytesseract.image_to_string", return_value="Recognized text"),
+    ):
+        assert list(extract_pages(pdf(2), "slow.pdf")) == [
+            (1, "Recognized text"),
+            (2, "Recognized text"),
+        ]
+
+
+def test_image_ocr_has_no_duration_limit(settings):
+    from PIL import Image
+
+    with Image.new("RGB", (4, 4)) as picture:
+        data = io.BytesIO()
+        picture.save(data, format="PNG")
+    with patch("pytesseract.image_to_string", return_value="Image text") as ocr:
+        assert list(extract_pages(data.getvalue(), "source.png")) == [(1, "Image text")]
+    assert ocr.call_args.kwargs == {"lang": settings.OCR_LANGUAGES}
 
 
 def test_docx_pptx_and_utf8_preserve_kazakh_text():

@@ -196,7 +196,9 @@ function AIWorkspace({ course }: { course: string }) {
                 </p>
               )}
               <small>
-                {t("aiBudget")}: ${availability.data.daily_budget}
+                {availability.data.daily_budget === "unlimited"
+                  ? t("aiBudgetUnlimited")
+                  : `${t("aiBudget")}: $${availability.data.daily_budget}`}
               </small>
             </>
           )}
@@ -612,6 +614,7 @@ function AIWorkspace({ course }: { course: string }) {
               <ProgressBar value={Number(active.data.progress)} />
               {Boolean(active.data.error) && (
                 <ErrorState
+                  title={t("aiRecovery.generationFailed")}
                   error={t(`aiRecovery.errors.${active.data.error}`, {
                     defaultValue: t(
                       "aiRecovery.errors.GENERATION_VALIDATION_FAILED",

@@ -2,19 +2,49 @@
 
 import logging
 import uuid
+from contextlib import contextmanager
 from datetime import timedelta
+from threading import Event, Thread
 
-from django.conf import settings
-from django.db import transaction
+from django.db import close_old_connections, connection, transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.courses.models import Course
 
+from .configuration import provider_configuration
 from .models import AIJob, AIUsageLog, SourceDocument, TaskDelivery
 
 TERMINAL = ["DONE", "FAILED", "CANCELLED"]
-LEASE_SECONDS = 600  # exceeds the Celery hard limit of 540s
+LEASE_SECONDS = 600  # inactivity window, not a maximum task duration
+HEARTBEAT_SECONDS = 30
+
+
+@contextmanager
+def keep_alive(row):
+    """Renew ownership even while a provider, parser or OCR call is blocking."""
+    stopped = Event()
+
+    def renew():
+        try:
+            while not stopped.wait(HEARTBEAT_SECONDS):
+                try:
+                    close_old_connections()
+                    if not heartbeat(row):
+                        return  # cancellation, completion or a new owner won
+                except Exception:
+                    # Retry transient DB errors; never log connection credentials.
+                    event(row, "delivery_heartbeat_failed")
+        finally:
+            connection.close()
+
+    thread = Thread(target=renew, name=f"ai-heartbeat-{row.pk}", daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stopped.set()
+        thread.join(timeout=5)
 
 
 def event(row, name, **extra):
@@ -65,6 +95,15 @@ def reconcile():
             row = TaskDelivery.objects.select_for_update().get(pk=pk)
             if row.status in TERMINAL or not row.lease_until or row.lease_until > now:
                 continue
+            # All deliveries use the heavy queue. A healthy long-running task
+            # may occupy its only worker for hours; waiting is not delivery loss.
+            if (
+                row.status == "SENT"
+                and TaskDelivery.objects.filter(status="RUNNING", lease_until__gt=now).exists()
+            ):
+                row.lease_until = now + timedelta(seconds=LEASE_SECONDS)
+                row.save(update_fields=["lease_until", "updated_at"])
+                continue
             uncertain = (
                 row.job_id
                 and AIJob.objects.filter(pk=row.job_id, provider_started_at__isnull=False).exists()
@@ -88,7 +127,7 @@ def reconcile():
                         defaults={
                             "user": job.user,
                             "operation": job.type,
-                            "model": settings.OPENAI_MODEL,
+                            "model": provider_configuration().model,
                             "duration": max(0, (now - job.provider_started_at).total_seconds()),
                             "status": "UNCERTAIN",
                         },

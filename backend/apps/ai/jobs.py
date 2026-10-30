@@ -8,6 +8,7 @@ from rest_framework.exceptions import APIException, Throttled, ValidationError
 from apps.accounts.models import User
 from apps.courses.models import Course
 
+from .configuration import provider_configuration, source_size_exceeded
 from .models import AIJob, DocumentChunk, SourceDocument, TaskDelivery
 
 
@@ -38,7 +39,7 @@ def snapshot(course, source_ids, page_from=None, page_to=None):
     result, chars = [], 0
     for chunk in chunks.order_by("document_id", "chunk_index").iterator():
         chars += len(chunk.content)
-        if chars > settings.AI_MAX_SOURCE_CHARS:
+        if source_size_exceeded(chars):
             raise ValidationError(
                 {"sources": "Источники превышают лимит контекста. Выберите меньше файлов."}
             )
@@ -65,7 +66,8 @@ def create_job(
     if AIJob.objects.filter(course=course, status__in=["QUEUED", "PROCESSING"]).exists():
         raise ActiveGeneration()
     if (
-        AIJob.objects.filter(user=actor, created_at__date=timezone.now().date()).count()
+        provider_configuration().limits_enabled
+        and AIJob.objects.filter(user=actor, created_at__date=timezone.now().date()).count()
         >= settings.AI_MAX_DAILY_JOBS
     ):
         raise Throttled(detail="Дневной лимит генерации исчерпан.")

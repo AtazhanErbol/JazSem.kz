@@ -93,8 +93,19 @@ REQUIRED_WORKER_ROLES = [
 ]
 STORAGE_PROBE_KEY = os.environ.get("STORAGE_PROBE_KEY", "")
 CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_TIME_LIMIT = 600
-CELERY_TASK_SOFT_TIME_LIMIT = 540
+# Pool defaults must also be unlimited: Billiard falls back to them when a
+# task supplies 0. Keep the previous bounds on short maintenance tasks only.
+CELERY_TASK_TIME_LIMIT = None
+CELERY_TASK_SOFT_TIME_LIMIT = None
+CELERY_TASK_ANNOTATIONS = {
+    name: {"time_limit": 600, "soft_time_limit": 540}
+    for name in [
+        "apps.ai.tasks.dispatch_pending",
+        "apps.testing.tasks.expire_attempts",
+        "apps.notifications.tasks.flush_mail",
+        "apps.notifications.tasks.deadline_reminders",
+    ]
+}
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULE = {
     "dispatch-ai": {"task": "apps.ai.tasks.dispatch_pending", "schedule": 5.0},
@@ -170,6 +181,15 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_BYTES
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "")
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "openai").strip().lower()
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite")
+GEMINI_THINKING_LEVEL = os.environ.get("GEMINI_THINKING_LEVEL", "minimal")
+GEMINI_APP_LIMITS_ENABLED = os.environ.get("GEMINI_APP_LIMITS_ENABLED", "true") == "true"
+# Conservative paid-tier estimates also bound usage if project billing changes.
+# Actual free-tier availability and billing are controlled by Google.
+GEMINI_INPUT_PRICE = os.environ.get("GEMINI_INPUT_PRICE_PER_MILLION", "0.25")
+GEMINI_OUTPUT_PRICE = os.environ.get("GEMINI_OUTPUT_PRICE_PER_MILLION", "1.50")
 AI_ENABLED = os.environ.get("AI_ENABLED", "false") == "true"
 AI_MAX_OUTPUT_TOKENS = int(os.environ.get("AI_MAX_OUTPUT_TOKENS", "8000"))
 AI_REGENERATE_OUTPUT_TOKENS = int(os.environ.get("AI_REGENERATE_OUTPUT_TOKENS", "4000"))

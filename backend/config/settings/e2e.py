@@ -10,6 +10,8 @@ if os.environ.get("E2E_ISOLATED") != "1":
     raise ImproperlyConfigured("E2E_ISOLATED=1 is required for synthetic browser acceptance")
 os.environ["AI_ENABLED"] = "false"
 os.environ["OPENAI_API_KEY"] = ""
+os.environ["AI_PROVIDER"] = "openai"
+os.environ["GEMINI_API_KEY"] = ""
 os.environ.pop("SENTRY_DSN", None)
 os.environ["MAIL_ENCRYPTION_KEY"] = base64.urlsafe_b64encode(b"e" * 32).decode()
 os.environ["DEFAULT_FROM_EMAIL"] = "acceptance@example.test"

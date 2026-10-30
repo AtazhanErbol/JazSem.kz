@@ -328,6 +328,7 @@ dialog {
   width: calc(100% - 32px);
   max-height: min(90dvh, 820px);
   overflow: hidden;
+  min-width: 0;
   box-shadow: 0 24px 120px #0004;
 }
 dialog[open] {
@@ -336,6 +337,8 @@ dialog[open] {
 }
 .modal-body {
   padding: 8px 26px 26px;
+  min-width: 0;
+  width: 100%;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -438,9 +441,17 @@ dialog::backdrop {
   justify-content: space-between;
   gap: 16px;
   align-items: center;
+  min-width: 0;
 }
 .modal-head h2 {
   margin: 0;
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.modal-head > .icon-button {
+  flex-shrink: 0;
+  align-self: flex-start;
 }
 .form-actions {
   display: flex;

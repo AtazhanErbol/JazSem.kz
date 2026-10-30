@@ -32,7 +32,7 @@ docker compose up -d
 
 Откройте [локальную платформу](http://localhost:5173). Development seed создаёт `admin@example.test`, `teacher@example.test`, `student@example.test`; пароль берётся только из `DEV_SEED_PASSWORD`. Повторный seed сохраняет существующие аккаунты и курсы. Он запрещён при `DEBUG=False` и не запускается автоматически.
 
-AI по умолчанию выключен (`AI_ENABLED=false`). Для будущего включения подготовлен экономичный `gpt-5-nano` с лимитами ответа, повторов и суточного бюджета. Задайте `OPENAI_API_KEY`, актуальные цены, включите `AI_ENABLED` и перезапустите API/worker. [Модель и контроль расходов](docs/AI_COSTS.md).
+AI по умолчанию выключен (`AI_ENABLED=false`). Поддерживаются OpenAI (`AI_PROVIDER=openai`, `gpt-5-nano`) и Google Gemini (`AI_PROVIDER=gemini`, `gemini-3.1-flash-lite`). Задайте ключ выбранного провайдера в `.env`, проверьте цены/квоты и включите `AI_ENABLED`. После изменения `.env` пересоздайте API и worker. [Подключение Gemini](docs/GEMINI_SETUP.md), [контроль расходов](docs/AI_COSTS.md).
 
 ## Разработка без Docker
 

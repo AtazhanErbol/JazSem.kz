@@ -15,6 +15,7 @@ from apps.common.permissions import is_teacher
 from apps.courses.models import Course
 from apps.materials.validation import validate_upload
 
+from .configuration import provider_configuration
 from .contracts import (
     ChunkOutput,
     DeleteSourceInput,
@@ -35,14 +36,7 @@ from .services import append_context, import_draft, validated_draft
 def require_generation():
     if not settings.AI_ENABLED:
         raise ValidationError("Генерация AI отключена администратором.")
-    if not all(
-        [
-            settings.OPENAI_API_KEY,
-            settings.OPENAI_MODEL,
-            settings.AI_INPUT_PRICE,
-            settings.AI_OUTPUT_PRICE,
-        ]
-    ):
+    if not provider_configuration().configured:
         raise ValidationError("Не настроены ключ, модель или лимиты стоимости AI.")
     require_worker()
 
@@ -60,18 +54,16 @@ class AIStatusView(APIView):
     def get(self, request):
         if not is_teacher(request.user):
             raise PermissionDenied()
+        config = provider_configuration()
         return Response(
             {
                 "enabled": settings.AI_ENABLED,
-                "configured": bool(
-                    settings.OPENAI_API_KEY
-                    and settings.OPENAI_MODEL
-                    and settings.AI_INPUT_PRICE
-                    and settings.AI_OUTPUT_PRICE
-                ),
+                "configured": config.configured,
                 "worker_available": worker_available(),
-                "daily_budget": str(settings.AI_DAILY_BUDGET_USD),
-                "model": settings.OPENAI_MODEL,
+                "daily_budget": str(settings.AI_DAILY_BUDGET_USD)
+                if config.limits_enabled
+                else "unlimited",
+                "model": config.model,
             }
         )
 

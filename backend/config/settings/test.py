@@ -9,3 +9,5 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 MAIL_ENCRYPTION_KEY = base64.urlsafe_b64encode(b"0" * 32).decode()
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+AI_PROVIDER = "openai"
+GEMINI_API_KEY = ""

@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 _root = Path(__file__).resolve().parents[3]
-_allowed = ("AI_", "OPENAI_", "EMAIL_", "DEFAULT_FROM_EMAIL", "MAIL_ENCRYPTION_KEY")
+_allowed = ("AI_", "OPENAI_", "GEMINI_", "EMAIL_", "DEFAULT_FROM_EMAIL", "MAIL_ENCRYPTION_KEY")
 _explicit = set(os.environ)
 # Read only service settings, never execute shell code or inherit Docker DB/S3 URLs.
 for _name in (
