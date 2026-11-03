@@ -1,5 +1,7 @@
 import time
+import traceback
 from decimal import Decimal
+from urllib.error import HTTPError, URLError
 
 from celery import shared_task
 from django.conf import settings
@@ -213,7 +215,22 @@ def _generate_course(job, lease):
                 or error.code in {"OUTPUT_VALIDATION_FAILED", "AI_CONTENT_BLOCKED"}
                 else "REJECTED",
             )
-    except Exception:
+    except Exception as error:
+        # Exception messages/locals can contain keys, URLs or source text.
+        # Retain only types, status and code locations for production diagnosis.
+        diagnostics = {
+            "error_type": type(error).__name__,
+            "provider_response_received": responded,
+            "traceback_frames": [
+                {"file": frame.filename, "line": frame.lineno, "function": frame.name}
+                for frame in traceback.extract_tb(error.__traceback__)
+            ],
+        }
+        if isinstance(error, HTTPError):
+            diagnostics["provider_http_status"] = error.code
+        elif isinstance(error, URLError):
+            diagnostics["transport_error_type"] = type(error.reason).__name__
+        delivery.event(lease, "generation_exception", **diagnostics)
         code = (
             "OUTPUT_VALIDATION_FAILED"
             if responded

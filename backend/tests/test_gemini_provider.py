@@ -1,5 +1,6 @@
 import io
 import json
+import ssl
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -69,6 +70,10 @@ def test_gemini_structured_course_preserves_sources_and_counts_thinking(db, sett
     assert "gemini-3.1-flash-lite:generateContent" in request.full_url
     assert settings.GEMINI_API_KEY not in request.full_url
     assert send.call_args.kwargs["timeout"] is None
+    tls_context = send.call_args.kwargs["context"]
+    assert isinstance(tls_context, ssl.SSLContext)
+    assert tls_context.verify_mode == ssl.CERT_REQUIRED and tls_context.check_hostname
+    assert tls_context.get_ca_certs()
     assert send.call_count == 1
     payload = json.loads(request.data)
     prompt = json.loads(payload["contents"][0]["parts"][0]["text"])
@@ -79,6 +84,60 @@ def test_gemini_structured_course_preserves_sources_and_counts_thinking(db, sett
     assert payload["generationConfig"]["maxOutputTokens"] == settings.AI_MAX_OUTPUT_TOKENS
     assert payload["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "minimal"}
     assert "untrusted" in payload["systemInstruction"]["parts"][0]["text"]
+
+
+def test_gemini_trusts_pinned_ca_when_runtime_system_ca_paths_are_missing(
+    db, settings, monkeypatch
+):
+    configure(settings)
+    monkeypatch.setenv("SSL_CERT_FILE", "/nonexistent/synthetic-system-ca.pem")
+    monkeypatch.setenv("SSL_CERT_DIR", "/nonexistent/synthetic-system-ca")
+    data = draft_data(SimpleNamespace(pk="source-id"))
+    with patch("apps.ai.gemini.urlopen", return_value=response(data)) as send:
+        GeminiProvider().generate_course([], {})
+    context = send.call_args.kwargs["context"]
+    assert context.verify_mode == ssl.CERT_REQUIRED and context.check_hostname
+    assert context.get_ca_certs()
+
+
+@pytest.mark.parametrize("failure", ["tls", "http", "unexpected"])
+def test_worker_logs_safe_transport_diagnostics_without_replaying(world, settings, caplog, failure):
+    configure(settings)
+    document = source(world)
+    private = "PRIVATE-SOURCE-AND-KEY-NOT-FOR-LOGS"
+    errors = {
+        "tls": URLError(ssl.SSLCertVerificationError(1, private)),
+        "http": HTTPError("https://private.invalid/" + private, 503, private, {}, None),
+        "unexpected": ValueError(private),
+    }
+    job = create_job(
+        world["teacher"],
+        world["course"],
+        {"weeks": 1, "assignments": False, "tests": True},
+        "diagnostic-test",
+        sources=[document.pk],
+    )
+    with caplog.at_level("INFO", logger="background"):
+        with patch("apps.ai.gemini.urlopen", side_effect=errors[failure]) as send:
+            generate_course(str(job.pk))
+            generate_course(str(job.pk))
+    assert send.call_count == 1
+    job.refresh_from_db()
+    assert job.error == "PROVIDER_OUTCOME_UNCERTAIN"
+    assert AIUsageLog.objects.get(job=job).status == "UNCERTAIN"
+    assert AIBudgetDay.objects.get().reserved_usd > 0
+    assert not AICourseDraft.objects.filter(job=job).exists()
+    record = next(row for row in caplog.records if row.message == "generation_exception")
+    assert record.error_type == type(errors[failure]).__name__
+    assert record.job_id == str(job.pk) and record.request_id == "diagnostic-test"
+    assert not record.provider_response_received
+    assert record.traceback_frames
+    if failure == "tls":
+        assert record.transport_error_type == "SSLCertVerificationError"
+    elif failure == "http":
+        assert record.provider_http_status == 503
+    assert private not in repr(record.__dict__)
+    assert settings.GEMINI_API_KEY not in repr(record.__dict__)
 
 
 def test_gemini_topic_regeneration_uses_topic_schema_and_budget(db, settings):
