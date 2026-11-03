@@ -12,7 +12,7 @@ boto3
 openai
 olefile==0.47
 pydantic
-pypdf
+pypdf>=6.21.4,<7
 python-docx
 python-pptx
 Pillow

@@ -134,7 +134,7 @@ CELERY_BEAT_SCHEDULE = {
 }
 REST_FRAMEWORK = {
     "NUM_PROXIES": 0,  # REMOTE_ADDR is normalized only by TrustedProxyMiddleware.
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["apps.common.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["apps.common.permissions.AccountReady"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",

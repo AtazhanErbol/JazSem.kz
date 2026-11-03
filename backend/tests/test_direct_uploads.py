@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 from apps.assignments.models import SubmissionFile
 from apps.common.direct_uploads import MEDIA_TYPE, cleanup_uploads
@@ -50,11 +51,12 @@ def grant(client, target, data, *, size=10, field="file", count=1, method="POST"
     return response.data["uploads"]
 
 
-def attach(client, target, data, grants, *, method="post"):
+def attach(client, target, data, grants, *, method="post", **extra):
     return getattr(client, method)(
         "/api/v1/" + target,
         json.dumps({"data": data, "tickets": [g["ticket"] for g in grants]}),
         content_type=MEDIA_TYPE,
+        **extra,
     )
 
 
@@ -68,6 +70,70 @@ def store_grants(direct, grants, data=b"notes data", mime="text/plain"):
     for g in grants:
         ticket = UploadTicket.objects.get(pk=g["ticket"])
         direct[0][ticket.key] = (data, mime)
+
+
+@pytest.fixture
+def csrf_session(world):
+    client = APIClient(enforce_csrf_checks=True)
+    client.force_login(world["teacher"])
+    response = client.get("/api/v1/auth/login/")
+    assert response.status_code == 200
+    client.credentials(HTTP_X_CSRFTOKEN=response.data["csrfToken"])
+    return client
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("role", ["teacher", "admin"])
+def test_source_upload_with_real_session_and_csrf(world, csrf_session, direct, monkeypatch, role):
+    from apps.ai.models import SourceDocument, TaskDelivery
+
+    monkeypatch.setattr("apps.ai.views.require_worker", lambda: None)
+    csrf_session.force_login(world[role])
+    token = csrf_session.get("/api/v1/auth/login/").data["csrfToken"]
+    csrf_session.credentials(HTTP_X_CSRFTOKEN=token)
+    data = {"course": str(world["course"].pk)}
+    content = b"A computer model represents a system. Verification checks the algorithm."
+    grants = grant(csrf_session, "sources/", data, size=len(content))
+    store_grants(direct, grants, content)
+    response = attach(
+        csrf_session, "sources/", data, grants, secure=True, HTTP_ORIGIN="https://testserver"
+    )
+    assert response.status_code == 201, response.data
+    source = SourceDocument.objects.get(pk=response.data["id"])
+    assert source.uploaded_by == world[role]
+    assert TaskDelivery.objects.filter(source=source).exists()
+    assert UploadTicket.objects.get(pk=grants[0]["ticket"]).consumed
+    with source.file.open("rb") as file:
+        assert file.read() == content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("rejection", ["missing", "wrong", "cookie", "origin", "anonymous"])
+def test_source_upload_rejects_before_consuming_tickets(world, csrf_session, direct, rejection):
+    from apps.ai.models import SourceDocument
+
+    data = {"course": str(world["course"].pk)}
+    grants = grant(csrf_session, "sources/", data)
+    store_grants(direct, grants)
+    original = SourceDocument.objects.count()
+    if rejection == "missing":
+        csrf_session.credentials()
+    elif rejection == "wrong":
+        csrf_session.credentials(HTTP_X_CSRFTOKEN="a" * 64)
+    elif rejection == "cookie":
+        csrf_session.cookies.pop("csrftoken")
+    elif rejection == "origin":
+        csrf_session.credentials(
+            HTTP_X_CSRFTOKEN=csrf_session.cookies["csrftoken"].value,
+            HTTP_ORIGIN="https://untrusted.example.test",
+        )
+    else:
+        csrf_session.logout()
+    response = attach(csrf_session, "sources/", data, grants)
+    assert response.status_code == 403, response.data
+    assert not UploadTicket.objects.get(pk=grants[0]["ticket"]).consumed
+    assert SourceDocument.objects.count() == original
+    direct[1].get_object.assert_not_called()
 
 
 @pytest.mark.django_db

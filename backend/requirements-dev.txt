@@ -238,7 +238,7 @@ pygments==2.21.0
     #   rich
 pyparsing==3.3.3
     # via pip-requirements-parser
-pypdf==6.21.2
+pypdf==6.21.4
     # via -r requirements.txt
 pypdfium2==5.13.0
     # via -r requirements.txt
