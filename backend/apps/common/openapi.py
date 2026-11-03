@@ -1,4 +1,9 @@
+from drf_spectacular.authentication import SessionScheme
 from drf_spectacular.utils import OpenApiTypes, PolymorphicProxySerializer, extend_schema
+
+
+class SessionAuthenticationScheme(SessionScheme):
+    target_class = "apps.common.authentication.SessionAuthentication"
 
 
 def annotate_actions():
