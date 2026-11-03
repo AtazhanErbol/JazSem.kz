@@ -2,10 +2,12 @@
 
 import json
 import re
+import ssl
 from types import SimpleNamespace
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+import certifi
 from django.conf import settings
 
 from .budget import release_budget, reserve_budget, settle_budget
@@ -97,9 +99,13 @@ class GeminiProvider:
             headers={"x-goog-api-key": config.api_key, "Content-Type": "application/json"},
             method="POST",
         )
+        # Managed Python runtimes may not include the system CA path compiled
+        # into OpenSSL. Use our pinned CA bundle and keep hostname/certificate
+        # verification enabled, independent of the host's certificate layout.
+        tls_context = ssl.create_default_context(cafile=certifi.where())
         reservation = reserve_budget(payload, schema, output_limit)
         try:
-            with urlopen(request, timeout=None) as response:
+            with urlopen(request, timeout=None, context=tls_context) as response:
                 result = json.load(response)
         except HTTPError as error:
             code = rejection_code(error)
